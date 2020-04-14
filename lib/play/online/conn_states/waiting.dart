@@ -11,6 +11,6 @@ class ConnStateWaiting extends ConnState {
 class ConnStateWaitingState extends State<ConnStateWaiting> {
   @override
   Widget build(BuildContext context) {
-    return Text("connecting");
+    return Center(child: Text("connecting"));
   }
 }

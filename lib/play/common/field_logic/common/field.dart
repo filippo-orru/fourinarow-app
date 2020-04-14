@@ -71,7 +71,7 @@ class Field {
         lastPlayer = cellPlayer;
         combo += 1;
         if (combo == 4) {
-          print("won in first block");
+          // print("won in first block");
           return lastPlayer;
         }
       }
@@ -95,7 +95,7 @@ class Field {
         lastPlayer = cellPlayer;
         combo += 1;
         if (combo == 4) {
-          print("won in second block");
+          // print("won in second block");
           return lastPlayer;
         }
       }
@@ -121,7 +121,7 @@ class Field {
         combo += 1;
         lastPlayer = cell;
         if (combo >= 4) {
-          print("won in y block");
+          // print("won in y block");
           return lastPlayer;
         }
 
@@ -131,7 +131,7 @@ class Field {
         xCombo[y] += 1;
         xPlayer[y] = lastPlayer;
         if (xCombo[y] >= 4) {
-          print("won in x block");
+          // print("won in x block");
           return xPlayer[y];
         }
       }

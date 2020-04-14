@@ -14,6 +14,10 @@ class Error extends GameState {
   GameState handleMessage(ServerMessage msg) {
     return super.handleMessage(msg);
   }
+
+  GameState handlePlayerMessage(PlayerMessage msg) {
+    return null;
+  }
 }
 
 class ErrorState extends State<Error> {
@@ -32,3 +36,5 @@ class Internal extends GameStateError {
   final String message;
   Internal(this.message);
 }
+
+class LobbyClosed extends GameStateError {}

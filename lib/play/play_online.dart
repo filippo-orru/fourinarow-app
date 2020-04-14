@@ -1,23 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/online/server_conn.dart';
+import 'package:four_in_a_row/play/online/server_conn.dart';
 
-class PlayingOnline extends StatefulWidget {
-  final String lobbyCode;
+class PlayingOnline extends StatelessWidget {
+  final ServerConn serverConn;
 
-  PlayingOnline({this.lobbyCode, Key key}) : super(key: key);
-
-  @override
-  _PlayingOnlineState createState() => _PlayingOnlineState(lobbyCode);
-}
-
-class _PlayingOnlineState extends State<PlayingOnline> {
-  ServerConn serverConn;
-
-  _PlayingOnlineState(String lobbyCode) {
-    this.serverConn = ServerConn(lobbyCode, setState);
-  }
+  PlayingOnline({String lobbyCode, Key key})
+      : serverConn = ServerConn(lobbyCode),
+        super(key: key);
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: serverConn.state);
+    return Scaffold(body: serverConn);
   }
 }

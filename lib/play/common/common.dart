@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/field_logic/common/field.dart';
-import 'package:four_in_a_row/field_logic/common/player.dart';
-import 'package:four_in_a_row/field_logic/common/game_chip.dart';
+import 'field_logic/common/field.dart';
+import 'field_logic/common/player.dart';
+import 'field_logic/common/game_chip.dart';
 
 import 'dart:math';
 
@@ -166,16 +166,18 @@ class Board extends StatelessWidget {
 class WinnerOverlay extends StatelessWidget {
   const WinnerOverlay(
     this.winner, {
-    @required Function() fieldReset,
-    @required Widget field,
+    @required Function() onTap,
+    @required Widget board,
+    this.bottomText,
     Key key,
-  })  : this.fieldReset = fieldReset,
-        this.field = field,
+  })  : this.onTap = onTap,
+        this.board = board,
         super(key: key);
 
   final Player winner;
-  final Function() fieldReset;
-  final Widget field;
+  final Function() onTap;
+  final Widget board;
+  final String bottomText;
 
   @override
   Widget build(BuildContext context) {
@@ -225,7 +227,7 @@ class WinnerOverlay extends StatelessWidget {
           ? SizedBox(
               key: ValueKey(0),
               // margin: EdgeInsets.all(32),
-              // child: field,
+              // child: board,
             )
           : Container(
               key: ValueKey(1),
@@ -233,7 +235,7 @@ class WinnerOverlay extends StatelessWidget {
               // color: Colors.black26,
               child: Center(
                 child: GestureDetector(
-                  onTap: () => fieldReset(),
+                  onTap: () => onTap(),
                   child: Container(
                     // margin:
                     //     EdgeInsets.symmetric(horizontal: 32, vertical: 32),
@@ -291,19 +293,19 @@ class WinnerOverlay extends StatelessWidget {
                                   BorderRadius.all(Radius.circular(6)),
                               color: Colors.white,
                             ),
-                            child: IgnorePointer(child: field),
+                            child: IgnorePointer(child: board),
                           ),
                         ),
                         // SizedBox(height: 64),
                         Text(
-                          'Tap to play again!',
+                          bottomText ?? 'Tap to play again!',
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.9),
                             fontWeight: FontWeight.w600,
                             fontStyle: FontStyle.italic,
                             fontSize: 24,
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),

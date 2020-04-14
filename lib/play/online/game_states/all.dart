@@ -17,8 +17,7 @@ abstract class GameState extends StatefulWidget {
   @mustCallSuper
   GameState handleMessage(ServerMessage msg) {
     if (msg is MsgError) {
-      String txt = "An error occurred" +
-          (msg.maybeErr == null ? "" : msg.maybeErr.toString());
+      String txt = "An error occurred" + (msg.maybeErr?.toString() ?? "");
       switch (msg.maybeErr) {
         case MsgErrorType.LobbyNotFound:
           txt = "Could not find this lobby!";
@@ -26,7 +25,11 @@ abstract class GameState extends StatefulWidget {
         default:
       }
       return Error(Internal(txt), this.sink);
+    } else if (msg is MsgLobbyClosing) {
+      return Error(LobbyClosed(), this.sink);
     }
     return null;
   }
+
+  GameState handlePlayerMessage(PlayerMessage msg);
 }

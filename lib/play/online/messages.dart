@@ -66,9 +66,9 @@ extension OnlineMessageExt on ServerMessage {
       if (str.length == 9 + 4) {
         return MsgLobbyResponse(str.substring(9, 9 + 4));
       }
-    } else if (str.startsWith("OPPONENT_JOINED")) {
+    } else if (str.startsWith("OPP_JOINED")) {
       return MsgOppJoined();
-    } else if (str.startsWith("OPPONENT_LEAVING")) {
+    } else if (str.startsWith("OPP_LEAVING")) {
       return MsgOppLeft();
     } else if (str.startsWith("ERROR:")) {
       String errStr = str.substring(6);
@@ -88,6 +88,8 @@ extension OnlineMessageExt on ServerMessage {
         bool myTurn = str.substring(11, 11 + 3) == "YOU";
         return MsgGameStart(myTurn);
       }
+    } else if (str == "LOBBY_CLOSING") {
+      return MsgLobbyClosing();
     }
 
     return null;
@@ -107,7 +109,7 @@ class PlayerMsgPlaceChip extends PlayerMessage {
   }
 }
 
-class PlayerMsgLeaving extends PlayerMessage {
+class PlayerMsgLeave extends PlayerMessage {
   String serialize() {
     return "LEAVE";
   }
@@ -120,10 +122,16 @@ class PlayerMsgLobbyRequest extends PlayerMessage {
 }
 
 class PlayerMsgLobbyJoin extends PlayerMessage {
-  final String id;
-  PlayerMsgLobbyJoin(this.id);
+  final String code;
+  PlayerMsgLobbyJoin(this.code);
 
   String serialize() {
-    return "JOIN_LOBBY:$id";
+    return "JOIN_LOBBY:$code";
+  }
+}
+
+class PlayerMsgPlayAgain extends PlayerMessage {
+  String serialize() {
+    return "PLAY_AGAIN";
   }
 }

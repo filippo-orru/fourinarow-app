@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/field_logic/localField.dart';
-import 'package:four_in_a_row/field_logic/common/player.dart';
+import 'package:four_in_a_row/play/common/field_logic/local_field.dart';
+import 'package:four_in_a_row/play/common/field_logic/common/player.dart';
 import 'package:four_in_a_row/play/common/common.dart';
 
 import 'package:four_in_a_row/util/vibration.dart';
@@ -60,8 +60,8 @@ class _PlayingLocalState extends State<PlayingLocal> {
           ),
           WinnerOverlay(
             field.checkWin(),
-            fieldReset: _fieldReset,
-            field: Board(field, dropChip: _dropChip),
+            onTap: _fieldReset,
+            board: Board(field, dropChip: _dropChip),
           ),
         ],
       ),

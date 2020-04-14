@@ -42,6 +42,16 @@ class OnlineMenuHost extends StatefulWidget {
 class _OnlineMenuHostState extends State<OnlineMenuHost> {
   String lobbyCode;
 
+  void joinLobby() {
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => PlayingOnline(lobbyCode: lobbyCode)));
+  }
+
+  void requestLobby() {
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => PlayingOnline()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Menu(
@@ -56,22 +66,23 @@ class _OnlineMenuHostState extends State<OnlineMenuHost> {
             ArmsButton(
               "Create new game",
               // icon: Icons.wifi_tethering,
-              callback: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => PlayingOnline())),
+              callback: () => requestLobby(),
 
               // borderColor: Colors.black,
             ),
             TextField(
-                autocorrect: false,
-                enableSuggestions: false,
-                maxLength: 4,
-                textCapitalization: TextCapitalization.characters,
-                enableInteractiveSelection: false,
-                onChanged: (s) => lobbyCode = s),
+              autofocus: false,
+              autocorrect: false,
+              enableSuggestions: false,
+              maxLength: 4,
+              textCapitalization: TextCapitalization.characters,
+              enableInteractiveSelection: false,
+              onChanged: (s) => lobbyCode = s,
+              onSubmitted: (_) => joinLobby(),
+            ),
             ArmsButton(
               "Join a game",
-              callback: () => Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => PlayingOnline(lobbyCode: lobbyCode))),
+              callback: () => joinLobby(),
             ),
           ],
         ),

@@ -14,7 +14,18 @@ class Idle extends GameState {
 
   @override
   GameState handleMessage(ServerMessage msg) {
-    return state.handleMessage(msg) ?? super.handleMessage(msg);
+    return super.handleMessage(msg);
+    // state.handleMessage(msg) ??
+  }
+
+  GameState handlePlayerMessage(PlayerMessage msg) {
+    if (msg is PlayerMsgLobbyJoin) {
+      return WaitingForLobbyInfo(this.sink, lobbyCode: msg.code);
+    } else if (msg is PlayerMsgLobbyRequest) {
+      return WaitingForLobbyInfo(this.sink);
+    }
+
+    return null;
   }
 }
 
@@ -23,16 +34,12 @@ class IdleState extends State<Idle> {
 
   IdleState({this.ready = false});
 
-  GameState handleMessage(ServerMessage msg) {
-    if (msg is MsgLobbyResponse) {
-      return InLobby(msg.code, widget.sink);
-    } else if (msg is MsgOppJoined) {
-      ready = true;
-    } else if (msg is MsgGameStart) {
-      return Playing(msg.myTurn, widget.sink);
-    }
-    return null;
-  }
+  // GameState handleMessage(ServerMessage msg) {
+  //   if (msg is MsgLobbyResponse) {
+  //     return InLobby(msg.code, widget.sink);
+  //   }
+  //   return null;
+  // }
 
   @override
   Widget build(BuildContext context) {

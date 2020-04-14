@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/field_logic/online_field.dart';
-import 'package:four_in_a_row/field_logic/common/player.dart';
-
 import '../messages.dart';
 import 'all.dart';
 
@@ -14,10 +11,14 @@ class InLobby extends GameState {
 
   @override
   GameState handleMessage(ServerMessage msg) {
-    if (msg is MsgGameStart) {
-      return Playing(msg.myTurn, this.sink);
+    if (msg is MsgOppJoined) {
+      return InLobbyReady(this.sink);
     }
     return super.handleMessage(msg);
+  }
+
+  GameState handlePlayerMessage(PlayerMessage msg) {
+    return null;
   }
 }
 
@@ -42,5 +43,30 @@ class InLobbyState extends State<InLobby> {
         ],
       ),
     );
+  }
+}
+
+class InLobbyReady extends GameState {
+  InLobbyReady(Sink<PlayerMessage> sink) : super(sink);
+
+  createState() => InLobbyReadyState();
+
+  @override
+  GameState handleMessage(ServerMessage msg) {
+    if (msg is MsgGameStart) {
+      return Playing(msg.myTurn, this.sink);
+    }
+    return super.handleMessage(msg);
+  }
+
+  GameState handlePlayerMessage(PlayerMessage msg) {
+    return null;
+  }
+}
+
+class InLobbyReadyState extends State<InLobbyReady> {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text("Game starting!"));
   }
 }
