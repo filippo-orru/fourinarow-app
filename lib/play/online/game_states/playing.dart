@@ -9,14 +9,14 @@ import 'package:four_in_a_row/util/vibration.dart';
 import 'all.dart';
 
 class Playing extends GameState {
-  // final PlayingState state;
   final bool myTurn;
-  final PlayingState state;
+  final _PlayingState state;
 
   Playing(this.myTurn, Sink<PlayerMessage> sink)
-      : state = PlayingState(myTurn),
+      : state = _PlayingState(myTurn),
         super(sink);
 
+  @override
   createState() => state;
 
   @override
@@ -29,10 +29,10 @@ class Playing extends GameState {
   }
 }
 
-class PlayingState extends State<Playing> {
+class _PlayingState extends State<Playing> {
   OnlineField field;
 
-  PlayingState(bool myTurn) {
+  _PlayingState(bool myTurn) {
     field = OnlineField();
     field.turn = myTurn ? field.me : field.me.other;
   }

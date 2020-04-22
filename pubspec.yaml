@@ -11,7 +11,7 @@ description: A new Flutter project.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.3+1
+version: 1.0.6+4
 
 environment:
   sdk: ">=2.6.0 <3.0.0"
@@ -25,6 +25,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   flutter_vibrate: ^1.0.0
   web_socket_channel: ^1.1.0
+  flutter_keyboard_visibility: ^0.7.0
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +54,27 @@ flutter:
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/assets-and-images/#from-packages
 
+  assets:
+    - assets/img/
+
+  fonts:
+    - family: Arvo
+      fonts:
+        - asset: assets/fonts/Arvo/Arvo-Regular.ttf
+        - asset: assets/fonts/Arvo/Arvo-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Arvo/Arvo-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Arvo/Arvo-BoldItalic.ttf
+          style: italic
+          weight: 700
+    - family: RobotoSlab
+      fonts:
+        - asset: assets/fonts/RobotoSlab/RobotoSlab-Regular.ttf
+        - asset: assets/fonts/RobotoSlab/RobotoSlab-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/RobotoSlab/RobotoSlab-Black.ttf
+          weight: 900
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a

@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:web_socket_channel/io.dart';
 
 import 'package:four_in_a_row/play/online/game_states/all.dart' as game_state;
+import '../play_online.dart';
 import 'conn_states/all.dart';
 import 'messages.dart';
 
 class ServerConn extends StatefulWidget {
-  final String lobbyCode;
-  ServerConn(this.lobbyCode);
+  final OnlineRequest req;
+  ServerConn(this.req);
 
-  createState() => ServerConnState(lobbyCode);
+  createState() => ServerConnState(this.req);
 }
 
 class ServerConnState extends State<ServerConn> {
   ConnState state = ConnStateWaiting();
 
-  ServerConnState(String lobbyCode) {
-    this.state =
-        ConnStateConnected(lobbyCode, changeStateCallback: this.changeState);
+  ServerConnState(OnlineRequest req) {
+    this.state = ConnStateConnected(req, changeStateCallback: this.changeState);
   }
 
   changeState(ConnState newState) {

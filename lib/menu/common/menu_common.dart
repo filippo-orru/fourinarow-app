@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class Menu extends StatelessWidget {
+class MenuWrapper extends StatelessWidget {
   final Widget child;
-  Menu({@required this.child, Key key}) : super(key: key);
+  MenuWrapper({@required this.child, Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -14,13 +14,15 @@ class Menu extends StatelessWidget {
         data: ThemeData(
           backgroundColor: bgCol,
         ),
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: 32, vertical: 32),
-          color: bgCol,
-          child: Center(
-            child: child,
+        child: SafeArea(
+          child: Container(
+            width: double.infinity,
+            height: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 32),
+            color: bgCol,
+            child: Center(
+              child: child,
+            ),
           ),
         ),
       ),
@@ -70,4 +72,21 @@ class _ArmsButtonState extends State<ArmsButton> {
       ),
     );
   }
+}
+
+PageRouteBuilder fadeRoute({@required Widget child, int millDuration = 300}) {
+  final opacityTween =
+      Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.ease));
+  // final sizeTween =
+  //     Tween<double>(begin: 0.9, end: 1).chain(CurveTween(curve: Curves.ease));
+  return PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) => child,
+    transitionDuration: Duration(milliseconds: 300),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: animation.drive(opacityTween),
+        child: child,
+      );
+    },
+  );
 }

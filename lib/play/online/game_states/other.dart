@@ -3,31 +3,8 @@ import 'package:flutter/material.dart';
 import '../messages.dart';
 import 'all.dart';
 
-// class OpponentLeft extends GameState {
-//   // TODO maybe remove in favor of Error(OppLeft)
-//   OpponentLeft(Sink<PlayerMessage> sink) : super(sink);
-
-//   @override
-//   GameState handleMessage(ServerMessage msg) {
-//     return super.handleMessage(msg);
-//   }
-
-//   GameState handlePlayerMessage(PlayerMessage msg) {
-//     return null;
-//   }
-
-//   createState() => OpponentLeftState();
-// }
-
-// class OpponentLeftState extends State<OpponentLeft> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Text("Opponent has left!");
-//   }
-// }
-
 class WaitingForLobbyInfo extends GameState {
-  // final WaitingForLobbyInfoState state;
+  // final _WaitingForLobbyInfoState state;
   final String lobbyCode;
 
   WaitingForLobbyInfo(Sink<PlayerMessage> sink, {this.lobbyCode}) : super(sink);
@@ -46,15 +23,69 @@ class WaitingForLobbyInfo extends GameState {
     return null;
   }
 
-  createState() => WaitingForLobbyInfoState();
+  createState() => _WaitingForLobbyInfoState();
 }
 
-class WaitingForLobbyInfoState extends State<WaitingForLobbyInfo> {
+class _WaitingForLobbyInfoState extends State<WaitingForLobbyInfo> {
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Text(
           widget.lobbyCode == null ? "waiting for server" : "joining lobby"),
+    );
+  }
+}
+
+class WaitingForWWOkay extends GameState {
+  WaitingForWWOkay(Sink<PlayerMessage> sink) : super(sink);
+
+  @override
+  GameState handleMessage(ServerMessage msg) {
+    if (msg is MsgOkay) {
+      return WaitingForWWOpponent(this.sink);
+    }
+    return super.handleMessage(msg);
+  }
+
+  GameState handlePlayerMessage(PlayerMessage msg) {
+    return null;
+  }
+
+  createState() => _WaitingForWWOkayState();
+}
+
+class _WaitingForWWOkayState extends State<WaitingForWWOkay> {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text("waiting..."),
+    );
+  }
+}
+
+class WaitingForWWOpponent extends GameState {
+  WaitingForWWOpponent(Sink<PlayerMessage> sink) : super(sink);
+
+  @override
+  GameState handleMessage(ServerMessage msg) {
+    if (msg is MsgOppJoined) {
+      return InLobbyReady(this.sink);
+    }
+    return super.handleMessage(msg);
+  }
+
+  GameState handlePlayerMessage(PlayerMessage msg) {
+    return null;
+  }
+
+  createState() => _WaitingForWWOpponentState();
+}
+
+class _WaitingForWWOpponentState extends State<WaitingForWWOpponent> {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text("waiting for opponent..."),
     );
   }
 }

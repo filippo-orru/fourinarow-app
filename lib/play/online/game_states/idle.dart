@@ -23,6 +23,8 @@ class Idle extends GameState {
       return WaitingForLobbyInfo(this.sink, lobbyCode: msg.code);
     } else if (msg is PlayerMsgLobbyRequest) {
       return WaitingForLobbyInfo(this.sink);
+    } else if (msg is PlayerMsgWorldwideRequest) {
+      return WaitingForWWOkay(this.sink);
     }
 
     return null;

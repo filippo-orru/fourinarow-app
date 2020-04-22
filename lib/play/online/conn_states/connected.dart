@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../play_online.dart';
 import 'all.dart';
 import 'package:flutter/widgets.dart';
 import 'package:four_in_a_row/play/online/game_states/all.dart' as game_state;
@@ -10,13 +11,12 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 class ConnStateConnected extends ConnState {
   // final ConnStateConnectedState state;
   final Function(ConnState) changeStateCallback;
-  final String lobbyCode;
+  final OnlineRequest req;
 
-  ConnStateConnected(this.lobbyCode,
-      {@required this.changeStateCallback, Key key})
+  ConnStateConnected(this.req, {@required this.changeStateCallback, Key key})
       : super(key: key);
 
-  createState() => ConnStateConnectedState(lobbyCode);
+  createState() => ConnStateConnectedState(req);
 
   // static IOWebSocketChannel createConnection() {
   //   return
@@ -32,7 +32,7 @@ class ConnStateConnectedState extends State<ConnStateConnected> {
 
   game_state.GameState gameState;
 
-  ConnStateConnectedState(String lobbyCode) {
+  ConnStateConnectedState(OnlineRequest req) {
     this._connection = IOWebSocketChannel.connect("wss://fourinarow.ml/game/",
         pingInterval: Duration(seconds: 1));
 
@@ -40,9 +40,13 @@ class ConnStateConnectedState extends State<ConnStateConnected> {
     // this._incoming =
     _mapStream(_connection.stream);
     this.gameState = game_state.Idle(_outgoing);
-    this.sink.add(lobbyCode == null
-        ? PlayerMsgLobbyRequest()
-        : PlayerMsgLobbyJoin(lobbyCode));
+    if (req is ORqLobby) {
+      this.sink.add(req.lobbyCode == null
+          ? PlayerMsgLobbyRequest()
+          : PlayerMsgLobbyJoin(req.lobbyCode));
+    } else if (req is ORqWorldwide) {
+      this.sink.add(PlayerMsgWorldwideRequest());
+    }
   }
 
   // Stream<ServerMessage> get stream => _incoming;

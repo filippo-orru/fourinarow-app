@@ -121,6 +121,12 @@ class PlayerMsgLobbyRequest extends PlayerMessage {
   }
 }
 
+class PlayerMsgWorldwideRequest extends PlayerMessage {
+  String serialize() {
+    return "REQ_WW";
+  }
+}
+
 class PlayerMsgLobbyJoin extends PlayerMessage {
   final String code;
   PlayerMsgLobbyJoin(this.code);
