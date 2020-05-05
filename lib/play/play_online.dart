@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/play/online/server_conn.dart';
+import 'package:four_in_a_row/models/user.dart';
 
 class PlayingOnline extends StatelessWidget {
   final ServerConn serverConn;
 
-  PlayingOnline({@required OnlineRequest req, Key key})
-      : serverConn = ServerConn(req),
+  PlayingOnline(UserinfoProviderState userInfo,
+      {@required OnlineRequest req, Key key})
+      : serverConn = ServerConn(req, userInfo),
         super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: serverConn);
@@ -21,10 +24,3 @@ class ORqLobby extends OnlineRequest {
 }
 
 class ORqWorldwide extends OnlineRequest {}
-
-class PlayingOnlineWW extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text("coming soon")));
-  }
-}

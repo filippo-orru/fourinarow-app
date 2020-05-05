@@ -35,7 +35,7 @@ class _PlayButtonState extends State<PlayButton>
   Animation<double> ceilOpacity;
   Animation<double> growFade;
 
-  static const int growAnimDuration = 240;
+  static const int GROW_ANIM_DURATION = 240;
 
   RouteObserverProvider observerProvider;
 
@@ -64,11 +64,12 @@ class _PlayButtonState extends State<PlayButton>
   void initState() {
     super.initState();
     sizeAnimController = AnimationController(
-        duration: Duration(milliseconds: growAnimDuration), vsync: this);
+        duration: Duration(milliseconds: (GROW_ANIM_DURATION / 3).floor()),
+        vsync: this);
     final sizeCurvedAnimation = CurvedAnimation(
       parent: sizeAnimController,
-      curve: Curves.easeIn,
-      reverseCurve: Curves.easeOut,
+      curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
     );
     circleSize =
         Tween<double>(begin: 1, end: 0.85).animate(sizeCurvedAnimation);
@@ -76,8 +77,8 @@ class _PlayButtonState extends State<PlayButton>
     // sizeAnimController.reset();
 
     growSizeAnimController = AnimationController(
-        duration: Duration(milliseconds: growAnimDuration),
-        reverseDuration: Duration(milliseconds: 2 * growAnimDuration),
+        duration: Duration(milliseconds: GROW_ANIM_DURATION),
+        reverseDuration: Duration(milliseconds: 2 * GROW_ANIM_DURATION),
         vsync: this);
     final growSizeCurvedAnimation = CurvedAnimation(
       parent: growSizeAnimController,
@@ -106,7 +107,7 @@ class _PlayButtonState extends State<PlayButton>
         sizeAnimController.reverse();
         growSizeAnimController.forward();
         // widget.onTap();
-        Future.delayed(Duration(milliseconds: (growAnimDuration / 3).floor()),
+        Future.delayed(Duration(milliseconds: (GROW_ANIM_DURATION / 3).floor()),
             () {
           widget.onTap();
         });

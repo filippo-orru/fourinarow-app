@@ -1,12 +1,60 @@
 import 'package:flutter/material.dart';
 
-class GameChip extends StatefulWidget {
-  const GameChip(
-    this.cellColor, {
-    Key key,
-  }) : super(key: key);
+class WinningGameChip extends StatefulWidget {
+  WinningGameChip(Color cellColor)
+      : _cellColor = cellColor,
+        super(key: ValueKey(cellColor));
 
-  final Color cellColor;
+  final Color _cellColor;
+
+  @override
+  _WinningGameChipState createState() => _WinningGameChipState();
+}
+
+class _WinningGameChipState extends State<WinningGameChip>
+    with SingleTickerProviderStateMixin {
+  Animation<double> animation;
+  AnimationController animController;
+
+  @override
+  initState() {
+    super.initState();
+    animController =
+        AnimationController(duration: Duration(milliseconds: 700), vsync: this);
+    animation =
+        CurvedAnimation(curve: Curves.easeInOutQuint, parent: animController);
+
+    // Future.delayed(Duration(milliseconds: 200), () {
+    animController.forward();
+    // });
+  }
+
+  @override
+  dispose() {
+    animController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        GameChip(widget._cellColor),
+        ScaleTransition(
+          scale: Tween<double>(begin: 0, end: 0.7).animate(animation),
+          child: GameChipStatic(Colors.white54),
+        ),
+      ],
+    );
+  }
+}
+
+class GameChip extends StatefulWidget {
+  GameChip(Color cellColor)
+      : _cellColor = cellColor,
+        super(key: ValueKey(cellColor));
+
+  final Color _cellColor;
 
   @override
   _GameChipState createState() => _GameChipState();
@@ -45,7 +93,7 @@ class _GameChipState extends State<GameChip>
   Widget build(BuildContext context) {
     return ScaleTransition(
       scale: Tween<double>(begin: 0.2, end: 1).animate(animation),
-      child: GameChipStatic(widget.cellColor),
+      child: GameChipStatic(widget._cellColor),
     );
   }
 }

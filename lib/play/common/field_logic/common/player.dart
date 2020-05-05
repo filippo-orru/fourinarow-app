@@ -6,20 +6,31 @@ extension PlayerExtension on Player {
   Color color() {
     switch (this) {
       case Player.One:
-        return Colors.red;
-      case Player.Two:
         return Colors.blue;
+      case Player.Two:
+        return Colors.red;
       default:
         return null;
     }
   }
 
-  String get word {
+  String get colorWord {
     switch (this) {
       case Player.One:
-        return "Red";
-      case Player.Two:
         return "Blue";
+      case Player.Two:
+        return "Red";
+      default:
+        return null;
+    }
+  }
+
+  String get playerWord {
+    switch (this) {
+      case Player.One:
+        return "You";
+      case Player.Two:
+        return "Enemy";
       default:
         return null;
     }

@@ -45,8 +45,6 @@ class IdleState extends State<Idle> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text("Idle. Ready: $ready"),
-    );
+    return SizedBox();
   }
 }

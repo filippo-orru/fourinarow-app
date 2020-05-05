@@ -22,7 +22,9 @@ enum MsgErrorType {
   GameAlreadyOver,
   AlreadyPlaying,
   LobbyNotFound,
-  InvalidColumn
+  InvalidColumn,
+  IncorrectCredentials,
+  AlreadyLoggedIn
 }
 
 extension MsgErrorTypeExt on MsgErrorType {
@@ -39,6 +41,10 @@ extension MsgErrorTypeExt on MsgErrorType {
       return MsgErrorType.LobbyNotFound;
     else if (str == "InvalidColumn")
       return MsgErrorType.InvalidColumn;
+    else if (str == "IncorrectCredentials")
+      return MsgErrorType.IncorrectCredentials;
+    else if (str == "AlreadyLoggedIn")
+      return MsgErrorType.AlreadyLoggedIn;
     else
       return null;
   }
@@ -53,7 +59,9 @@ class MsgLobbyResponse extends ServerMessage {
 
 class MsgGameStart extends ServerMessage {
   final bool myTurn;
-  MsgGameStart(this.myTurn);
+  final String opponentId;
+
+  MsgGameStart(this.myTurn, [this.opponentId]);
 }
 
 class MsgLobbyClosing extends ServerMessage {}
@@ -83,16 +91,25 @@ extension OnlineMessageExt on ServerMessage {
         return MsgPlaceChip(row);
         // }
       }
-    } else if (str.startsWith("GAME_START:")) {
-      if (str.length == 11 + 3) {
-        bool myTurn = str.substring(11, 11 + 3) == "YOU";
+    } else if (str.startsWith("GAME_START")) {
+      List<String> parts = str.split(":");
+      if (parts.length == 2) {
+        bool myTurn = parts[1] == "YOU";
         return MsgGameStart(myTurn);
+      } else if (parts.length == 3) {
+        bool myTurn = parts[1] == "YOU";
+        String opponentId = parts[2];
+        return MsgGameStart(myTurn, opponentId);
       }
     } else if (str == "LOBBY_CLOSING") {
       return MsgLobbyClosing();
     }
 
     return null;
+  }
+
+  bool get isConfirmation {
+    return this is MsgOkay || this is MsgLobbyResponse || this is MsgError;
   }
 }
 
@@ -139,5 +156,16 @@ class PlayerMsgLobbyJoin extends PlayerMessage {
 class PlayerMsgPlayAgain extends PlayerMessage {
   String serialize() {
     return "PLAY_AGAIN";
+  }
+}
+
+class PlayerMsgLogin extends PlayerMessage {
+  PlayerMsgLogin(this.username, this.password);
+
+  final String username;
+  final String password;
+
+  String serialize() {
+    return "LOGIN:$username#$password";
   }
 }

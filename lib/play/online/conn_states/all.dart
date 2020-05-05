@@ -1,5 +1,5 @@
 export 'connected.dart';
-export 'error.dart';
+// export 'error.dart';
 export 'waiting.dart';
 
 import 'package:flutter/widgets.dart';

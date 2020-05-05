@@ -12,19 +12,21 @@ import 'error.dart';
 
 abstract class GameState extends StatefulWidget {
   final Sink<PlayerMessage> sink;
+
   GameState(this.sink);
 
   @mustCallSuper
   GameState handleMessage(ServerMessage msg) {
     if (msg is MsgError) {
-      String txt = "An error occurred" + (msg.maybeErr?.toString() ?? "");
+      // String txt = "An error occurred" + (msg.maybeErr?.toString() ?? "");
       switch (msg.maybeErr) {
         case MsgErrorType.LobbyNotFound:
-          txt = "Could not find this lobby!";
-          break;
+          return Error(LobbyNotFound(), this.sink);
+        case MsgErrorType.AlreadyPlaying:
+          return Error(AlreadyPlaying(), this.sink);
         default:
       }
-      return Error(Internal(txt), this.sink);
+      return Error(Internal(false), this.sink);
     } else if (msg is MsgLobbyClosing) {
       return Error(LobbyClosed(), this.sink);
     }

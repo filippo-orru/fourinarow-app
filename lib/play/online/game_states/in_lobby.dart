@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import '../messages.dart';
 import 'all.dart';
@@ -54,7 +57,7 @@ class InLobbyReady extends GameState {
   @override
   GameState handleMessage(ServerMessage msg) {
     if (msg is MsgGameStart) {
-      return Playing(msg.myTurn, this.sink);
+      return Playing(msg.myTurn, msg.opponentId, this.sink);
     }
     return super.handleMessage(msg);
   }
@@ -65,8 +68,54 @@ class InLobbyReady extends GameState {
 }
 
 class InLobbyReadyState extends State<InLobbyReady> {
+  bool longerThanExpected = false;
+  Timer longerThanExpectedTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    longerThanExpectedTimer = Timer(
+        Duration(seconds: 3), () => setState(() => longerThanExpected = true));
+  }
+
+  @override
+  void dispose() {
+    longerThanExpectedTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(child: Text("Game starting!"));
+    return Center(
+      child: AnimatedSwitcher(
+        duration: Duration(milliseconds: 300),
+        child: longerThanExpected
+            ? CircularProgressIndicator()
+            : TweenAnimationBuilder(
+                tween: Tween<double>(begin: 0.0, end: 1.0),
+                curve: Curves.slowMiddle,
+                duration: Duration(milliseconds: 1500),
+                builder: (ctx, value, child) {
+                  double opacity = value;
+                  if (value >= 0.5) opacity = 1 - opacity;
+                  return Opacity(
+                    opacity: 2 * opacity,
+                    child: Transform.translate(
+                      offset:
+                          Offset.lerp(Offset(-100, 0), Offset(100, 0), value),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Text(
+                  "Game starting!",
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+      ),
+    );
   }
 }

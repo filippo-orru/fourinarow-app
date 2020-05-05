@@ -61,57 +61,94 @@ class PlaySelectionContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        padding: EdgeInsets.all(36),
+        constraints: BoxConstraints.expand(),
+        padding:
+            EdgeInsets.all(min(MediaQuery.of(context).size.width * 0.08, 36)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Flexible(
-              flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Four in a Row",
-                    style: TextStyle(
-                      fontFamily: 'Arvo',
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 24,
-                    ),
-                  ),
-                  Text(
-                    this.title,
-                    style: TextStyle(
-                      fontFamily: 'RobotoSlab',
-                      color: Colors.white,
-                      fontSize: 42,
-                      // fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    this.description,
-                    style: TextStyle(
-                      // fontFamily: 'RobotoSlab',
-                      color: Colors.white70,
-                      fontSize: 20,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
+            // Flexible(
+            //   flex: 4,
+            //   child:
+            // FittedBox(
+            //   child:
+            buildHeading(),
+            // ),
+            // ),
+            SizedBox(height: 12),
+            // ),
+            // Flexible(
+            //   flex: 5,
+            //   child:
+            Expanded(
+              flex: 1,
+              child: Align(
+                alignment: Alignment.center,
+                child: content ?? SizedBox(),
               ),
             ),
-            Center(
-              child: content ??
-                  PlayButton(
-                    label: 'Go!',
-                    color: Colors.white38,
-                    onTap: () => Navigator.of(context).push(route),
-                  ),
+            // ),
+            // Flexible(child:
+            // LimitedBox(
+            //   maxHeight: 48,
+            //   child:
+            SizedBox(height: 12),
+            // ),
+            // Flexible(
+            //   flex: 4,
+            //   child:
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: FittedBox(
+                child: PlayButton(
+                  label: 'Go!',
+                  color: Colors.white38,
+                  onTap: () => Navigator.of(context).push(route),
+                ),
+              ),
             ),
-            SizedBox(height: 64),
+            // Flexible(child:
+            SizedBox(height: 96)
+            // ),
           ],
         ),
       ),
+    );
+  }
+
+  Column buildHeading() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          "Four in a Row",
+          style: TextStyle(
+            fontFamily: 'RobotoSlab',
+            color: Colors.white.withOpacity(0.8),
+            fontSize: 24,
+          ),
+        ),
+        Text(
+          this.title,
+          style: TextStyle(
+            fontFamily: 'RobotoSlab',
+            color: Colors.white,
+            fontSize: 42,
+            // fontWeight: FontWeight.w700,
+          ),
+        ),
+        Text(
+          this.description,
+          style: TextStyle(
+            // fontFamily: 'RobotoSlab',
+            color: Colors.white70,
+            fontSize: 20,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
     );
   }
 }

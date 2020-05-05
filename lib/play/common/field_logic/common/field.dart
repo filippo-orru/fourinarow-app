@@ -1,8 +1,12 @@
+import 'dart:math';
+
+import 'package:four_in_a_row/util/vibration.dart';
+
 import 'player.dart';
 
 class Field {
   static const int fieldSize = 7;
-  List<List<Player>> _field;
+  List<List<Player>> _array;
   int _chips = 0;
   Player turn = Player.One;
 
@@ -10,27 +14,32 @@ class Field {
     this.reset();
   }
 
+  void vibrate() {
+    Vibrations.turnChange();
+  }
+
   dropChip(int column) {
     dropChipNamed(column, turn);
   }
 
   dropChipNamed(int column, Player p) {
-    int len = _field[column].length;
+    vibrate();
+    int len = _array[column].length;
     for (var i = 0; i <= len; i++) {
-      if (i == len || _field[column][i] != null) {
-        _field[column][i - 1] = turn;
+      if (i == len || _array[column][i] != null) {
+        _array[column][i - 1] = turn;
         break;
       }
     }
     turn = turn.other;
   }
 
-  List<List<Player>> get() {
-    return _field;
+  List<List<Player>> get array {
+    return _array;
   }
 
   bool get isEmpty {
-    for (List<Player> column in _field) {
+    for (List<Player> column in _array) {
       if (column.any((c) => c != null)) {
         // print("field not empty");
         return false;
@@ -45,13 +54,13 @@ class Field {
   // Player get turn => _turn;
 
   reset() {
-    _field = List.generate(
+    _array = List.generate(
         fieldSize, (_) => List.filled(fieldSize, null, growable: false),
         growable: false);
     turn = Player.One;
   }
 
-  Player checkWin() {
+  WinDetails checkWin() {
     const int range = fieldSize - 4;
     for (int r = -range; r <= range; r++) {
       Player lastPlayer;
@@ -60,7 +69,7 @@ class Field {
         if (i + r < 0 || i + r >= fieldSize) {
           continue;
         }
-        final cellPlayer = _field[i + r][i];
+        final cellPlayer = _array[i + r][i];
         if (cellPlayer == null) {
           combo = 0;
           lastPlayer = null;
@@ -72,7 +81,9 @@ class Field {
         combo += 1;
         if (combo == 4) {
           // print("won in first block");
-          return lastPlayer;
+          return WinDetails(lastPlayer, Point(i + r, i), Point(-1, -1));
+          // return WinDetails(
+          //     lastPlayer, Point(i + r - range, i - range), Point(i + r, i));
         }
       }
 
@@ -84,7 +95,7 @@ class Field {
           continue;
         }
         int realY = fieldSize - 1 - i;
-        final cellPlayer = _field[i + r][realY];
+        final cellPlayer = _array[i + r][realY];
         if (cellPlayer == null) {
           combo = 0;
           lastPlayer = null;
@@ -96,7 +107,9 @@ class Field {
         combo += 1;
         if (combo == 4) {
           // print("won in second block");
-          return lastPlayer;
+          return WinDetails(lastPlayer, Point(i + r, i), Point(1, 1));
+          // return WinDetails(
+          //     lastPlayer, Point(i + r + range, i + range), Point(i + r, i));
         }
       }
     }
@@ -108,7 +121,7 @@ class Field {
     // List.generate(fieldSize, (_) => List(), growable: false);
     for (int x = 0; x < fieldSize; x++) {
       for (int y = 0; y < fieldSize; y++) {
-        Player cell = _field[x][y];
+        Player cell = _array[x][y];
         if (cell == null) {
           combo = 0;
           lastPlayer = null;
@@ -122,7 +135,7 @@ class Field {
         lastPlayer = cell;
         if (combo >= 4) {
           // print("won in y block");
-          return lastPlayer;
+          return WinDetails(lastPlayer, Point(x, y), Point(0, -1));
         }
 
         if (cell != xPlayer[y]) {
@@ -132,11 +145,26 @@ class Field {
         xPlayer[y] = lastPlayer;
         if (xCombo[y] >= 4) {
           // print("won in x block");
-          return xPlayer[y];
+          return WinDetails(lastPlayer, Point(x, y), Point(-1, 0));
         }
       }
     }
 
     return null;
+  }
+}
+
+class WinDetails {
+  final bool me;
+  final Player player;
+  final Point<int> start;
+  final Point<int> delta;
+
+  WinDetails(this.player, this.start, this.delta)
+      : this.me = player == Player.One;
+
+  @override
+  String toString() {
+    return "WinDetails: $player (${me ? "Me" : "Opp."}). Start: $start, delta: $delta";
   }
 }

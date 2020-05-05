@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:web_socket_channel/io.dart';
-
-import 'package:four_in_a_row/play/online/game_states/all.dart' as game_state;
+import 'package:four_in_a_row/models/user.dart';
 import '../play_online.dart';
 import 'conn_states/all.dart';
-import 'messages.dart';
 
 class ServerConn extends StatefulWidget {
   final OnlineRequest req;
-  ServerConn(this.req);
+  final UserinfoProviderState userInfo;
 
-  createState() => ServerConnState(this.req);
+  ServerConn(this.req, this.userInfo);
+
+  createState() => ServerConnState();
 }
 
 class ServerConnState extends State<ServerConn> {
   ConnState state = ConnStateWaiting();
 
-  ServerConnState(OnlineRequest req) {
-    this.state = ConnStateConnected(req, changeStateCallback: this.changeState);
+  @override
+  void initState() {
+    super.initState();
+    this.state = ConnStateConnected(widget.req,
+        changeStateCallback: this.changeState, userInfo: widget?.userInfo);
   }
 
   changeState(ConnState newState) {
@@ -28,7 +30,8 @@ class ServerConnState extends State<ServerConn> {
 
   @override
   Widget build(BuildContext context) {
-    return this.state;
+    return AnimatedSwitcher(
+        duration: Duration(milliseconds: 200), child: this.state);
   }
 
   // _setupConnection(String lobbyCode) {

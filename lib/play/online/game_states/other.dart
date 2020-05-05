@@ -29,10 +29,10 @@ class WaitingForLobbyInfo extends GameState {
 class _WaitingForLobbyInfoState extends State<WaitingForLobbyInfo> {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-          widget.lobbyCode == null ? "waiting for server" : "joining lobby"),
-    );
+    String title =
+        widget.lobbyCode == null ? "Contacting Server..." : "Joining Lobby...";
+    String label = "This may take some time";
+    return LoadingScreen(title: title, label: label);
   }
 }
 
@@ -57,9 +57,8 @@ class WaitingForWWOkay extends GameState {
 class _WaitingForWWOkayState extends State<WaitingForWWOkay> {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text("waiting..."),
-    );
+    String title = "Contacting Server...";
+    return LoadingScreen(title: title);
   }
 }
 
@@ -84,8 +83,47 @@ class WaitingForWWOpponent extends GameState {
 class _WaitingForWWOpponentState extends State<WaitingForWWOpponent> {
   @override
   Widget build(BuildContext context) {
+    String title = "Searching for opponent...";
+    String label = "This may take some time";
+    return LoadingScreen(title: title, label: label);
+  }
+}
+
+class LoadingScreen extends StatelessWidget {
+  const LoadingScreen({
+    Key key,
+    @required this.title,
+    this.label,
+  }) : super(key: key);
+
+  final String title;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
-      child: Text("waiting for opponent..."),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+            ),
+          ),
+          SizedBox(height: 8),
+          label != null
+              ? Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 15,
+                  ),
+                )
+              : SizedBox(),
+          SizedBox(height: 18),
+          CircularProgressIndicator(),
+        ],
+      ),
     );
   }
 }

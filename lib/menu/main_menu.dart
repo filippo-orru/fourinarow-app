@@ -1,8 +1,14 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/main.dart';
+import 'package:four_in_a_row/menu/account/friends.dart';
+import 'package:four_in_a_row/menu/account/onboarding/onboarding.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
-
+import 'package:four_in_a_row/models/user.dart';
 import 'common/play_button.dart';
+
+import 'package:url_launcher/url_launcher.dart';
 
 class MainMenu extends StatefulWidget {
   const MainMenu({
@@ -30,52 +36,222 @@ class MainMenu extends StatefulWidget {
   }
 }
 
+PageRouteBuilder slideUpRoute(Widget content) {
+  final offset = Tween<Offset>(begin: Offset(0, 0.25), end: Offset.zero)
+      .chain(CurveTween(curve: Curves.ease));
+
+  final opacity = Tween<double>(begin: 0, end: 1).chain(
+    CurveTween(curve: Curves.easeInOut),
+  );
+  return PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) => content,
+    transitionDuration: Duration(milliseconds: 220),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: animation.drive(opacity),
+        child: SlideTransition(
+          position: animation.drive(offset),
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
 class _MainMenuState extends State<MainMenu> {
   RouteObserverProvider observerProvider;
+  bool loadingUserInfo = false;
+
+  void accountCheck(BuildContext context, {bool force = false}) async {
+    var userInfo = UserinfoProvider.of(context);
+    if (userInfo?.loggedIn == true) {
+      Navigator.of(context).push(slideUpRoute(FriendsList(userInfo)));
+      return;
+    }
+    if (userInfo?.refreshing == true && !force) {
+      setState(() => loadingUserInfo = true);
+
+      Future.delayed(Duration(milliseconds: 1800),
+          () => accountCheck(context, force: true));
+    } else {
+      setState(() => loadingUserInfo = false);
+      Navigator.of(context).push(slideUpRoute(AccountOnboarding()));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         child: Column(
           // mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Flexible(
-              flex: 3,
-              fit: FlexFit.tight,
-              child: Center(
-                // padding: EdgeInsets.symmetric(vertical: 48),
-                // height: 48,
-                child: Text(
-                  "Four in a Row".toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontFamily: "RobotoSlab",
-                    letterSpacing: 1,
-                    // fontWeight: FontWeight.w900,
-                    // fontStyle: FontStyle.italic
-                  ),
-                ),
-              ),
+              flex: 10,
+              // fit: FlexFit.tight,
+              child: buildTitle(context),
             ),
+            Flexible(flex: 4, child: Container()),
             Flexible(
-              flex: 2,
+              flex: 4,
               fit: FlexFit.tight,
-              child: Center(
-                child: PlayButton(
-                  label: 'Play',
-                  color: Colors.redAccent,
-                  diameter: 128,
-                  onTap: () {
-                    // _buttonExpanded = true;
-                    Navigator.of(context).push(PlaySelection.route());
-                  },
-                ),
-              ),
+              child: buildPlayButton(context),
             ),
             SizedBox(height: 48),
+            Container(
+              margin: EdgeInsets.only(bottom: 32, left: 24, right: 24),
+              child: buildBottomBar(context),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Stack buildBottomBar(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SmallColorButton(
+              label: 'donate',
+              icon: Icons.attach_money,
+              color: Colors.green[300],
+              onTap: () => launch('https://paypal.me/ffactory'),
+            ),
+            Stack(
+              children: [
+                SmallColorButton(
+                  icon: Icons.people,
+                  color: Colors.purple[300],
+                  onTap: () => accountCheck(context),
+                ),
+                loadingUserInfo ? CircularProgressIndicator() : SizedBox(),
+              ],
+            ),
+          ],
+        ),
+        Text('• Filippo Orru, 2020 •'.toUpperCase(),
+            style: TextStyle(
+              letterSpacing: 0.5,
+              color: Colors.black54,
+              fontWeight: FontWeight.bold,
+              // fontStyle: FontStyle.italic,
+            )),
+      ],
+    );
+  }
+
+  Center buildPlayButton(BuildContext context) {
+    return Center(
+      child: PlayButton(
+        label: 'Play',
+        color: Colors.redAccent,
+        diameter: 128,
+        onTap: () {
+          // _buttonExpanded = true;
+          Navigator.of(context).push(PlaySelection.route());
+        },
+      ),
+    );
+  }
+
+  Container buildTitle(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      constraints: BoxConstraints.expand(
+          width: max(0, MediaQuery.of(context).size.width - 48)),
+      // padding: EdgeInsets.symmetric(vertical: 48),
+      // height: 48,
+      child: FittedBox(
+        // fit: BoxFit.contain,
+        child: Text(
+          "Four in a Row".toUpperCase(),
+          style: TextStyle(
+            fontSize: 40,
+            fontFamily: "RobotoSlab",
+            letterSpacing: 1,
+            // fontWeight: FontWeight.w900,
+            // fontStyle: FontStyle.italic
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SmallColorButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const SmallColorButton({
+    Key key,
+    this.label,
+    @required this.icon,
+    @required this.color,
+    @required this.onTap,
+  }) : super(key: key);
+
+  @override
+  _SmallColorButtonState createState() => _SmallColorButtonState();
+}
+
+class _SmallColorButtonState extends State<SmallColorButton>
+    with SingleTickerProviderStateMixin {
+  AnimationController animCtrl;
+
+  bool expanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    animCtrl = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 90),
+      reverseDuration: Duration(milliseconds: 125),
+    );
+    animCtrl.drive(CurveTween(curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    this.animCtrl.dispose();
+    super.dispose();
+  }
+  // TODO : make container go wide on first tap if label is specified
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => animCtrl.forward(),
+      onTapUp: (_) => animCtrl.reverse(),
+      onTapCancel: animCtrl.reverse,
+      onTap: this.widget.onTap,
+      child: AnimatedBuilder(
+        animation: animCtrl,
+        builder: (_, child) => Stack(
+          alignment: Alignment.center,
+          children: [
+            Transform.scale(scale: 1 + animCtrl.value / 4, child: child),
+            Transform.scale(
+                scale: 1 + animCtrl.value / 8,
+                child: Icon(widget.icon, color: Colors.white)),
+          ],
+        ),
+        child: Container(
+          width: 38,
+          height: 38,
+          padding: EdgeInsets.only(left: 1),
+          decoration: BoxDecoration(
+            color: widget.color,
+            borderRadius: BorderRadius.all(Radius.circular(100)),
+          ),
         ),
       ),
     );

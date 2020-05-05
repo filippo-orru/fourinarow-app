@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:four_in_a_row/models/user.dart';
 
 import 'menu/main_menu.dart';
 
@@ -54,26 +55,38 @@ class _MyAppState extends State<MyApp> {
       },
       child: RouteObserverProvider(
         observer: routeObserver,
-        child: WidgetsApp(
-          localizationsDelegates: [DefaultMaterialLocalizations.delegate],
-          title: 'Four in a Row',
-          color: Colors.green,
-          initialRoute: "/",
-          pageRouteBuilder: <T>(RouteSettings settings,
-              Widget Function(BuildContext) builder) {
-            return MaterialPageRoute<T>(builder: builder, settings: settings);
+        child: GestureDetector(
+          onTap: () {
+            FocusScopeNode currentFocus = FocusScope.of(context);
+
+            if (!currentFocus.hasPrimaryFocus) {
+              currentFocus.unfocus();
+            }
           },
-          // routes: {
-          //   "/": (context) => MainMenu(),
-          // "/playOverview": (_) => PlayOverviewMenu(),
-          // "/local/play": (context) => PlayingLocal(),
-          // "/online/selectRange": (context) => OnlineMenuRange(),
-          // "/online/selectHost": (context) => OnlineMenuHost(),
-          // "/online/play": (context) => PlayingOnline(),
-          // },
-          home: MainMenu(),
-          debugShowCheckedModeBanner: false,
-          navigatorObservers: [routeObserver],
+          child: UserinfoProvider(
+            child: WidgetsApp(
+              localizationsDelegates: [DefaultMaterialLocalizations.delegate],
+              title: 'Four in a Row',
+              color: Colors.green,
+              initialRoute: "/",
+              pageRouteBuilder: <T>(RouteSettings settings,
+                  Widget Function(BuildContext) builder) {
+                return MaterialPageRoute<T>(
+                    builder: builder, settings: settings);
+              },
+              // routes: {
+              //   "/": (context) => MainMenu(),
+              // "/playOverview": (_) => PlayOverviewMenu(),
+              // "/local/play": (context) => PlayingLocal(),
+              // "/online/selectRange": (context) => OnlineMenuRange(),
+              // "/online/selectHost": (context) => OnlineMenuHost(),
+              // "/online/play": (context) => PlayingOnline(),
+              // },
+              home: MainMenu(),
+              debugShowCheckedModeBanner: false,
+              navigatorObservers: [routeObserver],
+            ),
+          ),
         ),
       ),
     );

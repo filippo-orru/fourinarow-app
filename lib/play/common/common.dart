@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:four_in_a_row/util/vibration.dart';
 import 'field_logic/common/field.dart';
 import 'field_logic/common/player.dart';
 import 'field_logic/common/game_chip.dart';
@@ -86,7 +87,7 @@ class TurnIndicator extends StatelessWidget {
             );
           },
           child: Text(
-            turn.word,
+            turn.colorWord,
             key: ValueKey(turn),
             style: TextStyle(
                 fontSize: 32,
@@ -113,52 +114,119 @@ class Board extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: Container(
-        constraints: BoxConstraints.expand(),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: _field
-              .get()
-              .asMap()
-              .map((x, column) {
-                return MapEntry(
-                  x,
-                  Expanded(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.translucent,
-                      onTap: () {
-                        _dropChip(x);
-                      },
-                      child: Container(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: column.map((cell) {
-                            // Color cellColor = Colors.black38;
-                            Widget chip = Container();
-                            if (cell == Player.One) {
-                              chip = GameChip(Colors.red);
-                            } else if (cell == Player.Two) {
-                              chip = GameChip(Colors.blue);
-                            }
-                            return Expanded(
-                              child: Stack(children: [
-                                GameChipStatic(Color(0xFFDEDEDE)),
-                                chip,
-                              ]),
-                            );
-                          }).toList(),
-                        ),
-                      ),
+    WinDetails details = _field.checkWin();
+
+    return ConstrainedBox(
+      // constraints: BoxConstraints.expand(),
+      constraints: BoxConstraints.loose(Size(
+        MediaQuery.of(context).size.width - 64,
+        MediaQuery.of(context).size.width - 64,
+      )),
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Container(
+          constraints: BoxConstraints.expand(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: _field.array
+                .asMap()
+                .map((x, column) {
+                  return MapEntry(
+                    x,
+                    _CreateRow(
+                      x,
+                      dropChip: _dropChip,
+                      details: details,
+                      column: column,
                     ),
-                  ),
-                );
-              })
-              .values
-              .toList(),
+                  );
+                })
+                .values
+                .toList(),
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _CreateRow extends StatelessWidget {
+  const _CreateRow(
+    this.x, {
+    Key key,
+    @required this.column,
+    @required Function(int) dropChip,
+    @required this.details,
+  })  : _dropChip = dropChip,
+        super(key: key);
+
+  final int x;
+  final List<Player> column;
+  final Function(int) _dropChip;
+  final WinDetails details;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => _dropChip(x),
+        child: Container(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: column
+                .asMap()
+                .map((y, cell) {
+                  return MapEntry(
+                    y,
+                    _CreateCell(
+                      Point<int>(x, y),
+                      cell: cell,
+                      details: details,
+                    ),
+                  );
+                })
+                .values
+                .toList(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CreateCell extends StatelessWidget {
+  _CreateCell(this.point,
+      {@required this.cell, @required this.details, Key key})
+      : super(key: key);
+
+  final Point<int> point;
+  final Player cell;
+  final WinDetails details;
+  @override
+  Widget build(BuildContext context) {
+    Widget chip = SizedBox();
+
+    if (cell != null) {
+      chip = GameChip(cell.color());
+    }
+
+    if (details != null) {
+      if (details.player == cell) {
+        Point<int> pointDelta = point - details.start;
+        for (int i = -4; i < 4; i++) {
+          if (pointDelta + details.delta * i == details.delta * 3) {
+            chip = WinningGameChip(cell.color());
+            break;
+          }
+        }
+      }
+    }
+    return Expanded(
+      child: Stack(children: [
+        GameChipStatic(Color(0xFFDEDEDE)),
+        chip,
+      ]),
     );
   }
 }
@@ -166,21 +234,24 @@ class Board extends StatelessWidget {
 class WinnerOverlay extends StatelessWidget {
   const WinnerOverlay(
     this.winner, {
-    @required Function() onTap,
-    @required Widget board,
+    this.useColorNames = true,
+    @required this.onTap,
+    @required this.board,
     this.bottomText,
+    this.ranked = false,
     Key key,
-  })  : this.onTap = onTap,
-        this.board = board,
-        super(key: key);
+  }) : super(key: key);
 
-  final Player winner;
+  final WinDetails winner;
+  final bool useColorNames;
   final Function() onTap;
-  final Widget board;
+  final Board board;
   final String bottomText;
+  final bool ranked;
 
   @override
   Widget build(BuildContext context) {
+    // print("checkwin: $winner");
     return AnimatedSwitcher(
       duration: Duration(milliseconds: 280),
       reverseDuration: Duration(milliseconds: 350),
@@ -224,41 +295,34 @@ class WinnerOverlay extends StatelessWidget {
         );
       },
       child: winner == null
-          ? SizedBox(
-              key: ValueKey(0),
-              // margin: EdgeInsets.all(32),
-              // child: board,
-            )
-          : Container(
-              key: ValueKey(1),
-              constraints: BoxConstraints.expand(),
-              // color: Colors.black26,
-              child: Center(
-                child: GestureDetector(
-                  onTap: () => onTap(),
-                  child: Container(
-                    // margin:
-                    //     EdgeInsets.symmetric(horizontal: 32, vertical: 32),
-                    decoration: BoxDecoration(
-                      color: winner.color(),
-                      // borderRadius: BorderRadius.all(Radius.circular(8)),
-                      // boxShadow: [
-                      //   BoxShadow(
-                      //     color: Colors.black38,
-                      //     offset: Offset(0, 4),
-                      //     blurRadius: 12,
-                      //     spreadRadius: 2,
-                      //   ),
-                      // ]
-                    ),
-                    padding: EdgeInsets.fromLTRB(24, 64, 24, 24),
-                    // height: 100,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // SizedBox(height: 64),
-                        Column(
+          ? SizedBox()
+          : GestureDetector(
+              onTap: onTap,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: winner.player.color(),
+                  // borderRadius: BorderRadius.all(Radius.circular(8)),
+                  // boxShadow: [
+                  //   BoxShadow(
+                  //     color: Colors.black38,
+                  //     offset: Offset(0, 4),
+                  //     blurRadius: 12,
+                  //     spreadRadius: 2,
+                  //   ),
+                  // ]
+                ),
+                padding: EdgeInsets.fromLTRB(24, 64, 24, 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // SizedBox(height: 64),
+
+                    ConstrainedBox(
+                      constraints: BoxConstraints.expand(
+                          height: MediaQuery.of(context).size.height * 0.2),
+                      child: FittedBox(
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
@@ -272,7 +336,10 @@ class WinnerOverlay extends StatelessWidget {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              winner.word.toUpperCase(),
+                              (useColorNames
+                                      ? winner.player.colorWord
+                                      : winner.player.playerWord)
+                                  .toUpperCase(),
                               style: TextStyle(
                                 fontSize: 98,
                                 fontWeight: FontWeight.w900,
@@ -280,35 +347,57 @@ class WinnerOverlay extends StatelessWidget {
                                 color: Colors.white,
                               ),
                             ),
+                            ranked
+                                ? TweenAnimationBuilder(
+                                    tween: IntTween(begin: 1, end: 25),
+                                    curve: Curves.easeInOutQuart,
+                                    duration: Duration(milliseconds: 1800),
+                                    builder: (ctx, value, child) {
+                                      if (value % 3 == 0) Vibrations.tiny();
+                                      return Text(
+                                        (winner.me ? "+" : "-") +
+                                            value.toString() +
+                                            " SR",
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w700,
+                                          // fontStyle: FontStyle.italic,
+                                          color: Colors.white,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : SizedBox()
                           ],
                         ),
-                        // Expanded(child: Container()),
-                        // SizedBox(height: 48),
-                        Center(
-                          child: Container(
-                            padding: EdgeInsets.all(12),
-                            margin: EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(6)),
-                              color: Colors.white,
-                            ),
-                            child: IgnorePointer(child: board),
-                          ),
-                        ),
-                        // SizedBox(height: 64),
-                        Text(
-                          bottomText ?? 'Tap to play again!',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontWeight: FontWeight.w600,
-                            fontStyle: FontStyle.italic,
-                            fontSize: 24,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                    // Expanded(child: Container()),
+                    // SizedBox(height: 48),
+                    Expanded(
+                      child: Center(
+                        child: Container(
+                          padding: EdgeInsets.all(12),
+                          margin: EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(6)),
+                            color: Colors.white,
+                          ),
+                          child: IgnorePointer(child: board),
+                        ),
+                      ),
+                    ),
+                    // SizedBox(height: 64),
+                    Text(
+                      bottomText ?? 'Tap to play again!',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontWeight: FontWeight.w600,
+                        fontStyle: FontStyle.italic,
+                        fontSize: 24,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

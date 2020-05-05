@@ -38,7 +38,7 @@ class _PlayingLocalState extends State<PlayingLocal> {
       body: Stack(
         children: [
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 32, vertical: 64),
+            margin: EdgeInsets.fromLTRB(32, 64, 32, 32),
             width: double.infinity,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
