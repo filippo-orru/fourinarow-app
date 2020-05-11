@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/play/common/field_logic/local_field.dart';
-import 'package:four_in_a_row/play/common/field_logic/common/player.dart';
-import 'package:four_in_a_row/play/common/common.dart';
 
 import 'package:four_in_a_row/util/vibration.dart';
+import '../game_logic/player.dart';
+import '../common/common.dart';
+import 'local_field.dart';
 
 class PlayingLocal extends StatefulWidget {
   const PlayingLocal({Key key}) : super(key: key);

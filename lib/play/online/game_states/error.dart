@@ -1,35 +1,48 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:four_in_a_row/util/constants.dart' as constants;
 
-import '../messages.dart';
+import 'package:four_in_a_row/inherit/connection/messages.dart';
 import 'all.dart';
 
 class Error extends GameState {
   final GameStateError error;
 
-  Error(this.error, Sink<PlayerMessage> sink) : super(sink);
+  Error(this.error, StreamController<PlayerMessage> p,
+      StreamController<ServerMessage> s, CGS change)
+      : super(p, s, change);
 
-  createState() => ErrorState();
+  get build => ErrorWidget(this.error);
 
-  @override
-  GameState handleMessage(ServerMessage msg) {
-    return super.handleMessage(msg);
-  }
-
-  GameState handlePlayerMessage(PlayerMessage msg) {
-    return null;
-  }
+  dispose() {}
 }
 
-class ErrorState extends State<Error> {
+class ErrorWidget extends StatefulWidget {
+  final GameStateError error;
+
+  ErrorWidget(this.error);
+
+  createState() => ErrorState();
+}
+
+class ErrorState extends State<ErrorWidget> {
   @override
   void initState() {
+    print("error initstate");
     super.initState();
-    http.post(
-      "${constants.URL}/api/crashreport",
-      body: widget.error.runtimeType.toString(),
-    );
+    try {
+      http.post(
+        "${constants.URL}/api/crashreport",
+        body: widget.error.runtimeType.toString(),
+      );
+    } on http.ClientException {
+      print("Couldn't post crashreport");
+    } on SocketException {
+      print("Couldn't post crashreport");
+    }
   }
 
   @override
@@ -95,7 +108,7 @@ class AlreadyPlaying extends GameStateError {
 }
 
 class LobbyClosed extends GameStateError {
-  LobbyClosed() : super(false);
+  LobbyClosed() : super(true);
 
   @override
   String toString() {

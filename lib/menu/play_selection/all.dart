@@ -1,13 +1,16 @@
 // export 'play_locally.dart';
 import 'dart:math';
-import 'package:four_in_a_row/models/user.dart';
+import 'package:four_in_a_row/inherit/connection/server_conn.dart';
+import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/menu/account/offline.dart';
+import 'package:four_in_a_row/menu/main_menu.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/menu/play_selection/common.dart';
 import 'package:four_in_a_row/menu/play_selection/online.dart';
-import 'package:four_in_a_row/play/play_local.dart';
-import 'package:four_in_a_row/play/play_online.dart';
+import 'package:four_in_a_row/play/local/play_local.dart';
+import 'package:four_in_a_row/play/online/play_online.dart';
 
 import '../common/menu_common.dart';
 
@@ -43,6 +46,17 @@ class _PlaySelectionState extends State<PlaySelection> {
     // TODO speed up waves?
   }
 
+  void playOnline() {
+    var serverConn = ServerConnProvider.of(context);
+    if (serverConn.connected) {
+      serverConn.startGame(ORqWorldwide());
+      // Navigator.of(context).push(fadeRoute(child: PlayingOnline()));
+    } else {
+      Navigator.of(context)
+          .push(slideUpRoute(OfflineScreen(OfflineCaller.OnlineMatch)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -76,9 +90,7 @@ class _PlaySelectionState extends State<PlaySelection> {
               title: 'Online',
               description: 'You against the world!',
               content: PlayOnline(),
-              route: fadeRoute(
-                  child: PlayingOnline(UserinfoProvider.of(context),
-                      req: ORqWorldwide())),
+              pushRoute: playOnline,
               offset: offset,
               bgColor: Colors.redAccent,
             ),
@@ -87,7 +99,7 @@ class _PlaySelectionState extends State<PlaySelection> {
               title: 'Local',
               description: 'Two players, one device!',
               offset: offset,
-              route: fadeRoute(child: PlayingLocal()),
+              pushRoute: () => fadeRoute(child: PlayingLocal()),
               bgColor: Colors.blueAccent,
             ),
             // PlaySelectionScreen(

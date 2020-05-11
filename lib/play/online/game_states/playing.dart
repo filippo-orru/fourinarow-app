@@ -6,40 +6,50 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:four_in_a_row/util/constants.dart' as constants;
 
-import 'package:four_in_a_row/play/common/field_logic/common/player.dart';
-import 'package:four_in_a_row/play/common/field_logic/online_field.dart';
-import 'package:four_in_a_row/play/common/common.dart';
-import 'package:four_in_a_row/play/online/messages.dart';
-import 'package:four_in_a_row/models/user.dart';
+import '../../game_logic/player.dart';
+import '../../common/common.dart';
+import '../online_field.dart';
+import 'package:four_in_a_row/inherit/connection/messages.dart';
+import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/util/toast.dart';
 import 'package:four_in_a_row/util/vibration.dart';
 
 import 'all.dart';
 
 class Playing extends GameState {
-  final _PlayingState state;
+  final bool myTurn;
+  final String opponentId;
 
-  Playing(bool myTurn, String opponentId, Sink<PlayerMessage> sink)
-      : state = _PlayingState(myTurn, opponentId),
-        super(sink);
+  Playing(this.myTurn, this.opponentId, StreamController<PlayerMessage> p,
+      StreamController<ServerMessage> s, CGS change)
+      : super(p, s, change);
 
-  @override
-  createState() => state;
+  get build => PlayingWidget(
+        this.myTurn,
+        this.opponentId,
+        super.pMsgCtrl,
+        super.sMsgCtrl,
+        super.changeState,
+      );
 
-  @override
-  GameState handleMessage(ServerMessage msg) {
-    if (state?.leaving == false)
-      return state.handleMessage(msg) ?? super.handleMessage(msg);
-    else
-      return null;
-  }
-
-  GameState handlePlayerMessage(PlayerMessage msg) {
-    return state.handlePlayerMessage(msg);
-  }
+  dispose() {}
 }
 
-class _PlayingState extends State<Playing> {
+class PlayingWidget extends StatefulWidget {
+  final bool myTurn;
+  final String opponentId;
+  final StreamController<PlayerMessage> pMsgCtrl;
+  final StreamController<ServerMessage> sMsgCtrl;
+  final CGS changeState;
+
+  PlayingWidget(this.myTurn, this.opponentId, this.pMsgCtrl, this.sMsgCtrl,
+      this.changeState);
+
+  @override
+  createState() => _PlayingState(myTurn, opponentId);
+}
+
+class _PlayingState extends State<PlayingWidget> {
   final String opponentId;
   OnlineField field;
   bool awaitingConfirmation;
@@ -48,6 +58,10 @@ class _PlayingState extends State<Playing> {
   Timer toastTimer;
   BuildContext context;
   PublicUser opponentInfo;
+  bool opponentLeft = false;
+
+  StreamSubscription sMsgListen;
+  StreamSubscription pMsgListen;
 
   _PlayingState(bool myTurn, [this.opponentId]) {
     field = OnlineField();
@@ -57,7 +71,7 @@ class _PlayingState extends State<Playing> {
     }
   }
 
-  GameState handleMessage(ServerMessage msg) {
+  void handleServerMessage(ServerMessage msg) {
     if (msg is MsgPlaceChip) {
       setState(() {
         this._dropChipNamed(msg.row, field.me.other);
@@ -67,17 +81,22 @@ class _PlayingState extends State<Playing> {
     } else if (msg.isConfirmation) {
       setState(() => awaitingConfirmation = false);
     } else if (msg is MsgOppLeft) {
-      this.leaving = true;
-      showPopup("Opponent left.", angery: true);
-      Future.delayed(this.toast.duration * 0.6, () => this.pop());
+      setState(() => opponentLeft = true);
+      if (field.checkWin() == null) {
+        this.leaving = true;
+        showPopup("Opponent left", angery: true);
+        Future.delayed(this.toast.duration * 0.6, () => this.pop());
+      } else {
+        showPopup("Opponent left");
+      }
       // return Idle(widget.sink);
-    } else if (msg is MsgLobbyClosing && !this.leaving) {
-      return Error(LobbyClosed(), widget.sink);
+    } else if (msg is MsgLobbyClosing && !this.leaving && !this.opponentLeft) {
+      widget.changeState(Error(
+          LobbyClosed(), widget.pMsgCtrl, widget.sMsgCtrl, widget.changeState));
     }
-    return null;
   }
 
-  GameState handlePlayerMessage(PlayerMessage msg) {
+  void handlePlayerMessage(PlayerMessage msg) {
     if (msg is PlayerMsgPlayAgain) {
       setState(() => field.waitingToPlayAgain = true);
       _loadOpponentInfo();
@@ -86,7 +105,6 @@ class _PlayingState extends State<Playing> {
     } else if (msg is PlayerMsgLeave) {
       leaving = true;
     }
-    return null;
   }
 
   void _loadOpponentInfo() async {
@@ -95,10 +113,11 @@ class _PlayingState extends State<Playing> {
     if (response.statusCode == 200) {
       this.opponentInfo = PublicUser.fromMap(jsonDecode(response.body));
     }
+    setState(() {});
   }
 
   void pop() {
-    if (this.context != null) {
+    if (this.context != null && mounted) {
       Navigator.of(context).pop();
     }
   }
@@ -133,68 +152,74 @@ class _PlayingState extends State<Playing> {
     if (field.turn == field.me) {
       this._dropChipNamed(column, field.me);
 
-      widget.sink.add(PlayerMsgPlaceChip(column));
+      widget.pMsgCtrl.add(PlayerMsgPlaceChip(column));
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    sMsgListen = widget.sMsgCtrl.stream.listen(handleServerMessage);
+    pMsgListen = widget.pMsgCtrl.stream.listen(handlePlayerMessage);
+  }
+
+  @override
+  void dispose() {
+    sMsgListen.cancel();
+    pMsgListen.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     this.context = context;
-    return WillPopScope(
-      onWillPop: () {
-        widget.sink.add(PlayerMsgLeave());
-        UserinfoProvider.of(context).refresh();
-        return Future.value(true);
-      },
-      child: Stack(
-        children: [
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 32, vertical: 64),
-            width: double.infinity,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                OnlineTurnIndicator(
-                    field.turn == field.me, awaitingConfirmation),
-                Expanded(
-                  child: Center(
-                    child: Board(field, dropChip: _dropChip),
-                  ),
+    return Stack(
+      children: [
+        Container(
+          margin: EdgeInsets.symmetric(horizontal: 32, vertical: 64),
+          width: double.infinity,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              OnlineTurnIndicator(field.turn == field.me, awaitingConfirmation),
+              Expanded(
+                child: Center(
+                  child: Board(field, dropChip: _dropChip),
                 ),
-                // Align(
-                //   alignment: Alignment.centerRight,
-                //   child: LeaveOnlineButton(() {}),
-                // ),
-                // LeaveOnlineButton(() => {}),
-              ],
-            ),
+              ),
+              // Align(
+              //   alignment: Alignment.centerRight,
+              //   child: LeaveOnlineButton(() {}),
+              // ),
+              // LeaveOnlineButton(() => {}),
+            ],
           ),
-          this.opponentInfo == null
-              ? SizedBox()
-              : Positioned(
-                  left: 0,
-                  bottom: 32,
-                  right: 0,
-                  child: OpponentInfo(this.opponentInfo),
-                ),
-          Positioned(
-            bottom: 32,
-            right: 32,
-            child: ConnectionIndicator(awaitingConfirmation),
-          ),
-          WinnerOverlay(
-            field.checkWin(),
-            useColorNames: false,
-            onTap: () => widget.sink.add(PlayerMsgPlayAgain()),
-            board: Board(field, dropChip: (_) {}),
-            ranked: opponentInfo != null,
-            bottomText:
-                field.waitingToPlayAgain ? "Waiting for opponent..." : null,
-          ),
-          this.toast ?? SizedBox(),
-        ],
-      ),
+        ),
+        OpponentInfo(this.opponentInfo),
+        Positioned(
+          bottom: 32,
+          right: 32,
+          child: ConnectionIndicator(awaitingConfirmation),
+        ),
+        WinnerOverlay(
+          field.checkWin(),
+          useColorNames: false,
+          onTap: () {
+            if (!opponentLeft) {
+              widget.pMsgCtrl.add(PlayerMsgPlayAgain());
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
+          board: Board(field, dropChip: (_) {}),
+          ranked: opponentInfo != null,
+          bottomText: opponentLeft
+              ? "Tap to leave"
+              : field.waitingToPlayAgain ? "Waiting for opponent..." : null,
+        ),
+        this.toast ?? SizedBox(),
+      ],
     );
   }
 }
@@ -206,32 +231,57 @@ class OpponentInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        height: 60,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              "Enemy:",
-              style: TextStyle(
-                fontSize: 14,
+    return Positioned(
+      left: 0,
+      bottom: 32,
+      right: 0,
+      child: AnimatedSwitcher(
+        duration: Duration(milliseconds: 300),
+        child: this.opponentInfo == null
+            ? SizedBox()
+            : Center(
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  decoration: BoxDecoration(
+                    // color: Colors.black.withOpacity(0.25),
+                    borderRadius: BorderRadius.all(Radius.circular(6)),
+                  ),
+                  // width: 100,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      // Text(
+                      //   "Enemy".toUpperCase(),
+                      //   style: TextStyle(
+                      //     fontSize: 14,
+                      //     letterSpacing: 0.5,
+                      //     color: Colors.white,
+                      //   ),
+                      // ),
+                      SizedBox(width: 6),
+                      Text(
+                        opponentInfo.name,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontFamily: 'RobotoSlab',
+                          color: Colors.black87,
+                        ),
+                      ),
+                      SizedBox(width: 6),
+                      Text(
+                        "${opponentInfo.gameInfo.skillRating} SR",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'RobotoSlab',
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            Text(
-              opponentInfo.name,
-              style: TextStyle(
-                fontSize: 20,
-              ),
-            ),
-            Text(
-              "${opponentInfo.gameInfo.skillRating} SR",
-              style: TextStyle(
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -348,6 +398,7 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
 
     breatheCtrl =
         AnimationController(vsync: this, duration: Duration(seconds: 1))
+          // brea
           ..addStatusListener((status) {
             if (status == AnimationStatus.completed &&
                 turnRed.status != AnimationStatus.completed) {
@@ -356,7 +407,7 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
               breatheCtrl.forward();
             }
           });
-    opacityAnim = Tween<double>(begin: 0.7, end: 1)
+    opacityAnim = Tween<double>(begin: 0.6, end: 1)
         .chain(CurveTween(curve: Curves.easeInOutSine))
         .animate(breatheCtrl);
     breatheCtrl.forward();
@@ -371,6 +422,8 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
 
   @override
   void didUpdateWidget(ConnectionIndicator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
     if (widget.awaitingConfirmation == true) {
       if (oldWidget.awaitingConfirmation != true) {
         this.delayedExecution = Timer(Duration(milliseconds: 500), () {
@@ -381,10 +434,9 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
       }
     } else {
       this.turnRed.reverse();
-      this.breatheCtrl.forward();
+      // this.breatheCtrl.forward();
       this.delayedExecution?.cancel();
     }
-    super.didUpdateWidget(oldWidget);
   }
 
   @override

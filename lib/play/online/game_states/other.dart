@@ -1,32 +1,48 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import '../messages.dart';
+import 'package:four_in_a_row/inherit/connection/messages.dart';
 import 'all.dart';
 
 class WaitingForLobbyInfo extends GameState {
+  StreamSubscription sMsgListen;
   // final _WaitingForLobbyInfoState state;
   final String lobbyCode;
 
-  WaitingForLobbyInfo(Sink<PlayerMessage> sink, {this.lobbyCode}) : super(sink);
+  WaitingForLobbyInfo(StreamController<PlayerMessage> p,
+      StreamController<ServerMessage> s, CGS change,
+      {this.lobbyCode})
+      : super(p, s, change) {
+    sMsgListen = sMsgCtrl.stream.listen(handleMessage);
+  }
 
-  @override
-  GameState handleMessage(ServerMessage msg) {
+  void handleMessage(ServerMessage msg) {
     if (msg is MsgLobbyResponse) {
-      return InLobby(msg.code, this.sink);
-    } else if (msg is MsgOkay && this.lobbyCode != null) {
-      return InLobbyReady(this.sink);
+      changeState(InLobby(msg.code, pMsgCtrl, sMsgCtrl, changeState));
+    } else if (msg is MsgOkay && lobbyCode != null) {
+      changeState(InLobbyReady(pMsgCtrl, sMsgCtrl, changeState));
+    } else {
+      handleServerMessageSuper(msg);
     }
-    return super.handleMessage(msg);
   }
 
-  GameState handlePlayerMessage(PlayerMessage msg) {
-    return null;
+  get build => WaitingForLobbyInfoWidget(this.lobbyCode);
+
+  dispose() {
+    sMsgListen.cancel();
   }
+}
+
+class WaitingForLobbyInfoWidget extends StatefulWidget {
+  final String lobbyCode;
+
+  WaitingForLobbyInfoWidget(this.lobbyCode);
 
   createState() => _WaitingForLobbyInfoState();
 }
 
-class _WaitingForLobbyInfoState extends State<WaitingForLobbyInfo> {
+class _WaitingForLobbyInfoState extends State<WaitingForLobbyInfoWidget> {
   @override
   Widget build(BuildContext context) {
     String title =
@@ -37,24 +53,35 @@ class _WaitingForLobbyInfoState extends State<WaitingForLobbyInfo> {
 }
 
 class WaitingForWWOkay extends GameState {
-  WaitingForWWOkay(Sink<PlayerMessage> sink) : super(sink);
+  StreamSubscription sMsgListen;
 
-  @override
-  GameState handleMessage(ServerMessage msg) {
+  WaitingForWWOkay(StreamController<PlayerMessage> p,
+      StreamController<ServerMessage> s, CGS change)
+      : super(p, s, change) {
+    sMsgListen = sMsgCtrl.stream.listen(handleMessage);
+  }
+
+  void handleMessage(ServerMessage msg) {
     if (msg is MsgOkay) {
-      return WaitingForWWOpponent(this.sink);
+      changeState(
+          WaitingForWWOpponent(super.pMsgCtrl, super.sMsgCtrl, changeState));
+    } else {
+      super.handleServerMessageSuper(msg);
     }
-    return super.handleMessage(msg);
   }
 
-  GameState handlePlayerMessage(PlayerMessage msg) {
-    return null;
-  }
+  get build => WaitingForWWOkayWidget();
 
+  dispose() {
+    sMsgListen.cancel();
+  }
+}
+
+class WaitingForWWOkayWidget extends StatefulWidget {
   createState() => _WaitingForWWOkayState();
 }
 
-class _WaitingForWWOkayState extends State<WaitingForWWOkay> {
+class _WaitingForWWOkayState extends State<WaitingForWWOkayWidget> {
   @override
   Widget build(BuildContext context) {
     String title = "Contacting Server...";
@@ -63,24 +90,35 @@ class _WaitingForWWOkayState extends State<WaitingForWWOkay> {
 }
 
 class WaitingForWWOpponent extends GameState {
-  WaitingForWWOpponent(Sink<PlayerMessage> sink) : super(sink);
+  StreamSubscription sMsgListen;
 
-  @override
-  GameState handleMessage(ServerMessage msg) {
+  WaitingForWWOpponent(StreamController<PlayerMessage> p,
+      StreamController<ServerMessage> s, CGS change)
+      : super(p, s, change) {
+    sMsgListen = sMsgCtrl.stream.listen(handleMessage);
+  }
+
+  void handleMessage(ServerMessage msg) {
     if (msg is MsgOppJoined) {
-      return InLobbyReady(this.sink);
+      changeState(
+          InLobbyReady(super.pMsgCtrl, super.sMsgCtrl, super.changeState));
+    } else {
+      super.handleServerMessageSuper(msg);
     }
-    return super.handleMessage(msg);
   }
 
-  GameState handlePlayerMessage(PlayerMessage msg) {
-    return null;
-  }
+  get build => WaitingForWWOpponentWidget();
 
+  dispose() {
+    sMsgListen.cancel();
+  }
+}
+
+class WaitingForWWOpponentWidget extends StatefulWidget {
   createState() => _WaitingForWWOpponentState();
 }
 
-class _WaitingForWWOpponentState extends State<WaitingForWWOpponent> {
+class _WaitingForWWOpponentState extends State<WaitingForWWOpponentWidget> {
   @override
   Widget build(BuildContext context) {
     String title = "Searching for opponent...";

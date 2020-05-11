@@ -1,85 +1,123 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
-import '../messages.dart';
+import 'package:four_in_a_row/inherit/connection/messages.dart';
 import 'all.dart';
 
 class InLobby extends GameState {
   final String code;
+  StreamSubscription sMsgListen;
 
-  InLobby(this.code, Sink<PlayerMessage> sink) : super(sink);
-
-  createState() => InLobbyState();
-
-  @override
-  GameState handleMessage(ServerMessage msg) {
-    if (msg is MsgOppJoined) {
-      return InLobbyReady(this.sink);
-    }
-    return super.handleMessage(msg);
+  InLobby(this.code, StreamController<PlayerMessage> p,
+      StreamController<ServerMessage> s, CGS change)
+      : super(p, s, change) {
+    sMsgListen = sMsgCtrl.stream.listen(handleMessage);
   }
 
-  GameState handlePlayerMessage(PlayerMessage msg) {
-    return null;
+  get build => InLobbyWidget(code);
+
+  dispose() => sMsgListen.cancel();
+
+  void handleMessage(ServerMessage msg) {
+    if (msg is MsgOppJoined) {
+      changeState(
+          InLobbyReady(super.pMsgCtrl, super.sMsgCtrl, super.changeState));
+    } else {
+      super.handleServerMessageSuper(msg);
+    }
   }
 }
 
-class InLobbyState extends State<InLobby> {
+class InLobbyWidget extends StatefulWidget {
+  final String code;
+  InLobbyWidget(this.code);
+
+  createState() => InLobbyState();
+}
+
+class InLobbyState extends State<InLobbyWidget> {
+  @override
+  initState() {
+    super.initState();
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(
-            "Share this code with your friend:",
-            style: TextStyle(fontSize: 20),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 18),
-          Text(
-            widget.code,
-            style: TextStyle(fontSize: 48),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
+      child: widget.code == null
+          ? Text(
+              'Wait for your opponent to join',
+              style: TextStyle(fontSize: 20),
+              textAlign: TextAlign.center,
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  "Share this code with your friend:",
+                  style: TextStyle(fontSize: 20),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 18),
+                Text(
+                  widget.code,
+                  style: TextStyle(fontSize: 48),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
     );
   }
 }
 
 class InLobbyReady extends GameState {
-  InLobbyReady(Sink<PlayerMessage> sink) : super(sink);
+  StreamSubscription sMsgListen;
 
-  createState() => InLobbyReadyState();
-
-  @override
-  GameState handleMessage(ServerMessage msg) {
-    if (msg is MsgGameStart) {
-      return Playing(msg.myTurn, msg.opponentId, this.sink);
-    }
-    return super.handleMessage(msg);
+  InLobbyReady(StreamController<PlayerMessage> p,
+      StreamController<ServerMessage> s, CGS change)
+      : super(p, s, change) {
+    sMsgListen = sMsgCtrl.stream.listen(handleMessage);
   }
 
-  GameState handlePlayerMessage(PlayerMessage msg) {
-    return null;
+  // @override
+  void handleMessage(ServerMessage msg) {
+    if (msg is MsgGameStart) {
+      changeState(Playing(msg.myTurn, msg.opponentId, super.pMsgCtrl,
+          super.sMsgCtrl, super.changeState));
+    } else {
+      super.handleServerMessageSuper(msg);
+    }
+  }
+
+  get build => InLobbyReadyWidget();
+
+  dispose() {
+    sMsgListen.cancel();
   }
 }
 
-class InLobbyReadyState extends State<InLobbyReady> {
+class InLobbyReadyWidget extends StatefulWidget {
+  createState() => InLobbyReadyState();
+}
+
+class InLobbyReadyState extends State<InLobbyReadyWidget> {
   bool longerThanExpected = false;
   Timer longerThanExpectedTimer;
 
   @override
-  void initState() {
+  initState() {
     super.initState();
     longerThanExpectedTimer = Timer(
         Duration(seconds: 3), () => setState(() => longerThanExpected = true));
   }
 
   @override
-  void dispose() {
+  dispose() {
     longerThanExpectedTimer?.cancel();
     super.dispose();
   }

@@ -1,11 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:four_in_a_row/inherit/connection/server_conn.dart';
 import 'package:four_in_a_row/main.dart';
 import 'package:four_in_a_row/menu/account/friends.dart';
 import 'package:four_in_a_row/menu/account/onboarding/onboarding.dart';
+import 'package:four_in_a_row/menu/account/offline.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
-import 'package:four_in_a_row/models/user.dart';
+import 'package:four_in_a_row/inherit/user.dart';
 import 'common/play_button.dart';
 
 import 'package:url_launcher/url_launcher.dart';
@@ -64,11 +66,12 @@ class _MainMenuState extends State<MainMenu> {
 
   void accountCheck(BuildContext context, {bool force = false}) async {
     var userInfo = UserinfoProvider.of(context);
-    if (userInfo?.loggedIn == true) {
+    if (userInfo?.loggedIn ?? false) {
       Navigator.of(context).push(slideUpRoute(FriendsList(userInfo)));
-      return;
-    }
-    if (userInfo?.refreshing == true && !force) {
+    } else if (userInfo?.offline ?? true) {
+      Navigator.of(context)
+          .push(slideUpRoute(OfflineScreen(OfflineCaller.Friends)));
+    } else if ((userInfo?.refreshing ?? false) && !force) {
       setState(() => loadingUserInfo = true);
 
       Future.delayed(Duration(milliseconds: 1800),
@@ -80,7 +83,14 @@ class _MainMenuState extends State<MainMenu> {
   }
 
   @override
+  initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    ServerConnProvider.of(context).menuContext = context;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(

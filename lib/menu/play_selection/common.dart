@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/menu/common/play_button.dart';
 
 class PlaySelectionScreen extends StatelessWidget {
@@ -11,16 +10,16 @@ class PlaySelectionScreen extends StatelessWidget {
     @required this.description,
     @required this.offset,
     this.content,
-    this.route,
+    this.pushRoute,
     this.bgColor = Colors.white,
-  }) : assert(content != null || route != null);
+  }) : assert(content != null || pushRoute != null);
 
   final int index;
   final String title;
   final String description;
   final Widget content;
   final double offset;
-  final PageRouteBuilder route;
+  final VoidCallback pushRoute;
   final Color bgColor;
 
   @override
@@ -32,7 +31,7 @@ class PlaySelectionScreen extends StatelessWidget {
       child: PlaySelectionContent(
         title: title,
         description: description,
-        route: route,
+        pushRoute: pushRoute,
         content: content,
         bgColor: bgColor,
       ),
@@ -45,16 +44,16 @@ class PlaySelectionContent extends StatelessWidget {
     @required this.title,
     @required this.description,
     this.content,
-    this.route,
+    this.pushRoute,
     // this.navigateTo,
     this.bgColor = Colors.white,
     // this.ctrl,
-  }) : assert(content != null || route != null);
+  }) : assert(content != null || pushRoute != null);
 
   final String title;
   final String description;
   final Widget content;
-  final PageRouteBuilder route;
+  final VoidCallback pushRoute;
   final Color bgColor;
 
   @override
@@ -104,7 +103,7 @@ class PlaySelectionContent extends StatelessWidget {
                 child: PlayButton(
                   label: 'Go!',
                   color: Colors.white38,
-                  onTap: () => Navigator.of(context).push(route),
+                  onTap: pushRoute,
                 ),
               ),
             ),

@@ -11,6 +11,14 @@ class MsgOppLeft extends ServerMessage {}
 
 class MsgOppJoined extends ServerMessage {}
 
+class MsgPong extends ServerMessage {}
+
+class MsgBattleReq extends ServerMessage {
+  final String userId;
+  final String lobbyCode;
+  MsgBattleReq(this.userId, this.lobbyCode);
+}
+
 class MsgError extends ServerMessage {
   final MsgErrorType maybeErr;
   MsgError(this.maybeErr);
@@ -68,11 +76,13 @@ class MsgLobbyClosing extends ServerMessage {}
 
 extension OnlineMessageExt on ServerMessage {
   static ServerMessage parse(String str) {
+    // str = str.toUpperCase();
     if (str == "OKAY") {
       return MsgOkay();
-    } else if (str.startsWith("LOBBY_ID:")) {
-      if (str.length == 9 + 4) {
-        return MsgLobbyResponse(str.substring(9, 9 + 4));
+    } else if (str.startsWith("LOBBY_ID")) {
+      var parts = str.split(':');
+      if (parts.length == 2) {
+        return MsgLobbyResponse(parts[1]);
       }
     } else if (str.startsWith("OPP_JOINED")) {
       return MsgOppJoined();
@@ -103,6 +113,13 @@ extension OnlineMessageExt on ServerMessage {
       }
     } else if (str == "LOBBY_CLOSING") {
       return MsgLobbyClosing();
+    } else if (str == "PONG") {
+      return MsgPong();
+    } else if (str.startsWith("BATTLE_REQ")) {
+      List<String> parts = str.split(":");
+      if (parts.length == 3) {
+        return MsgBattleReq(parts[1], parts[2]);
+      }
     }
 
     return null;
@@ -129,6 +146,21 @@ class PlayerMsgPlaceChip extends PlayerMessage {
 class PlayerMsgLeave extends PlayerMessage {
   String serialize() {
     return "LEAVE";
+  }
+}
+
+class PlayerMsgPing extends PlayerMessage {
+  String serialize() {
+    return "PING";
+  }
+}
+
+class PlayerMsgBattleRequest extends PlayerMessage {
+  final String id;
+  PlayerMsgBattleRequest(this.id);
+
+  String serialize() {
+    return "BATTLE_REQ:" + id;
   }
 }
 
@@ -166,6 +198,6 @@ class PlayerMsgLogin extends PlayerMessage {
   final String password;
 
   String serialize() {
-    return "LOGIN:$username#$password";
+    return "LOGIN:$username:$password";
   }
 }

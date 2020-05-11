@@ -2,8 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:four_in_a_row/models/user.dart';
+import 'package:four_in_a_row/inherit/user.dart';
 
+import 'inherit/connection/server_conn.dart';
 import 'menu/main_menu.dart';
 
 void main() => runApp(MyApp());
@@ -64,27 +65,33 @@ class _MyAppState extends State<MyApp> {
             }
           },
           child: UserinfoProvider(
-            child: WidgetsApp(
-              localizationsDelegates: [DefaultMaterialLocalizations.delegate],
-              title: 'Four in a Row',
-              color: Colors.green,
-              initialRoute: "/",
-              pageRouteBuilder: <T>(RouteSettings settings,
-                  Widget Function(BuildContext) builder) {
-                return MaterialPageRoute<T>(
-                    builder: builder, settings: settings);
-              },
-              // routes: {
-              //   "/": (context) => MainMenu(),
-              // "/playOverview": (_) => PlayOverviewMenu(),
-              // "/local/play": (context) => PlayingLocal(),
-              // "/online/selectRange": (context) => OnlineMenuRange(),
-              // "/online/selectHost": (context) => OnlineMenuHost(),
-              // "/online/play": (context) => PlayingOnline(),
-              // },
-              home: MainMenu(),
-              debugShowCheckedModeBanner: false,
-              navigatorObservers: [routeObserver],
+            child: Builder(
+              builder: (ctx) => WidgetsApp(
+                localizationsDelegates: [DefaultMaterialLocalizations.delegate],
+                title: 'Four in a Row',
+                color: Colors.green,
+                initialRoute: "/",
+                pageRouteBuilder: <T>(RouteSettings settings,
+                    Widget Function(BuildContext) builder) {
+                  return MaterialPageRoute<T>(
+                      builder: builder, settings: settings);
+                },
+                builder: (ctx, child) => ServerConnProvider(
+                  userInfo: UserinfoProvider.of(ctx),
+                  child: child,
+                ),
+                // routes: {
+                //   "/": (context) => MainMenu(),
+                // "/playOverview": (_) => PlayOverviewMenu(),
+                // "/local/play": (context) => PlayingLocal(),
+                // "/online/selectRange": (context) => OnlineMenuRange(),
+                // "/online/selectHost": (context) => OnlineMenuHost(),
+                // "/online/play": (context) => PlayingOnline(),
+                // },
+                home: MainMenu(),
+                debugShowCheckedModeBanner: false,
+                navigatorObservers: [routeObserver],
+              ),
             ),
           ),
         ),

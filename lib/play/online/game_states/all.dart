@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 
-import '../messages.dart';
+import 'package:four_in_a_row/inherit/connection/messages.dart';
 
 export 'error.dart';
 export 'idle.dart';
@@ -10,28 +12,44 @@ export 'playing.dart';
 
 import 'error.dart';
 
-abstract class GameState extends StatefulWidget {
-  final Sink<PlayerMessage> sink;
+typedef CGS = void Function(GameState);
 
-  GameState(this.sink);
+// class GameStateWrapper extends StatefulWidget {
+abstract class GameState<T extends StatefulWidget> {
+  final StreamController<PlayerMessage> pMsgCtrl;
+  final StreamController<ServerMessage> sMsgCtrl;
+  final CGS changeState;
 
-  @mustCallSuper
-  GameState handleMessage(ServerMessage msg) {
+  GameState(this.pMsgCtrl, this.sMsgCtrl, this.changeState);
+
+  void handleServerMessageSuper(ServerMessage msg) {
+    print("Called handleServerMessageSuper ($msg)");
     if (msg is MsgError) {
       // String txt = "An error occurred" + (msg.maybeErr?.toString() ?? "");
       switch (msg.maybeErr) {
         case MsgErrorType.LobbyNotFound:
-          return Error(LobbyNotFound(), this.sink);
+          changeState(Error(
+              LobbyNotFound(), this.pMsgCtrl, this.sMsgCtrl, this.changeState));
+          break;
         case MsgErrorType.AlreadyPlaying:
-          return Error(AlreadyPlaying(), this.sink);
+          changeState(Error(AlreadyPlaying(), this.pMsgCtrl, this.sMsgCtrl,
+              this.changeState));
+          break;
         default:
       }
-      return Error(Internal(false), this.sink);
+      changeState(Error(
+          Internal(false), this.pMsgCtrl, this.sMsgCtrl, this.changeState));
     } else if (msg is MsgLobbyClosing) {
-      return Error(LobbyClosed(), this.sink);
+      // Future.delayed(Duration(), () {
+      // if (mounted) {
+      changeState(
+          Error(LobbyClosed(), this.pMsgCtrl, this.sMsgCtrl, this.changeState));
+      //   }
+      // });
     }
-    return null;
   }
 
-  GameState handlePlayerMessage(PlayerMessage msg);
+  void dispose();
+
+  T get build;
 }

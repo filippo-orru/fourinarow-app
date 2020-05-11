@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/util/vibration.dart';
-import 'field_logic/common/field.dart';
-import 'field_logic/common/player.dart';
-import 'field_logic/common/game_chip.dart';
+import '../game_logic/field.dart';
+import '../game_logic/player.dart';
+import '../game_logic/game_chip.dart';
 
 import 'dart:math';
 

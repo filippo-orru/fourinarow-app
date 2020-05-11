@@ -47,6 +47,8 @@ class _ToastState extends State<Toast> with TickerProviderStateMixin {
   void startWiggle() async {
     if (widget.angery) {
       await Future.delayed(widget.duration * 0.07);
+      if (!mounted) return;
+
       for (int i = 0; i < maxWiggles; i++) {
         await wiggleCtrl.forward();
         await wiggleCtrl.reverse();

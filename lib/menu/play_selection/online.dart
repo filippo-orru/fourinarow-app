@@ -1,10 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:four_in_a_row/menu/common/menu_common.dart';
-import 'package:four_in_a_row/play/play_online.dart';
-import 'package:four_in_a_row/models/user.dart';
+import 'package:four_in_a_row/inherit/connection/server_conn.dart';
+import 'package:four_in_a_row/inherit/user.dart';
 
 class PlayOnline extends StatefulWidget {
   PlayOnline();
@@ -16,9 +13,20 @@ class PlayOnline extends StatefulWidget {
 class _PlayOnlineState extends State<PlayOnline> {
   UserinfoProviderState userInfo;
 
+  // @override
+  // initState() {
+  //   super.initState();
+  // }
+
+  @override
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // userInfo = userInfo ?? UserinfoProvider.of(context);
+    // UserinfoProvider.of(context)?.refresh(shouldSetState: false);
+  }
+
   @override
   Widget build(BuildContext context) {
-    userInfo = userInfo ?? UserinfoProvider.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.end,
@@ -30,7 +38,7 @@ class _PlayOnlineState extends State<PlayOnline> {
         //     child:
         MediaQuery.of(context).devicePixelRatio < 2
             ? SizedBox()
-            : UserRankDisplay(userInfo),
+            : UserRankDisplay(),
         // ),
         // LimitedBox(
         //     maxHeight: 48,
@@ -56,15 +64,11 @@ class _PlayOnlineState extends State<PlayOnline> {
 }
 
 class UserRankDisplay extends StatelessWidget {
-  final UserinfoProviderState userInfo;
-
-  UserRankDisplay(this.userInfo) {
-    this.userInfo.refresh();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return userInfo.loggedIn
+    var userInfo = UserinfoProvider.of(context);
+
+    return userInfo?.loggedIn == true
         ? Container(
             width: 180,
             height: 100,
@@ -85,7 +89,7 @@ class UserRankDisplay extends StatelessWidget {
                   textBaseline: TextBaseline.alphabetic,
                   children: <Widget>[
                     Text(
-                      "${userInfo.gameInfo.skillRating}",
+                      "${userInfo.user.gameInfo.skillRating}",
                       style: TextStyle(
                         fontSize: 48,
                         color: Colors.grey[100],
@@ -152,12 +156,16 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
   AnimationController moveUpAnimCtrl;
   Animation<Offset> moveUpAnim;
 
+  void createLobby() {
+    ServerConnProvider.of(context).startGame(ORqLobby(null));
+    // Navigator.of(context).push(fadeRoute(child: PlayingOnline()));
+  }
+
   void joinLobby(userInfo) {
-    Navigator.of(context).push(fadeRoute(
-        child: PlayingOnline(
-      userInfo,
-      req: ORqLobby(this.lobbyCodeController.text),
-    )));
+    ServerConnProvider.of(context)
+        .startGame(ORqLobby(this.lobbyCodeController.text));
+    // route: fadeRoute(child: PlayingOnline()));
+    // Navigator.of(context).push(fadeRoute(child: PlayingOnline()));
   }
 
   @override
@@ -242,11 +250,7 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
       child: FlatButton(
         color: Colors.white24,
         splashColor: Colors.white54,
-        onPressed: () {
-          Navigator.of(context).push(fadeRoute(
-              child: PlayingOnline(UserinfoProvider.of(context),
-                  req: ORqLobby(null))));
-        },
+        onPressed: createLobby,
         // setState(() => expandedLobbyCode = true),
         child: Text(
           'CREATE LOBBY',

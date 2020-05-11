@@ -1,8 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/models/user.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:four_in_a_row/inherit/user.dart';
 
 import '../friends.dart';
 import 'login.dart';
