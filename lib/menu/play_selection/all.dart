@@ -99,7 +99,8 @@ class _PlaySelectionState extends State<PlaySelection> {
               title: 'Local',
               description: 'Two players, one device!',
               offset: offset,
-              pushRoute: () => fadeRoute(child: PlayingLocal()),
+              pushRoute: () =>
+                  Navigator.of(context).push(fadeRoute(child: PlayingLocal())),
               bgColor: Colors.blueAccent,
             ),
             // PlaySelectionScreen(
