@@ -107,69 +107,68 @@ class _PlayButtonState extends State<PlayButton>
         sizeAnimController.reverse();
         growSizeAnimController.forward();
         // widget.onTap();
-        Future.delayed(Duration(milliseconds: (GROW_ANIM_DURATION / 3).floor()),
-            () {
-          widget.onTap();
-        });
+        Future.delayed(
+          Duration(milliseconds: (GROW_ANIM_DURATION / 3).floor()),
+          widget.onTap,
+        );
       },
       onTapCancel: () => sizeAnimController.reverse(),
-      child: ScaleTransition(
-        scale: growSize,
-        child: Container(
-          child: Stack(
-            children: [
-              ScaleTransition(
-                scale: circleSize,
-                child: FadingRing(
-                  startingDiameter: widget.diameter,
-                  color: widget.color,
-                  child: AnimatedBuilder(
-                    animation: ceilOpacity,
-                    builder: (context, child) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: widget.color.withOpacity(
-                            min(1, ceilOpacity.value),
+      child: SizedOverflowBox(
+        size: Size(
+          widget.diameter,
+          widget.diameter,
+        ),
+        child: ScaleTransition(
+          scale: growSize,
+          child: Container(
+            child: Stack(
+              children: [
+                ScaleTransition(
+                  scale: circleSize,
+                  child: FadingRing(
+                    startingDiameter: widget.diameter,
+                    color: widget.color,
+                    child: AnimatedBuilder(
+                      animation: ceilOpacity,
+                      builder: (context, child) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: widget.color.withOpacity(
+                              min(1, ceilOpacity.value),
+                            ),
                           ),
-                        ),
-                        constraints: BoxConstraints.expand(),
-                      );
-                    },
+                          constraints: BoxConstraints.expand(),
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-              FadeTransition(
-                opacity: growFade,
-                child: ScaleTransition(
-                  scale: textSize,
-                  child: Center(
-                    child: Text(
-                      widget.label.toUpperCase(),
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'RobotoSlab',
-                        fontSize: 36,
-                        fontWeight: FontWeight.w700,
+                FadeTransition(
+                  opacity: growFade,
+                  child: ScaleTransition(
+                    scale: textSize,
+                    child: Center(
+                      child: Text(
+                        widget.label.toUpperCase(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'RobotoSlab',
+                          fontSize: 36,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
+            width: widget.diameter,
+            height: widget.diameter,
           ),
-          width: widget.diameter,
-          height: widget.diameter,
         ),
       ),
     );
-  }
-}
-
-class PlayOverviewMenu extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MenuWrapper(child: Text("overview"));
   }
 }
 
@@ -222,22 +221,28 @@ class _FadingRingState extends State<FadingRing>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(alignment: Alignment.center, children: [
-      FadeTransition(
-        opacity: opacity,
-        child: ScaleTransition(
-          scale: size,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(width: 4, color: widget.color),
+    return SizedOverflowBox(
+      size: Size(
+        widget.startingDiameter,
+        widget.startingDiameter,
+      ),
+      child: Stack(alignment: Alignment.center, children: [
+        FadeTransition(
+          opacity: opacity,
+          child: ScaleTransition(
+            scale: size,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(width: 4, color: widget.color),
+              ),
+              height: widget.startingDiameter,
+              width: widget.startingDiameter,
             ),
-            height: widget.startingDiameter,
-            width: widget.startingDiameter,
           ),
         ),
-      ),
-      widget.child,
-    ]);
+        widget.child,
+      ]),
+    );
   }
 }

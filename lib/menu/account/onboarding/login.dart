@@ -95,7 +95,12 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 )
                               : snapshot.hasError
-                                  ? Text("${snapshot.error}")
+                                  ? Container(
+                                      color: Colors.white,
+                                      padding: EdgeInsets.all(12),
+                                      child:
+                                          Text("${snapshot.error}\nTry again!"),
+                                    )
                                   : CircularProgressIndicator(),
                         ),
                       ),

@@ -132,8 +132,10 @@ class UserinfoProviderState extends State<UserinfoProvider> {
     }
     // rebuild();
 
-    var req = http.Request('GET', Uri.parse('${constants.URL}/api/users/me'))
-      ..bodyFields = _body;
+    var req = http.Request("GET", Uri.parse('${constants.URL}/api/users/me'))
+      ..headers['Authorization'] = "Basic " +
+          base64.encode(Utf8Codec().encode(username + ":" + password));
+    // ..bodyFields = _body;
 
     try {
       var response = await _client.send(req);

@@ -100,17 +100,26 @@ class _MainMenuState extends State<MainMenu> {
           children: [
             Flexible(
               flex: 10,
-              // fit: FlexFit.tight,
-              child: buildTitle(context),
-            ),
-            Flexible(flex: 4, child: Container()),
-            Flexible(
-              flex: 4,
               fit: FlexFit.tight,
+              child:
+                  // SizedBox( height :)
+                  buildTitle(context),
+            ),
+            // Flexible(flex: 4, child: Container()),
+            Expanded(child: SizedBox()),
+            // Flexible(
+            //   flex: 4,
+            //   fit: FlexFit.tight,
+            // child:
+            SizedBox(
+              height: 150,
               child: buildPlayButton(context),
             ),
+            // ),
             SizedBox(height: 48),
             Container(
+              alignment: Alignment.center,
+              constraints: BoxConstraints(maxWidth: 600),
               margin: EdgeInsets.only(bottom: 32, left: 24, right: 24),
               child: buildBottomBar(context),
             ),
@@ -156,8 +165,9 @@ class _MainMenuState extends State<MainMenu> {
     );
   }
 
-  Center buildPlayButton(BuildContext context) {
-    return Center(
+  Widget buildPlayButton(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomCenter,
       child: PlayButton(
         label: 'Play',
         color: Colors.redAccent,
@@ -173,23 +183,24 @@ class _MainMenuState extends State<MainMenu> {
   Container buildTitle(BuildContext context) {
     return Container(
       alignment: Alignment.center,
-      constraints: BoxConstraints.expand(
-          width: max(0, MediaQuery.of(context).size.width - 48)),
+      // constraints: BoxConstraints.expand(
+      // width: max(0, MediaQuery.of(context).size.width - 48),
       // padding: EdgeInsets.symmetric(vertical: 48),
       // height: 48,
-      child: FittedBox(
-        // fit: BoxFit.contain,
-        child: Text(
-          "Four in a Row".toUpperCase(),
-          style: TextStyle(
-            fontSize: 40,
-            fontFamily: "RobotoSlab",
-            letterSpacing: 1,
-            // fontWeight: FontWeight.w900,
-            // fontStyle: FontStyle.italic
-          ),
+      // child:
+      // FittedBox(
+      // fit: BoxFit.contain,
+      child: Text(
+        "Four in a Row".toUpperCase(),
+        style: TextStyle(
+          fontSize: 40,
+          fontFamily: "RobotoSlab",
+          letterSpacing: 1.01,
+          // fontWeight: FontWeight.w900,
+          // fontStyle: FontStyle.italic
         ),
       ),
+      // ),
     );
   }
 }

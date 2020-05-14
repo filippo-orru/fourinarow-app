@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:four_in_a_row/inherit/user.dart';
@@ -9,13 +10,10 @@ import 'package:four_in_a_row/play/online/play_online.dart';
 import 'package:four_in_a_row/util/toast.dart';
 import 'package:four_in_a_row/util/battle_req_popup.dart';
 
-// import '../../play_online.dart';
-// import 'all.dart';
 import 'package:flutter/widgets.dart';
 import 'package:four_in_a_row/play/online/game_states/all.dart' as game_state;
 import 'messages.dart';
-// import 'server_conn.dart';
-import 'package:web_socket_channel/io.dart';
+
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class _InheritedServerConnProvider extends InheritedWidget {
@@ -63,7 +61,7 @@ class ServerConnState extends State<ServerConnProvider> {
 
   BuildContext menuContext;
 
-  IOWebSocketChannel _connection;
+  WebSocketChannel _connection;
   StreamSubscription _wsMsgSub;
   StreamSubscription _playerMsgSub;
 
@@ -141,8 +139,19 @@ class ServerConnState extends State<ServerConnProvider> {
     _wsMsgSub?.cancel();
     _playerMsgSub?.cancel();
 
-    this._connection = IOWebSocketChannel.connect("wss://fourinarow.ml/game/",
-        pingInterval: Duration(seconds: 1));
+    this._connection = WebSocketChannel.connect(
+      Uri.parse("wss://fourinarow.ml/game/"),
+    );
+    // if (kIsWeb) {
+    //   use 'package:web_socket_channel/html.dart';
+    //   this._connection = HtmlWebSocketChannel.connect(
+    //     "wss://fourinarow.ml/game/",
+    //   );
+    // } else {
+    //   this._connection = IOWebSocketChannel.connect(
+    //     Uri.parse("wss://fourinarow.ml/game/"),
+    //   );
+    // }
 
     _wsMsgSub = _handleSMessages(_connection.stream);
     _playerMsgSub = _handlePMessages(_connection.sink);
