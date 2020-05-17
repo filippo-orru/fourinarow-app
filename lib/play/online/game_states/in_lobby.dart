@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/connection/messages.dart';
+import 'package:four_in_a_row/inherit/lifecycle.dart';
+import 'package:four_in_a_row/inherit/notifications.dart';
+import 'package:four_in_a_row/util/vibration.dart';
 import 'all.dart';
 
 class InLobby extends GameState {
@@ -112,6 +115,7 @@ class InLobbyReadyState extends State<InLobbyReadyWidget> {
   @override
   initState() {
     super.initState();
+    Vibrations.gameFound();
     longerThanExpectedTimer = Timer(
         Duration(seconds: 3), () => setState(() => longerThanExpected = true));
   }

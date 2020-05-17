@@ -22,4 +22,17 @@ class Vibrations {
   static tiny() async {
     Vibrate.feedback(FeedbackType.light);
   }
+
+  static battleRequest() async {
+    Vibrate.feedback(FeedbackType.medium);
+  }
+
+  static gameFound() async {
+    await Future.delayed(Duration(milliseconds: 90));
+    Vibrate.feedback(FeedbackType.light);
+    await Future.delayed(Duration(milliseconds: 60));
+    Vibrate.feedback(FeedbackType.light);
+    await Future.delayed(Duration(milliseconds: 60));
+    Vibrate.feedback(FeedbackType.light);
+  }
 }

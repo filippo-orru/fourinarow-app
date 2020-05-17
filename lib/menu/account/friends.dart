@@ -278,7 +278,7 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
       // },
       key: widget.refreshKey,
       child: ListView(
-        padding: EdgeInsets.only(bottom: BottomSheet.HEIGHT),
+        padding: EdgeInsets.only(bottom: 0), // BottomSheet.HEIGHT + 128
         children: elements == null || elements.isEmpty
             ? [
                 Container(
@@ -287,7 +287,7 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
                   child: Text("No friends yet. Add some to get started!"),
                 )
               ]
-            : elements,
+            : elements + [SizedBox(height: 192)],
       ),
     );
   }

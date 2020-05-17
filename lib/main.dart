@@ -2,9 +2,12 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:four_in_a_row/inherit/user.dart';
 
+import 'inherit/user.dart';
+import 'inherit/lifecycle.dart';
 import 'inherit/connection/server_conn.dart';
+import 'inherit/notifications.dart';
+
 import 'menu/main_menu.dart';
 
 void main() => runApp(MyApp());
@@ -64,33 +67,75 @@ class _MyAppState extends State<MyApp> {
               currentFocus.unfocus();
             }
           },
-          child: UserinfoProvider(
-            child: Builder(
-              builder: (ctx) => WidgetsApp(
-                localizationsDelegates: [DefaultMaterialLocalizations.delegate],
-                title: 'Four in a Row',
-                color: Colors.green,
-                initialRoute: "/",
-                pageRouteBuilder: <T>(RouteSettings settings,
-                    Widget Function(BuildContext) builder) {
-                  return MaterialPageRoute<T>(
-                      builder: builder, settings: settings);
-                },
-                builder: (ctx, child) => ServerConnProvider(
-                  userInfo: UserinfoProvider.of(ctx),
-                  child: child,
+          child: LifecycleProvider(
+            child: NotificationsProvider(
+              child: UserinfoProvider(
+                child: Builder(
+                  builder: (ctx) => WidgetsApp(
+                    localizationsDelegates: [
+                      DefaultMaterialLocalizations.delegate
+                    ],
+                    title: 'Four in a Row',
+                    color: Colors.green,
+                    initialRoute: "/",
+                    pageRouteBuilder: <T>(RouteSettings settings,
+                        Widget Function(BuildContext) builder) {
+                      return MaterialPageRoute<T>(
+                          builder: builder, settings: settings);
+                    },
+                    builder: (ctx, child) => ServerConnProvider(
+                      userInfo: UserinfoProvider.of(ctx),
+                      child: Stack(children: [
+                        child,
+                        Positioned(
+                          top: MediaQuery.of(ctx).padding.top,
+                          right: 0,
+                          child: Opacity(
+                            opacity: 1,
+                            // opacity: 0.4,
+                            child: Container(
+                              margin: EdgeInsets.all(16), //top: 32, right:
+                              decoration: BoxDecoration(
+                                color: Colors.white54,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(4)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    blurRadius: 4,
+                                    color: Colors.black12,
+                                    offset: Offset(0, 0),
+                                  ),
+                                ],
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 4),
+                              child: Text(
+                                'BETA',
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontFamily: 'Roboto',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ]),
+                    ),
+                    // routes: {
+                    //   "/": (context) => MainMenu(),
+                    // "/playOverview": (_) => PlayOverviewMenu(),
+                    // "/local/play": (context) => PlayingLocal(),
+                    // "/online/selectRange": (context) => OnlineMenuRange(),
+                    // "/online/selectHost": (context) => OnlineMenuHost(),
+                    // "/online/play": (context) => PlayingOnline(),
+                    // },
+                    home: MainMenu(),
+                    debugShowCheckedModeBanner: false,
+                    navigatorObservers: [routeObserver],
+                  ),
                 ),
-                // routes: {
-                //   "/": (context) => MainMenu(),
-                // "/playOverview": (_) => PlayOverviewMenu(),
-                // "/local/play": (context) => PlayingLocal(),
-                // "/online/selectRange": (context) => OnlineMenuRange(),
-                // "/online/selectHost": (context) => OnlineMenuHost(),
-                // "/online/play": (context) => PlayingOnline(),
-                // },
-                home: MainMenu(),
-                debugShowCheckedModeBanner: false,
-                navigatorObservers: [routeObserver],
               ),
             ),
           ),

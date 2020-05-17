@@ -1,4 +1,10 @@
+import 'dart:math';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:four_in_a_row/play/common/board.dart';
+import 'package:four_in_a_row/play/common/winner_overlay.dart';
+import 'package:four_in_a_row/play/game_logic/field.dart';
 
 import 'package:four_in_a_row/util/vibration.dart';
 import '../game_logic/player.dart';
@@ -33,6 +39,12 @@ class _PlayingLocalState extends State<PlayingLocal> {
   }
 
   @override
+  void reassemble() {
+    super.reassemble();
+    field.checkWin();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
@@ -63,6 +75,34 @@ class _PlayingLocalState extends State<PlayingLocal> {
             onTap: _fieldReset,
             board: Board(field, dropChip: _dropChip),
           ),
+          kDebugMode
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    RaisedButton(
+                      child: Text('Undo'),
+                      onPressed: () => setState(() => field.undo()),
+                    ),
+                    RaisedButton(
+                      child: Text('Fill random'),
+                      onPressed: () async {
+                        for (int i = 0; i < 10; i++) {
+                          await Future.delayed(
+                            Duration(milliseconds: 300),
+                            () {
+                              if (mounted)
+                                setState(
+                                  () => field.dropChip(
+                                      Random().nextInt(Field.fieldSize)),
+                                );
+                            },
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                )
+              : Spacer(),
         ],
       ),
     );

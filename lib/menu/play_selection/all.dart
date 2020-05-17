@@ -64,22 +64,38 @@ class _PlaySelectionState extends State<PlaySelection> {
         GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: backgroundTapped,
-          child: PageView(
-            children: <Widget>[
-              Container(
-                constraints: BoxConstraints.expand(),
-                color: Colors.redAccent,
-              ),
-              Container(
-                constraints: BoxConstraints.expand(),
-                color: Colors.blueAccent,
-              ),
-              // Container(
-              //   constraints: BoxConstraints.expand(),
-              //   color: Colors.purpleAccent,
-              // ),
-            ],
-            controller: pageCtrl,
+          child: Material(
+            child: PageView(
+              children: <Widget>[
+                Container(
+                  constraints: BoxConstraints.expand(),
+                  color: Colors.redAccent,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: SwitchPageButton(pageCtrl),
+                    ),
+                  ),
+                ),
+                Container(
+                  constraints: BoxConstraints.expand(),
+                  color: Colors.blueAccent,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Align(
+                      alignment: Alignment.bottomLeft,
+                      child: SwitchPageButton(pageCtrl, forward: false),
+                    ),
+                  ),
+                ),
+                // Container(
+                //   constraints: BoxConstraints.expand(),
+                //   color: Colors.purpleAccent,
+                // ),
+              ],
+              controller: pageCtrl,
+            ),
           ),
         ),
         Waves(MediaQuery.of(context).size.height),
@@ -119,6 +135,51 @@ class _PlaySelectionState extends State<PlaySelection> {
         PageIndicator(page, 2),
         SwipeDialog(),
       ],
+    );
+  }
+}
+
+class SwitchPageButton extends StatelessWidget {
+  const SwitchPageButton(
+    this.pageCtrl, {
+    this.forward = true,
+    Key key,
+  }) : super(key: key);
+
+  final bool forward;
+  final PageController pageCtrl;
+
+  @override
+  Widget build(BuildContext context) {
+    var page = pageCtrl.position.minScrollExtent != null &&
+            pageCtrl.position.maxScrollExtent != null
+        ? pageCtrl?.page ?? 0.0
+        : 0.0;
+
+    return AnimatedBuilder(
+      animation: pageCtrl,
+      builder: (ctx, child) {
+        var r = (page % 1).abs();
+        return Opacity(
+            opacity: r > 0.5 ? r : 1 - r, //> 0.5 ? r : 1, // !=  ? 0.5 : 1,
+            child: child);
+      },
+      child: IconButton(
+          icon: Transform.rotate(
+              angle: forward ? pi : 0,
+              child: Icon(
+                Icons.arrow_back,
+                color: Colors.white70,
+              )),
+          onPressed: () {
+            forward
+                ? pageCtrl.nextPage(
+                    duration: Duration(milliseconds: 600),
+                    curve: Curves.easeOutQuart)
+                : pageCtrl.previousPage(
+                    duration: Duration(milliseconds: 600),
+                    curve: Curves.easeOutQuart);
+          }),
     );
   }
 }

@@ -7,7 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:four_in_a_row/util/constants.dart' as constants;
 
 import '../../game_logic/player.dart';
-import '../../common/common.dart';
+import '../../common/board.dart';
+import '../../common/winner_overlay.dart';
 import '../online_field.dart';
 import 'package:four_in_a_row/inherit/connection/messages.dart';
 import 'package:four_in_a_row/inherit/user.dart';
@@ -112,6 +113,12 @@ class _PlayingState extends State<PlayingWidget> {
         await http.get("${constants.URL}/api/users/$opponentId");
     if (response.statusCode == 200) {
       this.opponentInfo = PublicUser.fromMap(jsonDecode(response.body));
+      if (UserinfoProvider.of(context)
+          .user
+          .friends
+          .any((friend) => friend.id == opponentInfo.id)) {
+        opponentInfo.isFriend = true;
+      }
     }
     setState(() {});
   }
@@ -140,9 +147,9 @@ class _PlayingState extends State<PlayingWidget> {
       field.dropChipNamed(column, player);
     });
     var winDetails = field.checkWin();
-    if (winDetails?.player == field.me) {
+    if (winDetails?.winner == field.me) {
       Vibrations.win();
-    } else if (winDetails?.player == field.me.other) {
+    } else if (winDetails?.winner == field.me.other) {
       Vibrations.loose();
     }
     // showPopup('SR: $field');
@@ -196,7 +203,7 @@ class _PlayingState extends State<PlayingWidget> {
             ],
           ),
         ),
-        OpponentInfo(this.opponentInfo),
+        opponentInfo != null ? OpponentInfo(this.opponentInfo) : SizedBox(),
         Positioned(
           bottom: 32,
           right: 32,
@@ -224,10 +231,24 @@ class _PlayingState extends State<PlayingWidget> {
   }
 }
 
-class OpponentInfo extends StatelessWidget {
+class OpponentInfo extends StatefulWidget {
   OpponentInfo(this.opponentInfo);
 
   final PublicUser opponentInfo;
+
+  @override
+  _OpponentInfoState createState() => _OpponentInfoState();
+}
+
+class _OpponentInfoState extends State<OpponentInfo> {
+  bool added = false;
+  bool errorAdding = false;
+
+  @override
+  void initState() {
+    super.initState();
+    added = widget.opponentInfo.isFriend;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -237,51 +258,80 @@ class OpponentInfo extends StatelessWidget {
       right: 0,
       child: AnimatedSwitcher(
         duration: Duration(milliseconds: 300),
-        child: this.opponentInfo == null
-            ? SizedBox()
-            : Center(
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                  decoration: BoxDecoration(
-                    // color: Colors.black.withOpacity(0.25),
-                    borderRadius: BorderRadius.all(Radius.circular(6)),
-                  ),
-                  // width: 100,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      // Text(
-                      //   "Enemy".toUpperCase(),
-                      //   style: TextStyle(
-                      //     fontSize: 14,
-                      //     letterSpacing: 0.5,
-                      //     color: Colors.white,
-                      //   ),
-                      // ),
-                      SizedBox(width: 6),
-                      Text(
-                        opponentInfo.name,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontFamily: 'RobotoSlab',
-                          color: Colors.black87,
-                        ),
+        child: Center(
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+            decoration: BoxDecoration(
+              // color: Colors.black.withOpacity(0.25),
+              borderRadius: BorderRadius.all(Radius.circular(6)),
+            ),
+            // width: 100,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    // Text(
+                    //   "Enemy".toUpperCase(),
+                    //   style: TextStyle(
+                    //     fontSize: 14,
+                    //     letterSpacing: 0.5,
+                    //     color: Colors.white,
+                    //   ),
+                    // ),
+                    SizedBox(width: 6),
+                    Text(
+                      widget.opponentInfo.name,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'RobotoSlab',
+                        color: Colors.black87,
                       ),
-                      SizedBox(width: 6),
-                      Text(
-                        "${opponentInfo.gameInfo.skillRating} SR",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontFamily: 'RobotoSlab',
-                          color: Colors.black54,
-                        ),
+                    ),
+                    SizedBox(width: 6),
+                    Text(
+                      "${widget.opponentInfo.gameInfo.skillRating} SR",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: 'RobotoSlab',
+                        color: Colors.black54,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ),
+                SizedBox(width: 6),
+                IconButton(
+                    icon: errorAdding
+                        ? Icon(Icons.close)
+                        : added == null
+                            ? CircularProgressIndicator()
+                            : added == true
+                                ? Icon(Icons.check)
+                                : Icon(Icons.add),
+                    onPressed: added == false && errorAdding == false
+                        ? () {
+                            // if () {
+                            setState(() => added = null);
+                            UserinfoProvider.of(context)
+                                .addFriend(widget.opponentInfo.id)
+                                .then((ok) => setState(() {
+                                      if (ok) {
+                                        added = true;
+                                      } else {
+                                        errorAdding = true;
+                                        added = false;
+                                      }
+                                    }));
+                            // }
+                          }
+                        : null),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

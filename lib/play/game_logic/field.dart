@@ -9,6 +9,7 @@ class Field {
   List<List<Player>> _array;
   int _chips = 0;
   Player turn = Player.One;
+  List<int> lastChips = [];
 
   Field() {
     this.reset();
@@ -23,15 +24,20 @@ class Field {
   }
 
   dropChipNamed(int column, Player p) {
-    vibrate();
-    int len = _array[column].length;
-    for (var i = 0; i <= len; i++) {
-      if (i == len || _array[column][i] != null) {
-        _array[column][i - 1] = turn;
-        break;
+    if (column < Field.fieldSize &&
+        column >= 0 &&
+        _array[column].any((c) => c == null)) {
+      vibrate();
+      int len = _array[column].length;
+      for (var i = 0; i <= len; i++) {
+        if (i == len || _array[column][i] != null) {
+          _array[column][i - 1] = turn;
+          break;
+        }
       }
+      lastChips.add(column);
+      turn = turn.other;
     }
-    turn = turn.other;
   }
 
   List<List<Player>> get array {
@@ -60,6 +66,18 @@ class Field {
     turn = Player.One;
   }
 
+  void undo() {
+    if (lastChips.isNotEmpty) {
+      int lastChip = lastChips.removeLast();
+      for (int i = 0; i < fieldSize; i++) {
+        if (array[lastChip][i] != null) {
+          array[lastChip][i] = null;
+          return;
+        }
+      }
+    }
+  }
+
   WinDetails checkWin() {
     const int range = fieldSize - 4;
     for (int r = -range; r <= range; r++) {
@@ -79,9 +97,10 @@ class Field {
         }
         lastPlayer = cellPlayer;
         combo += 1;
-        if (combo == 4) {
+        if (combo >= 4) {
           // print("won in first block");
-          return WinDetails(lastPlayer, Point(i + r, i), Point(-1, -1));
+          return WinDetails(lastPlayer,
+              Point(i + r - (combo - 1), i - (combo - 1)), Point(1, 1));
           // return WinDetails(
           //     lastPlayer, Point(i + r - range, i - range), Point(i + r, i));
         }
@@ -105,9 +124,12 @@ class Field {
         }
         lastPlayer = cellPlayer;
         combo += 1;
-        if (combo == 4) {
+        if (combo >= 4) {
           // print("won in second block");
-          return WinDetails(lastPlayer, Point(i + r, i), Point(1, 1));
+          return WinDetails(
+              lastPlayer,
+              Point(i + r + (combo - 1), realY - (combo - 1)),
+              Point(-1, 1)); //- (combo - 1)
           // return WinDetails(
           //     lastPlayer, Point(i + r + range, i + range), Point(i + r, i));
         }
@@ -135,7 +157,8 @@ class Field {
         lastPlayer = cell;
         if (combo >= 4) {
           // print("won in y block");
-          return WinDetails(lastPlayer, Point(x, y), Point(0, -1));
+          return WinDetails(
+              lastPlayer, Point(x, max(0, y - combo + 1)), Point(0, 1));
         }
 
         if (cell != xPlayer[y]) {
@@ -145,7 +168,8 @@ class Field {
         xPlayer[y] = lastPlayer;
         if (xCombo[y] >= 4) {
           // print("won in x block");
-          return WinDetails(lastPlayer, Point(x, y), Point(-1, 0));
+          return WinDetails(
+              lastPlayer, Point(max(0, x - xCombo[y] + 1), y), Point(1, 0));
         }
       }
     }
@@ -156,15 +180,15 @@ class Field {
 
 class WinDetails {
   final bool me;
-  final Player player;
+  final Player winner;
   final Point<int> start;
   final Point<int> delta;
 
-  WinDetails(this.player, this.start, this.delta)
-      : this.me = player == Player.One;
+  WinDetails(this.winner, this.start, this.delta)
+      : this.me = winner == Player.One;
 
   @override
   String toString() {
-    return "WinDetails: $player (${me ? "Me" : "Opp."}). Start: $start, delta: $delta";
+    return "WinDetails: $winner (${me ? "Me" : "Opp."}). Start: $start, delta: $delta";
   }
 }

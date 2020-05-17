@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/play/online/play_online.dart';
@@ -12,7 +11,11 @@ import 'package:four_in_a_row/util/battle_req_popup.dart';
 
 import 'package:flutter/widgets.dart';
 import 'package:four_in_a_row/play/online/game_states/all.dart' as game_state;
+import 'package:four_in_a_row/util/vibration.dart';
+import '../lifecycle.dart';
+import '../notifications.dart';
 import 'messages.dart';
+// import 'package:flutter_local_notifications/src/';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -142,16 +145,6 @@ class ServerConnState extends State<ServerConnProvider> {
     this._connection = WebSocketChannel.connect(
       Uri.parse("wss://fourinarow.ml/game/"),
     );
-    // if (kIsWeb) {
-    //   use 'package:web_socket_channel/html.dart';
-    //   this._connection = HtmlWebSocketChannel.connect(
-    //     "wss://fourinarow.ml/game/",
-    //   );
-    // } else {
-    //   this._connection = IOWebSocketChannel.connect(
-    //     Uri.parse("wss://fourinarow.ml/game/"),
-    //   );
-    // }
 
     _wsMsgSub = _handleSMessages(_connection.stream);
     _playerMsgSub = _handlePMessages(_connection.sink);
@@ -160,7 +153,7 @@ class ServerConnState extends State<ServerConnProvider> {
   }
 
   void leaveGame() {
-    print("called leave game\n" + StackTrace.current.toString());
+    // print("called leave game\n" + StackTrace.current.toString());
 
     if (inLobby) {
       this.outgoing?.add(PlayerMsgLeave());
@@ -178,15 +171,35 @@ class ServerConnState extends State<ServerConnProvider> {
     try {
       var user = await UserinfoProvider.of(context).getUserInfo(userId: userId);
 
-      this.battleRequest = BattleRequestPopup(user.name, () {
-        startGame(ORqLobby(lobbyCode));
-      });
-      //     , hideCallback: () {
-      //   setState(() => battleRequest = null);
-      // }
+      if (LifecycleProvider.of(context).state == AppLifecycleState.resumed) {
+        Vibrations.battleRequest();
+        this.battleRequest = BattleRequestPopup(user.name, () {
+          startGame(ORqLobby(lobbyCode));
+        });
+      } else {
+        var notifProv = NotificationsProvider.of(context);
+        notifProv.flutterNotifications.cancel(MyNotifications.battleRequest);
+        notifProv.flutterNotifications.show(
+          MyNotifications.battleRequest,
+          'Battle Request!',
+          "${user.name} has requested a Four in a Row match! Tap to join the match",
+          MyNotifications.battleRequestSpecifics,
+          payload: lobbyCode,
+        );
+        notifProv.selectedStream.first
+            .timeout(BattleRequestPopup.DURATION, onTimeout: () => null)
+            .then((val) {
+          if (val == null) {
+            // not tapped
+            notifProv.flutterNotifications
+                .cancel(MyNotifications.battleRequest);
+          } else {
+            startGame(ORqLobby(val));
+          }
+        });
+      }
+
       setState(() {});
-      // Future.delayed(BattleRequestPopup.DURATION,
-      //     () => setState(() => battleRequest = null));
     } on HttpException {}
   }
 
@@ -241,6 +254,26 @@ class ServerConnState extends State<ServerConnProvider> {
           showBattleRequest(onlineMsg.userId, onlineMsg.lobbyCode);
         } else if (onlineMsg is MsgLobbyClosing) {
           inLobby = false;
+        } else if (onlineMsg is MsgGameStart) {
+          var lifecycle = LifecycleProvider.of(context);
+          if (lifecycle.state != AppLifecycleState.resumed) {
+            var notifProv = NotificationsProvider.of(context);
+            notifProv.flutterNotifications.cancel(MyNotifications.gameFound);
+            notifProv.flutterNotifications.show(
+              MyNotifications.gameFound,
+              'Game Starting!',
+              "A game has been found. Come back quickly to play!",
+              MyNotifications.gameFoundSpecifics,
+            );
+            Future.delayed(
+              Duration(seconds: 45),
+              () => notifProv.flutterNotifications
+                  .cancel(MyNotifications.gameFound),
+            );
+            lifecycle.onReady = () {
+              notifProv.flutterNotifications.cancel(MyNotifications.gameFound);
+            };
+          }
         }
         //  else if (onlineMsg is MsgOkay ||
         //     onlineMsg is MsgLobbyResponse ||
@@ -285,6 +318,10 @@ class ServerConnState extends State<ServerConnProvider> {
   StreamSubscription _handlePMessages(WebSocketSink wsSink) {
     this.outgoing = StreamController<PlayerMessage>.broadcast();
     return this.outgoing.stream.listen((pmsg) {
+      if (!connected) {
+        this._initializeConnection();
+      }
+
       _awaitingConfirmation = true;
       this.timeoutTimer = Timer(Duration(seconds: 8), () {
         if (this._awaitingConfirmation) {
