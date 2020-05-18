@@ -96,7 +96,7 @@ class ServerConnState extends State<ServerConnProvider> {
       outgoing.add(PlayerMsgLeave());
     }
 
-    if ((widget._userInfo?.loggedIn ?? false) && !this.loggedIn) {
+    if ((widget._userInfo?.loggedIn == true) && !this.loggedIn) {
       this.outgoing.add(
           PlayerMsgLogin(widget._userInfo.username, widget._userInfo.password));
       this.awaitingLogin = () {};
@@ -182,7 +182,7 @@ class ServerConnState extends State<ServerConnProvider> {
         notifProv.flutterNotifications.show(
           MyNotifications.battleRequest,
           'Battle Request!',
-          "${user.name} has requested a Four in a Row match! Tap to join the match",
+          "${user.name} has requested a match. Tap to join!",
           MyNotifications.battleRequestSpecifics,
           payload: lobbyCode,
         );
@@ -245,6 +245,11 @@ class ServerConnState extends State<ServerConnProvider> {
               awaitingLogin();
               showPopup("Logged in as ${widget._userInfo.username}.");
               loggedIn = true;
+            } else if (onlineMsg.maybeErr == MsgErrorType.AlreadyPlaying) {
+              _initializeConnection();
+              // if (widget._userInfo?.loggedIn) {
+
+              // }
             }
           }
           awaitingLogin = null;
@@ -258,20 +263,20 @@ class ServerConnState extends State<ServerConnProvider> {
           var lifecycle = LifecycleProvider.of(context);
           if (lifecycle.state != AppLifecycleState.resumed) {
             var notifProv = NotificationsProvider.of(context);
-            notifProv.flutterNotifications.cancel(MyNotifications.gameFound);
-            notifProv.flutterNotifications.show(
+            notifProv.flutterNotifications?.cancel(MyNotifications.gameFound);
+            notifProv.flutterNotifications?.show(
               MyNotifications.gameFound,
               'Game Starting!',
-              "A game has been found. Come back quickly to play!",
+              "Come back quickly to play!",
               MyNotifications.gameFoundSpecifics,
             );
             Future.delayed(
               Duration(seconds: 45),
               () => notifProv.flutterNotifications
-                  .cancel(MyNotifications.gameFound),
+                  ?.cancel(MyNotifications.gameFound),
             );
             lifecycle.onReady = () {
-              notifProv.flutterNotifications.cancel(MyNotifications.gameFound);
+              notifProv.flutterNotifications?.cancel(MyNotifications.gameFound);
             };
           }
         }
@@ -383,7 +388,7 @@ class ServerConnState extends State<ServerConnProvider> {
   @override
   initState() {
     super.initState();
-    if ((widget._userInfo?.loggedIn ?? false) && !this.loggedIn) {
+    if (widget._userInfo?.loggedIn == true && !this.loggedIn) {
       this.outgoing.add(
           PlayerMsgLogin(widget._userInfo.username, widget._userInfo.password));
       this.awaitingLogin = () {};
@@ -393,7 +398,9 @@ class ServerConnState extends State<ServerConnProvider> {
   @override
   void didUpdateWidget(Widget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if ((widget._userInfo?.loggedIn ?? false) && !this.loggedIn) {
+    if (widget._userInfo?.loggedIn == true && !this.loggedIn) {
+      print(
+          "in update widget: ${widget._userInfo?.loggedIn == true} && ${!this.loggedIn}");
       this.outgoing.add(
           PlayerMsgLogin(widget._userInfo.username, widget._userInfo.password));
       this.awaitingLogin = () {};

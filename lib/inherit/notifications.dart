@@ -1,46 +1,77 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-class NotificationsProvider extends InheritedWidget {
-  NotificationsProvider({Key key, this.child}) : super(key: key, child: child) {
-    initialize();
-  }
-
-  final FlutterLocalNotificationsPlugin flutterNotifications =
-      FlutterLocalNotificationsPlugin();
+class NotificationsProvider extends StatefulWidget {
+  NotificationsProvider({Key key, this.child}) : super(key: key);
   final Widget child;
+
+  @override
+  createState() => NotificationsProviderState();
+
+  static NotificationsProviderState of(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<_NotificationsProviderInherit>()
+        .state;
+  }
+}
+
+class NotificationsProviderState extends State<NotificationsProvider> {
+  FlutterLocalNotificationsPlugin flutterNotifications;
+
   final StreamController<String> _selectedStreamCtrl =
       StreamController.broadcast();
 
   Stream<String> get selectedStream => _selectedStreamCtrl.stream;
 
+  bool web = false;
+
   void initialize() async {
-    var androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    var iosSettings = IOSInitializationSettings(
-      requestSoundPermission: false,
-      requestBadgePermission: false,
-      requestAlertPermission: false,
-    );
-    await flutterNotifications
-        .initialize(InitializationSettings(androidSettings, iosSettings),
-            onSelectNotification: (str) {
-      _selectedStreamCtrl.add(str);
-      return Future.value();
-    });
-  }
-
-  static NotificationsProvider of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<NotificationsProvider>();
-  }
-
-  dispose() {
-    _selectedStreamCtrl.close();
+    if (!kIsWeb) {
+      flutterNotifications = FlutterLocalNotificationsPlugin();
+      var androidSettings = AndroidInitializationSettings('mipmap/ic_launcher');
+      var iosSettings = IOSInitializationSettings(
+        requestSoundPermission: false,
+        requestBadgePermission: false,
+        requestAlertPermission: false,
+      );
+      await flutterNotifications
+          .initialize(InitializationSettings(androidSettings, iosSettings),
+              onSelectNotification: (str) {
+        _selectedStreamCtrl.add(str);
+        return Future.value();
+      });
+    }
   }
 
   @override
-  bool updateShouldNotify(NotificationsProvider oldWidget) {
+  void initState() {
+    super.initState();
+    initialize();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _NotificationsProviderInherit(widget.child, this);
+  }
+
+  @override
+  dispose() {
+    _selectedStreamCtrl.close();
+    super.dispose();
+  }
+}
+
+class _NotificationsProviderInherit extends InheritedWidget {
+  _NotificationsProviderInherit(Widget child, this.state, {Key key})
+      : super(key: key, child: child);
+
+  final NotificationsProviderState state;
+
+  @override
+  bool updateShouldNotify(oldWidget) {
     return false;
   }
 }
@@ -52,6 +83,7 @@ class MyNotifications {
       '0',
       'Battle Requests',
       'Shown when someone requests a battle.',
+      category: 'CATEGORY_MESSAGE',
       importance: Importance.Max,
       priority: Priority.Max,
     ),
@@ -64,6 +96,7 @@ class MyNotifications {
       '1',
       'Game Started',
       'Shown when you find an online game while the app is in the background.',
+      category: 'CATEGORY_MESSAGE',
       importance: Importance.High,
       priority: Priority.Max,
     ),

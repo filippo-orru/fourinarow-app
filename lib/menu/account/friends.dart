@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:four_in_a_row/inherit/connection/messages.dart';
 import 'package:four_in_a_row/inherit/connection/server_conn.dart';
 import 'package:four_in_a_row/play/online/play_online.dart';
+import 'package:four_in_a_row/util/battle_req_popup.dart';
 import 'package:http/http.dart' as http;
 import 'package:four_in_a_row/util/constants.dart' as constants;
 import 'package:flutter/material.dart';
@@ -254,12 +255,15 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
             return MapEntry(
               i,
               Column(
+                mainAxisSize: MainAxisSize.max,
                 children: [
                   tile,
-                  Divider(
-                    indent: 12,
-                    endIndent: 12,
-                    color: Colors.black.withOpacity(0.3),
+                  Container(
+                    // indent: 12,
+                    // endIndent: 12,
+                    margin: EdgeInsets.symmetric(horizontal: 12),
+                    constraints: BoxConstraints.expand(height: 2),
+                    color: Colors.black.withOpacity(0.1),
                   ),
                 ],
               ),
@@ -654,8 +658,14 @@ class FriendListDisplay extends StatelessWidget {
               alignment: Alignment.center,
               scale: 0.75,
               child: IconButton(
-                icon:
-                    Image.asset("assets/img/swords.png", color: Colors.black54),
+                icon: Opacity(
+                  opacity: 0.54,
+                  child: Image.asset(
+                    "assets/img/swords.png",
+                    color: Colors.black,
+                    colorBlendMode: BlendMode.src,
+                  ),
+                ),
                 onPressed: () => battleRequest(friend.id),
               ),
             )
@@ -668,7 +678,7 @@ class FriendListDisplay extends StatelessWidget {
 }
 
 class BattleRequestDialog extends StatefulWidget {
-  static const TIMEOUT = Duration(seconds: 12);
+  static const TIMEOUT = BattleRequestPopup.DURATION;
 
   final String showBattleRequest;
   final VoidCallback hide;

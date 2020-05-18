@@ -41,7 +41,7 @@ class UserinfoProvider extends StatefulWidget {
 }
 
 class UserinfoProviderState extends State<UserinfoProvider> {
-  SharedPreferences _prefs;
+  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   http.Client _client = http.Client();
 
   // bool _ok = false;
@@ -73,24 +73,25 @@ class UserinfoProviderState extends State<UserinfoProvider> {
     this.password = null;
     this.user = null;
 
-    // _prefs = _prefs;
-    if (_prefs.containsKey('username') && _prefs.containsKey('password')) {
-      _prefs.remove('username');
-      _prefs.remove('password');
+    var prefs = await _prefs;
+    if (prefs.containsKey('username') && prefs.containsKey('password')) {
+      prefs.remove('username');
+      prefs.remove('password');
     }
   }
 
   void loadCredentials() async {
-    // _prefs = _prefs ?? await SharedPreferences.getInstance();
-    if (_prefs.containsKey('username') && _prefs.containsKey('password')) {
+    var prefs = await _prefs;
+    if (prefs.containsKey('username') && prefs.containsKey('password')) {
       this.setCredentials(
-          _prefs.getString('username'), _prefs.getString('password'));
+          prefs.getString('username'), prefs.getString('password'));
     }
   }
 
   void setCredentials(String username, String password) async {
-    _prefs.setString('username', username);
-    _prefs.setString('password', password);
+    var prefs = await _prefs;
+    prefs.setString('username', username);
+    prefs.setString('password', password);
 
     this.username = username;
     this.password = password;
@@ -177,8 +178,8 @@ class UserinfoProviderState extends State<UserinfoProvider> {
   @override
   void initState() {
     super.initState();
-    SharedPreferences.getInstance().then((prefs) {
-      _prefs = prefs;
+    _prefs.then((_) {
+      // _prefs = prefs;
       loadCredentials();
     });
   }

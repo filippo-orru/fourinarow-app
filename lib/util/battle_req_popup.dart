@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 class BattleRequestPopup extends StatefulWidget {
-  static const DURATION = Duration(seconds: 12);
+  static const DURATION = Duration(seconds: 20);
 
   BattleRequestPopup(
     this.username,
