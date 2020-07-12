@@ -66,7 +66,7 @@ class _PlaySelectionState extends State<PlaySelection> {
           onTap: backgroundTapped,
           child: Material(
             child: PageView(
-              children: <Widget>[
+              children: [
                 Container(
                   constraints: BoxConstraints.expand(),
                   color: Colors.redAccent,

@@ -163,7 +163,7 @@ class WinnerOverlay extends StatelessWidget {
                     ),
                     // SizedBox(height: 64),
                     Text(
-                      bottomText,
+                      bottomText ?? "",
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.9),
                         fontWeight: FontWeight.w600,
