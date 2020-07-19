@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -22,6 +23,8 @@ class _MyAppState extends State<MyApp> {
 
   bool exitConfirm = false;
 
+  NavigatorState _navigator;
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -39,14 +42,14 @@ class _MyAppState extends State<MyApp> {
               builder: (BuildContext ctx) {
                 return Container(
                   height: 96,
-                  width: max(MediaQuery.of(context).size.width * 0.8, 256),
+                  width: max(MediaQuery.of(ctx).size.width * 0.8, 256),
                   child: Column(
                     children: <Widget>[
                       Center(child: Text("Are you sure you want to exit?")),
                       RaisedButton(
                         onPressed: () {
                           exitConfirm = true;
-                          Navigator.of(context).pop();
+                          Navigator.of(ctx).pop();
                         },
                         child: Text("Yes"),
                       ),
@@ -70,71 +73,99 @@ class _MyAppState extends State<MyApp> {
           child: LifecycleProvider(
             child: NotificationsProvider(
               child: UserinfoProvider(
-                child: Builder(
-                  builder: (ctx) => WidgetsApp(
-                    localizationsDelegates: [
-                      DefaultMaterialLocalizations.delegate
-                    ],
-                    title: 'Four in a Row',
-                    color: Colors.green,
-                    initialRoute: "/",
-                    pageRouteBuilder: <T>(RouteSettings settings,
-                        Widget Function(BuildContext) builder) {
-                      return MaterialPageRoute<T>(
-                          builder: builder, settings: settings);
-                    },
-                    builder: (ctx, child) => ServerConnProvider(
-                      userInfo: UserinfoProvider.of(ctx),
-                      child: Stack(children: [
-                        child,
-                        Positioned(
-                          top: MediaQuery.of(ctx).padding.top,
-                          right: 0,
-                          child: Opacity(
-                            opacity: 1,
-                            // opacity: 0.4,
-                            child: Container(
-                              margin: EdgeInsets.all(16), //top: 32, right:
-                              decoration: BoxDecoration(
-                                color: Colors.white54,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(4)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    blurRadius: 4,
-                                    color: Colors.black12,
-                                    offset: Offset(0, 0),
+                child: WidgetsApp(
+                  localizationsDelegates: [
+                    DefaultMaterialLocalizations.delegate
+                  ],
+                  title: 'Four in a Row',
+                  color: Colors.blue,
+                  initialRoute: "/",
+                  pageRouteBuilder: <T>(RouteSettings settings,
+                      Widget Function(BuildContext) builder) {
+                    return MaterialPageRoute<T>(
+                        builder: builder, settings: settings);
+                  },
+                  builder: (ctx, child) => Column(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Flexible(
+                        child: ServerConnProvider(
+                          userInfo: UserinfoProvider.of(ctx),
+                          child: Stack(children: [
+                            child,
+                            Positioned(
+                              top: MediaQuery.of(ctx).padding.top,
+                              right: 0,
+                              child: Opacity(
+                                opacity: 1,
+                                // opacity: 0.4,
+                                child: Container(
+                                  margin: EdgeInsets.all(16), //top: 32, right:
+                                  decoration: BoxDecoration(
+                                    color: Colors.white54,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(4)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        blurRadius: 4,
+                                        color: Colors.black12,
+                                        offset: Offset(0, 0),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 4),
-                              child: Text(
-                                'BETA',
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontFamily: 'Roboto',
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 4),
+                                  child: Text(
+                                    'BETA',
+                                    style: TextStyle(
+                                      color: Colors.black87,
+                                      fontFamily: 'Roboto',
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                          ]),
                         ),
-                      ]),
-                    ),
-                    // routes: {
-                    //   "/": (context) => MainMenu(),
-                    // "/playOverview": (_) => PlayOverviewMenu(),
-                    // "/local/play": (context) => PlayingLocal(),
-                    // "/online/selectRange": (context) => OnlineMenuRange(),
-                    // "/online/selectHost": (context) => OnlineMenuHost(),
-                    // "/online/play": (context) => PlayingOnline(),
-                    // },
-                    home: MainMenu(),
-                    debugShowCheckedModeBanner: false,
-                    navigatorObservers: [routeObserver],
+                      ),
+                      Platform.isIOS
+                          ? GestureDetector(
+                              onTap: () => _navigator?.maybePop(),
+                              child: Container(
+                                color: Colors.black,
+                                height: 32,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    // BackButton(color: Colors.white),
+                                    Icon(Icons.arrow_back, color: Colors.white),
+                                    SizedBox(width: 8),
+                                    Text('Go back'),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : SizedBox(),
+                    ],
                   ),
+                  // routes: {
+                  //   "/": (context) => MainMenu(),
+                  // "/playOverview": (_) => PlayOverviewMenu(),
+                  // "/local/play": (context) => PlayingLocal(),
+                  // "/online/selectRange": (context) => OnlineMenuRange(),
+                  // "/online/selectHost": (context) => OnlineMenuHost(),
+                  // "/online/play": (context) => PlayingOnline(),
+                  // },
+                  home: Builder(
+                    builder: (context) {
+                      _navigator = Navigator.of(context);
+                      return MainMenu();
+                    },
+                  ),
+                  debugShowCheckedModeBanner: false,
+                  navigatorObservers: [routeObserver],
                 ),
               ),
             ),

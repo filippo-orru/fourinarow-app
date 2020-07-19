@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:four_in_a_row/menu/play_selection/online.dart';
 import 'package:flutter/material.dart';
 
@@ -114,10 +116,11 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double width80 = MediaQuery.of(context).size.width * 0.8;
     return Scaffold(
       body: Center(
         child: Container(
-          width: 220,
+          width: max(width80, 220),
           child: Form(
             child: Column(
               mainAxisSize: MainAxisSize.min,
