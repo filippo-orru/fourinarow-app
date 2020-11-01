@@ -102,7 +102,7 @@ class _PlayingLocalState extends State<PlayingLocal> {
                     ),
                   ],
                 )
-              : Spacer(),
+              : SizedBox(),
         ],
       ),
     );

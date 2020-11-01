@@ -60,6 +60,8 @@ class ServerConnState extends State<ServerConnProvider> {
     _initializeConnection();
   }
 
+  CurrentServerInfo currentServerInfo;
+
   bool _awaitingConfirmation = false;
 
   BuildContext menuContext;
@@ -259,6 +261,8 @@ class ServerConnState extends State<ServerConnProvider> {
           showBattleRequest(onlineMsg.userId, onlineMsg.lobbyCode);
         } else if (onlineMsg is MsgLobbyClosing) {
           inLobby = false;
+        } else if (onlineMsg is MsgCurrentServerInfo) {
+          setState(() => currentServerInfo = onlineMsg.currentServerInfo);
         } else if (onlineMsg is MsgGameStart) {
           var lifecycle = LifecycleProvider.of(context);
           if (lifecycle.state != AppLifecycleState.resumed) {
@@ -344,6 +348,9 @@ class ServerConnState extends State<ServerConnProvider> {
       });
 
       if (pmsg is PlayerMsgLeave) {
+        // Hack to skip waiting for next CurrentServerInfo message which will hide "Player in queue"
+        //  because that was this client and it just left the queue.
+        setState(() => this.currentServerInfo?.playerWaitingInLobby = false);
         this.leaving = true;
         Future.delayed(Duration(seconds: 1), () {
           if (leaving) {
@@ -430,6 +437,13 @@ class ServerConnState extends State<ServerConnProvider> {
     // }
     super.dispose();
   }
+}
+
+class CurrentServerInfo {
+  int currentlyConnectedPlayers;
+  bool playerWaitingInLobby;
+
+  CurrentServerInfo(this.currentlyConnectedPlayers, this.playerWaitingInLobby);
 }
 
 abstract class OnlineRequest {}

@@ -1,3 +1,5 @@
+import 'package:four_in_a_row/inherit/connection/server_conn.dart';
+
 abstract class ServerMessage {
   // OnlineMessage parse()
 }
@@ -74,6 +76,12 @@ class MsgGameStart extends ServerMessage {
 
 class MsgLobbyClosing extends ServerMessage {}
 
+class MsgCurrentServerInfo extends ServerMessage {
+  final CurrentServerInfo currentServerInfo;
+
+  MsgCurrentServerInfo(this.currentServerInfo);
+}
+
 extension OnlineMessageExt on ServerMessage {
   static ServerMessage parse(String str) {
     // str = str.toUpperCase();
@@ -119,6 +127,15 @@ extension OnlineMessageExt on ServerMessage {
       List<String> parts = str.split(":");
       if (parts.length == 3) {
         return MsgBattleReq(parts[1], parts[2]);
+      }
+    } else if (str.startsWith("CURRENT_SERVER_STATE")) {
+      List<String> parts = str.split(":");
+      if (parts.length == 3) {
+        int currentPlayers = int.tryParse(parts[1]);
+        if (currentPlayers == null) return null;
+        return MsgCurrentServerInfo(
+          CurrentServerInfo(currentPlayers, parts[2] == "true"),
+        );
       }
     }
 

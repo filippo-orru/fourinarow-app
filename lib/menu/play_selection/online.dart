@@ -27,6 +27,7 @@ class _PlayOnlineState extends State<PlayOnline> {
 
   @override
   Widget build(BuildContext context) {
+    ServerConnState serverConn = ServerConnProvider.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.end,
@@ -50,14 +51,34 @@ class _PlayOnlineState extends State<PlayOnline> {
         //     flex: 5,
         //     child:
         Transform.scale(
-            scale: MediaQuery.of(context).devicePixelRatio < 2 ? 0.5 : 1,
-            // child:
-            // FittedBox(
-            child: Container(
-              // height: 150,
-              width: 250,
-              child: JoinLobbyButtons(),
-            )),
+          scale: MediaQuery.of(context).devicePixelRatio < 2 ? 0.5 : 1,
+          // child:
+          // FittedBox(
+          child: Container(
+            // height: 150,
+            width: 250,
+            child: JoinLobbyButtons(),
+          ),
+        ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: 24),
+            Text(
+                serverConn.connected
+                    ? (serverConn.currentServerInfo == null
+                        ? "..."
+                        : "Currently online: " +
+                            serverConn
+                                .currentServerInfo.currentlyConnectedPlayers
+                                .toString() +
+                            (serverConn.currentServerInfo.playerWaitingInLobby
+                                ? ". Players in queue"
+                                : ""))
+                    : "No connection",
+                style: TextStyle(color: Colors.white70))
+          ],
+        )
       ],
     );
   }
