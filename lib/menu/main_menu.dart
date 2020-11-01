@@ -116,7 +116,7 @@ class _MainMenuState extends State<MainMenu> {
               child: buildPlayButton(context),
             ),
             // ),
-            SizedBox(height: 48),
+            SizedBox(height: 96),
             Container(
               alignment: Alignment.center,
               constraints: BoxConstraints(maxWidth: 600),
@@ -167,7 +167,7 @@ class _MainMenuState extends State<MainMenu> {
 
   Widget buildPlayButton(BuildContext context) {
     return Align(
-      alignment: Alignment.bottomCenter,
+      alignment: Alignment.center,
       child: PlayButton(
         label: 'Play',
         color: Colors.redAccent,

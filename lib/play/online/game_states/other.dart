@@ -122,7 +122,8 @@ class _WaitingForWWOpponentState extends State<WaitingForWWOpponentWidget> {
   @override
   Widget build(BuildContext context) {
     String title = "Searching for opponent...";
-    String label = "This may take some time";
+    String label =
+        "This may take some time. You will receive a notification when a game is found.";
     return LoadingScreen(title: title, label: label);
   }
 }

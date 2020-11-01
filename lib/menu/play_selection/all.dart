@@ -389,7 +389,7 @@ class _SwipeDialogState extends State<SwipeDialog>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
                             Text(
-                              'Swipe horizontally to play online!',
+                              'Swipe horizontally to play locally!',
                               style: TextStyle(
                                 color: Colors.black87,
                                 fontSize: 18,
