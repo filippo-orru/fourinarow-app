@@ -138,9 +138,9 @@ class _MainMenuState extends State<MainMenu> {
           children: [
             SmallColorButton(
               label: 'donate',
-              icon: Icons.attach_money,
+              icon: Icons.insert_emoticon,
               color: Colors.green[300],
-              onTap: () => launch('https://paypal.me/ffactory'),
+              onTap: () => launch('https://www.linkedin.com/in/filippo-orru/'),
             ),
             Stack(
               children: [
