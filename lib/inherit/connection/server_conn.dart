@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/play/online/play_online.dart';
+import 'package:four_in_a_row/util/constants.dart';
 import 'package:four_in_a_row/util/toast.dart';
 import 'package:four_in_a_row/util/battle_req_popup.dart';
 
@@ -145,11 +146,11 @@ class ServerConnState extends State<ServerConnProvider> {
     _playerMsgSub?.cancel();
 
     this._connection = WebSocketChannel.connect(
-      Uri.parse("wss://fourinarow.ml/game/"),
+      Uri.parse(WS_URL),
     );
-
     _wsMsgSub = _handleSMessages(_connection.stream);
     _playerMsgSub = _handlePMessages(_connection.sink);
+
     var idle = game_state.Idle(this.outgoing, this.incoming, changeGameState);
     changeGameState(idle);
   }
@@ -262,6 +263,7 @@ class ServerConnState extends State<ServerConnProvider> {
         } else if (onlineMsg is MsgLobbyClosing) {
           inLobby = false;
         } else if (onlineMsg is MsgCurrentServerInfo) {
+              currentServerInfo.playerWaitingInLobby == false) {
           setState(() => currentServerInfo = onlineMsg.currentServerInfo);
         } else if (onlineMsg is MsgGameStart) {
           var lifecycle = LifecycleProvider.of(context);

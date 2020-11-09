@@ -1,7 +1,7 @@
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 
 class Vibrations {
-  static win() async {
+  static void win() async {
     Vibrate.feedback(FeedbackType.medium);
     await Future.delayed(Duration(milliseconds: 160));
     Vibrate.feedback(FeedbackType.medium);
@@ -9,25 +9,25 @@ class Vibrations {
     Vibrate.vibrate();
   }
 
-  static loose() async {
+  static void loose() async {
     Vibrate.feedback(FeedbackType.medium);
     await Future.delayed(Duration(milliseconds: 160));
     Vibrate.feedback(FeedbackType.medium);
   }
 
-  static turnChange() async {
+  static void turnChange() async {
     Vibrate.feedback(FeedbackType.light);
   }
 
-  static tiny() async {
+  static void tiny() async {
     Vibrate.feedback(FeedbackType.light);
   }
 
-  static battleRequest() async {
+  static void battleRequest() async {
     Vibrate.feedback(FeedbackType.medium);
   }
 
-  static gameFound() async {
+  static void gameFound() async {
     await Future.delayed(Duration(milliseconds: 90));
     Vibrate.feedback(FeedbackType.light);
     await Future.delayed(Duration(milliseconds: 60));
