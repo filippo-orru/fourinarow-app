@@ -3,8 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/main.dart';
 
-import 'menu_common.dart';
-
 class PlayButton extends StatefulWidget {
   const PlayButton({
     this.label = 'Play',

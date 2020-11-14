@@ -263,7 +263,6 @@ class ServerConnState extends State<ServerConnProvider> {
         } else if (onlineMsg is MsgLobbyClosing) {
           inLobby = false;
         } else if (onlineMsg is MsgCurrentServerInfo) {
-              currentServerInfo.playerWaitingInLobby == false) {
           setState(() => currentServerInfo = onlineMsg.currentServerInfo);
         } else if (onlineMsg is MsgGameStart) {
           var lifecycle = LifecycleProvider.of(context);

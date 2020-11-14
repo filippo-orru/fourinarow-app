@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:four_in_a_row/inherit/connection/server_conn.dart';
 
 abstract class ServerMessage {
@@ -82,6 +84,13 @@ class MsgCurrentServerInfo extends ServerMessage {
   MsgCurrentServerInfo(this.currentServerInfo);
 }
 
+class MsgChatMessage extends ServerMessage {
+  final bool isGlobal;
+  final String message;
+
+  MsgChatMessage(this.isGlobal, this.message);
+}
+
 extension OnlineMessageExt on ServerMessage {
   static ServerMessage parse(String str) {
     // str = str.toUpperCase();
@@ -136,6 +145,13 @@ extension OnlineMessageExt on ServerMessage {
         return MsgCurrentServerInfo(
           CurrentServerInfo(currentPlayers, parts[2] == "true"),
         );
+      }
+    } else if (str.startsWith("CHAT_MSG")) {
+      List<String> parts = str.split(":");
+      if (parts.length == 3) {
+        bool isGlobal = parts[1] == "true";
+        String msg = utf8.decode(base64.decode(parts[2]));
+        return MsgChatMessage(isGlobal, msg);
       }
     }
 
@@ -216,5 +232,16 @@ class PlayerMsgLogin extends PlayerMessage {
 
   String serialize() {
     return "LOGIN:$username:$password";
+  }
+}
+
+class PlayerMsgChatMessage extends PlayerMessage {
+  final String message;
+
+  PlayerMsgChatMessage(this.message);
+
+  @override
+  String serialize() {
+    return "CHAT_MSG:" + base64.encode(utf8.encode(message));
   }
 }

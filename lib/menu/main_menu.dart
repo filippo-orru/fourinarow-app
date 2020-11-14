@@ -1,16 +1,14 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:four_in_a_row/inherit/chat.dart';
 import 'package:four_in_a_row/inherit/connection/server_conn.dart';
 import 'package:four_in_a_row/main.dart';
 import 'package:four_in_a_row/menu/account/friends.dart';
 import 'package:four_in_a_row/menu/account/onboarding/onboarding.dart';
 import 'package:four_in_a_row/menu/account/offline.dart';
+import 'package:four_in_a_row/menu/chat.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'common/play_button.dart';
-
-import 'package:url_launcher/url_launcher.dart';
 
 class MainMenu extends StatefulWidget {
   const MainMenu({
@@ -82,6 +80,12 @@ class _MainMenuState extends State<MainMenu> {
     }
   }
 
+  void showChat(BuildContext context) {
+    Navigator.of(context).push(slideUpRoute(ChatScreen(
+      chatProviderState: ChatProvider.of(context),
+    )));
+  }
+
   @override
   initState() {
     super.initState();
@@ -130,17 +134,41 @@ class _MainMenuState extends State<MainMenu> {
   }
 
   Stack buildBottomBar(BuildContext context) {
+    ChatProviderState chatProviderState = ChatProvider.of(context);
+
     return Stack(
       alignment: Alignment.center,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SmallColorButton(
-              label: 'donate',
-              icon: Icons.insert_emoticon,
-              color: Colors.green[300],
-              onTap: () => launch('https://www.linkedin.com/in/filippo-orru/'),
+            ValueListenableBuilder(
+              valueListenable: chatProviderState.notifier,
+              builder: (ctx, x, child) => Stack(children: [
+                child,
+                chatProviderState.unread > 0
+                    ? Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Container(
+                          height: 18,
+                          width: 18,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.all(Radius.circular(32)),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(chatProviderState.unread.toString(),
+                              style: TextStyle(color: Colors.white)),
+                        ))
+                    : SizedBox(),
+              ]),
+              child: SmallColorButton(
+                label: 'donate',
+                icon: Icons.chat,
+                color: Colors.green[300],
+                onTap: () => showChat(context),
+              ),
             ),
             Stack(
               children: [
@@ -237,7 +265,7 @@ class _SmallColorButtonState extends State<SmallColorButton>
       duration: Duration(milliseconds: 90),
       reverseDuration: Duration(milliseconds: 125),
     );
-    animCtrl.drive(CurveTween(curve: Curves.easeInOut));
+    animCtrl.drive(CurveTween(curve: Curves.linear));
   }
 
   @override
@@ -266,8 +294,8 @@ class _SmallColorButtonState extends State<SmallColorButton>
           ],
         ),
         child: Container(
-          width: 38,
-          height: 38,
+          width: 48,
+          height: 48,
           padding: EdgeInsets.only(left: 1),
           decoration: BoxDecoration(
             color: widget.color,

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'inherit/chat.dart';
 import 'inherit/user.dart';
 import 'inherit/lifecycle.dart';
 import 'inherit/connection/server_conn.dart';
@@ -91,43 +92,48 @@ class _MyAppState extends State<MyApp> {
                       Flexible(
                         child: ServerConnProvider(
                           userInfo: UserinfoProvider.of(ctx),
-                          child: Stack(children: [
-                            child,
-                            Positioned(
-                              top: MediaQuery.of(ctx).padding.top,
-                              right: 0,
-                              child: Opacity(
-                                opacity: 1,
-                                // opacity: 0.4,
-                                child: Container(
-                                  margin: EdgeInsets.all(16), //top: 32, right:
-                                  decoration: BoxDecoration(
-                                    color: Colors.white54,
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(4)),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        blurRadius: 4,
-                                        color: Colors.black12,
-                                        offset: Offset(0, 0),
+                          child: Builder(
+                            builder: (innerCtx) => ChatProvider(
+                              child: Stack(children: [
+                                child,
+                                Positioned(
+                                  top: MediaQuery.of(ctx).padding.top,
+                                  right: 0,
+                                  child: Opacity(
+                                    opacity: 1,
+                                    // opacity: 0.4,
+                                    child: Container(
+                                      margin:
+                                          EdgeInsets.all(16), //top: 32, right:
+                                      decoration: BoxDecoration(
+                                        color: Colors.white54,
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(4)),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            blurRadius: 4,
+                                            color: Colors.black12,
+                                            offset: Offset(0, 0),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 4),
-                                  child: Text(
-                                    'BETA',
-                                    style: TextStyle(
-                                      color: Colors.black87,
-                                      fontFamily: 'Roboto',
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 4),
+                                      child: Text(
+                                        'BETA',
+                                        style: TextStyle(
+                                          color: Colors.black87,
+                                          fontFamily: 'Roboto',
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
+                              ]),
                             ),
-                          ]),
+                          ),
                         ),
                       ),
                       Platform.isIOS
