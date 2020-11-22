@@ -63,8 +63,6 @@ class ServerConnState extends State<ServerConnProvider> {
 
   CurrentServerInfo currentServerInfo;
 
-  bool _awaitingConfirmation = false;
-
   BuildContext menuContext;
 
   WebSocketChannel _connection;
@@ -133,7 +131,8 @@ class ServerConnState extends State<ServerConnProvider> {
     await Future.delayed(Duration(milliseconds: 300));
     if (this.connected) {
       outgoing.add(PlayerMsgPing());
-      var msg = await incoming.stream.first
+      var msg = await incoming.stream
+          .firstWhere((msg) => msg is MsgPong)
           .timeout(Duration(seconds: 2), onTimeout: () => null);
       return msg is MsgPong;
     } else {
@@ -225,7 +224,31 @@ class ServerConnState extends State<ServerConnProvider> {
     // Future.delayed(Duration(milliseconds: 10), () => this.messageDelay = false);
   }
 
-  // Stream<ServerMessage>
+  void handleComeToPlayNotification(
+      NotificationsProviderState notifProv, LifecycleProviderState lifecycle) {
+    notifProv.flutterNotifications?.cancel(MyNotifications.gameFound);
+    notifProv.flutterNotifications?.show(
+      MyNotifications.gameFound,
+      'Game Starting!',
+      'Come back quickly to play!',
+      MyNotifications.gameFoundSpecifics,
+    );
+
+    // Cancel notification after a minute
+    Timer cancelNotificationTimer = Timer(
+      Duration(seconds: 60),
+      () {
+        notifProv.flutterNotifications?.cancel(MyNotifications.gameFound);
+        leaveGame();
+      },
+    );
+    lifecycle.onReady = () {
+      cancelNotificationTimer?.cancel();
+      notifProv.flutterNotifications?.cancel(MyNotifications.gameFound);
+      setState(() {});
+    };
+  }
+
   StreamSubscription _handleSMessages(Stream<dynamic> wsStream) {
     this.incoming = StreamController<ServerMessage>.broadcast();
     // return
@@ -258,52 +281,38 @@ class ServerConnState extends State<ServerConnProvider> {
           awaitingLogin = null;
         }
 
+        var notifProv = NotificationsProvider.of(context);
+
         if (onlineMsg is MsgBattleReq) {
           showBattleRequest(onlineMsg.userId, onlineMsg.lobbyCode);
         } else if (onlineMsg is MsgLobbyClosing) {
           inLobby = false;
         } else if (onlineMsg is MsgCurrentServerInfo) {
           setState(() => currentServerInfo = onlineMsg.currentServerInfo);
-        } else if (onlineMsg is MsgGameStart) {
+        } else if (onlineMsg is MsgOppJoined) {
+          // Check if app is in background twice because user might just have minimized it
           var lifecycle = LifecycleProvider.of(context);
           if (lifecycle.state != AppLifecycleState.resumed) {
-            var notifProv = NotificationsProvider.of(context);
-            notifProv.flutterNotifications?.cancel(MyNotifications.gameFound);
-            notifProv.flutterNotifications?.show(
-              MyNotifications.gameFound,
-              'Game Starting!',
-              'Come back quickly to play!',
-              MyNotifications.gameFoundSpecifics,
-            );
-            Future.delayed(
-              Duration(seconds: 45),
-              () => notifProv.flutterNotifications
-                  ?.cancel(MyNotifications.gameFound),
-            );
-            lifecycle.onReady = () {
-              notifProv.flutterNotifications?.cancel(MyNotifications.gameFound);
-            };
+            handleComeToPlayNotification(notifProv, lifecycle);
+          } else {
+            Future.delayed(Duration(milliseconds: 500), () {
+              if (lifecycle.state != AppLifecycleState.resumed) {
+                handleComeToPlayNotification(notifProv, lifecycle);
+              }
+            });
           }
+        } else if (onlineMsg is MsgOppLeft) {
+          notifProv.flutterNotifications?.cancel(MyNotifications.gameFound);
         }
-        //  else if (onlineMsg is MsgOkay ||
-        //     onlineMsg is MsgLobbyResponse ||
-        //     onlineMsg is MsgError) {}
-        // this._awaitingConfirmation = false;
-        this.timeoutTimer?.cancel();
-        // setState(() {});
 
-        // if (messageDelay) {
-        //   Future.delayed(Duration(milliseconds: 10), () {
-        //     incoming.sink.add(onlineMsg);
-        //   });
-        // } else {
+        this.timeoutTimer?.cancel();
+
         if (leaving && onlineMsg is MsgLobbyClosing) {
           leaving = false;
           return;
         } else {
           incoming.sink.add(onlineMsg);
         }
-        // }
       } else {
         print(">> #OTR# \"$msg\"");
       }
@@ -332,20 +341,9 @@ class ServerConnState extends State<ServerConnProvider> {
         this._initializeConnection();
       }
 
-      _awaitingConfirmation = true;
       this.timeoutTimer = Timer(Duration(seconds: 2), () {
-        if (this._awaitingConfirmation) {
-          //this.mounted &&
-          if (!(this.gameState is game_state.Error)) {
-            changeGameState(game_state.Error(game_state.Timeout(),
-                this.outgoing, this.incoming, changeGameState));
-
-            // setState(() {});
-            // if (mounted) setState(() {});
-            print("Confirmation timeout!");
-          }
-          setState(() => _connection = null);
-        }
+        // Timer has not yet been cancelled -> connection timeout
+        setState(() => _connection = null);
       });
 
       if (pmsg is PlayerMsgLeave) {
@@ -365,7 +363,7 @@ class ServerConnState extends State<ServerConnProvider> {
       // }
 
       String msg = pmsg.serialize();
-      print("<< \"$msg\"");
+      print("<< $msg");
       wsSink.add(msg);
     });
     // return this.outgoing.sink;
