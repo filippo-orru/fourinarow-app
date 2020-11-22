@@ -225,8 +225,10 @@ class _PlayingState extends State<PlayingWidget> {
           board: Board(field, dropChip: (_) {}),
           ranked: opponentInfo != null,
           bottomText: opponentLeft
-              ? "Tap to leave"
-              : field.waitingToPlayAgain ? "Waiting for opponent..." : null,
+              ? 'Tap to leave'
+              : field.waitingToPlayAgain
+                  ? 'Waiting for opponent...'
+                  : 'Tap to play again!',
         ),
         this.toast ?? SizedBox(),
       ],

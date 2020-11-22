@@ -11,7 +11,7 @@ class WinnerOverlay extends StatelessWidget {
     this.useColorNames = true,
     @required this.onTap,
     @required this.board,
-    this.bottomText = 'Tap to play again!',
+    this.bottomText,
     this.ranked = false,
     Key key,
   }) : super(key: key);

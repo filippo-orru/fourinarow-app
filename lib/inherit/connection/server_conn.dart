@@ -231,7 +231,7 @@ class ServerConnState extends State<ServerConnProvider> {
     // return
     return wsStream.listen((msg) {
       if (msg is String) {
-        print(">> \"$msg\"");
+        print(">> $msg");
         var onlineMsg = OnlineMessageExt.parse(msg);
         if (onlineMsg == null) return;
 
