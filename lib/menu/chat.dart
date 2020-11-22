@@ -18,30 +18,40 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _scrollToBottomOnNextBuild = false;
 
   void _sendMessage(String msg, void Function(bool) callback) async {
+    msg = msg.trim();
     bool success = await widget.chatProviderState.sendMessage(msg);
     callback(success);
-    _scrollToBottomOnNextBuild = true;
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
-    _scrollController.animateTo(_scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 150), curve: Curves.easeOut);
+    _scrollToBottomOnNextBuild = true;
+    Future.delayed(Duration.zero, () {
+      setState(() {});
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    widget.chatProviderState.notifier.addListener(() {
-      _scrollToBottomOnNextBuild = true;
-    });
+    widget.chatProviderState.notifier.addListener(_scrollToBottom);
     widget.chatProviderState.read();
+  }
+
+  @override
+  void dispose() {
+    widget.chatProviderState.notifier.removeListener(_scrollToBottom);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     if (_scrollToBottomOnNextBuild) {
       _scrollToBottomOnNextBuild = false;
-      Future.delayed(Duration(milliseconds: 500 ~/ 6), _scrollToBottom);
+      Future.delayed(Duration(milliseconds: 500 ~/ 6), () {
+        _scrollController.animateTo(_scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 150), curve: Curves.easeOut);
+      });
     }
     return ValueListenableBuilder(
       valueListenable: widget.chatProviderState.notifier,
@@ -58,13 +68,17 @@ class _ChatScreenState extends State<ChatScreen> {
             mainAxisSize: MainAxisSize.max,
             children: [
               Expanded(
-                child: ListView(
-                  controller: _scrollController,
-                  children: <Widget>[] +
-                      widget.chatProviderState.messages
-                          .map((message) => ChatMessageWidget(message))
-                          .toList() +
-                      [SizedBox(height: 16)],
+                child: GestureDetector(
+                  onTap: () =>
+                      FocusScope.of(context).requestFocus(new FocusNode()),
+                  child: ListView(
+                    controller: _scrollController,
+                    children: <Widget>[] +
+                        widget.chatProviderState.messages
+                            .map((message) => ChatMessageWidget(message))
+                            .toList() +
+                        [SizedBox(height: 16)],
+                  ),
                 ),
               ),
               CreateMessageWidget(
@@ -92,26 +106,41 @@ class CreateMessageWidget extends StatefulWidget {
 
 class _CreateMessageWidgetState extends State<CreateMessageWidget> {
   TextEditingController _textEditCtrl = TextEditingController();
+  FocusNode _textFieldFocus;
+  bool _textFieldHadFocus = false;
 
   bool _sendingMessage = false;
 
   bool _errorSending = false;
 
-  // _CreateMessageWidgetState() {
-  //   _textEditCtrl.addListener(() {
-  //     _textEditCtrl.
-  //   })
-  // }
-
-  void sendMessage() {
+  void sendMessage(bool requestFocus) {
+    if (this._textEditCtrl.text == null ||
+        this._textEditCtrl.text.trim() == "") {
+      return;
+    }
     setState(() => _sendingMessage = true);
     widget.onMessageSent(this._textEditCtrl.text, (success) {
-      setState(() {
-        _errorSending = !success;
-        _sendingMessage = false;
-        this._textEditCtrl.text = "";
-      });
+      _errorSending = !success;
+      _sendingMessage = false;
+      this._textEditCtrl.text = "";
+      if (mounted) setState(() {});
     });
+    if (requestFocus) {
+      Future.delayed(Duration(milliseconds: 700 ~/ 6),
+          () => _textFieldFocus.requestFocus());
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _textFieldFocus = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    _textFieldFocus.dispose();
+    super.dispose();
   }
 
   @override
@@ -120,10 +149,10 @@ class _CreateMessageWidgetState extends State<CreateMessageWidget> {
       // height: 64,
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide()),
+        // border: Border(top: BorderSide()),
         boxShadow: [
           BoxShadow(
-            blurRadius: 14,
+            blurRadius: 8,
             color: Colors.black.withOpacity(0.18),
             offset: Offset(0, -4),
           )
@@ -135,9 +164,9 @@ class _CreateMessageWidgetState extends State<CreateMessageWidget> {
         children: [
           Expanded(
             child: TextField(
-              // autofocus: true,
-              // onChanged: setText,
-              onSubmitted: (_) => sendMessage(),
+              focusNode: _textFieldFocus,
+              textCapitalization: TextCapitalization.sentences,
+              onSubmitted: (_) => sendMessage(true),
               controller: _textEditCtrl,
               enabled: !this._sendingMessage,
               decoration: InputDecoration(
@@ -161,7 +190,7 @@ class _CreateMessageWidgetState extends State<CreateMessageWidget> {
           Container(
             margin: EdgeInsets.all(8),
             child: GestureDetector(
-              onTap: sendMessage,
+              onTap: () => sendMessage(true),
               child: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(

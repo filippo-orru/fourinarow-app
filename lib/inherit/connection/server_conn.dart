@@ -181,8 +181,8 @@ class ServerConnState extends State<ServerConnProvider> {
         });
       } else {
         var notifProv = NotificationsProvider.of(context);
-        notifProv.flutterNotifications.cancel(MyNotifications.battleRequest);
-        notifProv.flutterNotifications.show(
+        notifProv.flutterNotifications?.cancel(MyNotifications.battleRequest);
+        notifProv.flutterNotifications?.show(
           MyNotifications.battleRequest,
           'Battle Request!',
           "${user.name} has requested a match. Tap to join!",
@@ -195,7 +195,7 @@ class ServerConnState extends State<ServerConnProvider> {
           if (val == null) {
             // not tapped
             notifProv.flutterNotifications
-                .cancel(MyNotifications.battleRequest);
+                ?.cancel(MyNotifications.battleRequest);
           } else {
             startGame(ORqLobby(val));
           }
@@ -272,7 +272,7 @@ class ServerConnState extends State<ServerConnProvider> {
             notifProv.flutterNotifications?.show(
               MyNotifications.gameFound,
               'Game Starting!',
-              "Come back quickly to play!",
+              'Come back quickly to play!',
               MyNotifications.gameFoundSpecifics,
             );
             Future.delayed(
@@ -333,7 +333,7 @@ class ServerConnState extends State<ServerConnProvider> {
       }
 
       _awaitingConfirmation = true;
-      this.timeoutTimer = Timer(Duration(seconds: 8), () {
+      this.timeoutTimer = Timer(Duration(seconds: 2), () {
         if (this._awaitingConfirmation) {
           //this.mounted &&
           if (!(this.gameState is game_state.Error)) {

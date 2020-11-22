@@ -33,7 +33,8 @@ class ChatProviderState extends State<ChatProvider> {
 
   Future<bool> sendMessage(String msg) async {
     _serverConn.outgoing.add(PlayerMsgChatMessage(msg));
-    ServerMessage serverMsg = await _serverConn.incoming.stream.first
+    ServerMessage serverMsg = await _serverConn.incoming.stream
+        .firstWhere((serverMsg) => serverMsg is MsgOkay)
         .timeout(Duration(milliseconds: 750), onTimeout: () => null);
     bool success = serverMsg != null && serverMsg is MsgOkay;
     if (success) {
@@ -48,8 +49,10 @@ class ChatProviderState extends State<ChatProvider> {
   }
 
   void read() {
-    unread = 0;
-    _notify();
+    if (unread != 0) {
+      unread = 0;
+      Future.delayed(Duration.zero, _notify);
+    }
   }
 
   @override

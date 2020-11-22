@@ -80,7 +80,7 @@ class MyNotifications {
   static const battleRequest = 1;
   static const battleRequestSpecifics = NotificationDetails(
     AndroidNotificationDetails(
-      '0',
+      '1',
       'Battle Requests',
       'Shown when someone requests a battle.',
       category: 'CATEGORY_MESSAGE',
@@ -90,15 +90,29 @@ class MyNotifications {
     IOSNotificationDetails(),
   );
 
-  static const gameFound = 1;
+  static const gameFound = 2;
   static const gameFoundSpecifics = NotificationDetails(
     AndroidNotificationDetails(
-      '1',
+      '2',
       'Game Started',
       'Shown when you find an online game while the app is in the background.',
       category: 'CATEGORY_MESSAGE',
-      importance: Importance.High,
+      importance: Importance.Max,
       priority: Priority.Max,
+    ),
+    IOSNotificationDetails(),
+  );
+
+  static const searchingGame = 3;
+  static const searchingGameSpecifics = NotificationDetails(
+    AndroidNotificationDetails(
+      '3',
+      'Searching Game',
+      'Shown persistently while searching for a game',
+      category: 'CATEGORY_SERVICE',
+      importance: Importance.Low,
+      priority: Priority.Low,
+      ongoing: true,
     ),
     IOSNotificationDetails(),
   );

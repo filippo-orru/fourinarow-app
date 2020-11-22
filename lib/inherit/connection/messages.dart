@@ -30,6 +30,7 @@ class MsgError extends ServerMessage {
 
 enum MsgErrorType {
   GameNotStarted,
+  NotInLobby,
   NotYourTurn,
   GameAlreadyOver,
   AlreadyPlaying,
@@ -43,6 +44,8 @@ extension MsgErrorTypeExt on MsgErrorType {
   static parse(String str) {
     if (str == "GameNotStarted")
       return MsgErrorType.GameNotStarted;
+    else if (str == "NotInLobby")
+      return MsgErrorType.NotInLobby;
     else if (str == "NotYourTurn")
       return MsgErrorType.NotYourTurn;
     else if (str == "GameAlreadyOver")

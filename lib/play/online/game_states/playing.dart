@@ -94,6 +94,9 @@ class _PlayingState extends State<PlayingWidget> {
     } else if (msg is MsgLobbyClosing && !this.leaving && !this.opponentLeft) {
       widget.changeState(Error(
           LobbyClosed(), widget.pMsgCtrl, widget.sMsgCtrl, widget.changeState));
+    } else if (msg is MsgError && msg.maybeErr == MsgErrorType.NotInLobby) {
+      widget.changeState(Error(
+          LobbyClosed(), widget.pMsgCtrl, widget.sMsgCtrl, widget.changeState));
     }
   }
 

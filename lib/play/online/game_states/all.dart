@@ -23,7 +23,7 @@ abstract class GameState<T extends StatefulWidget> {
   GameState(this.pMsgCtrl, this.sMsgCtrl, this.changeState);
 
   void handleServerMessageSuper(ServerMessage msg) {
-    print("Called handleServerMessageSuper ($msg)");
+    // print("Called handleServerMessageSuper ($msg)");
     if (msg is MsgError) {
       // String txt = "An error occurred" + (msg.maybeErr?.toString() ?? "");
       switch (msg.maybeErr) {

@@ -1,6 +1,11 @@
+import 'package:flutter/foundation.dart';
+
 const URL = "https://fourinarow.ml";
 
-const WS_URL =
-    "ws://192.168.0.213:40146/game/"; //ws://192.168.0.213:40146/game/
+const bool useLocalServer = true;
+
+const WS_URL = kDebugMode && useLocalServer
+    ? "ws://192.168.178.42:40146/game/"
+    : "wss://fourinarow.ml/game/";
 
 const String alphabet = "abcdefghijklmnopqrstuvwxyz";
