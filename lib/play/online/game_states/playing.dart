@@ -18,40 +18,50 @@ import 'package:four_in_a_row/util/vibration.dart';
 import 'all.dart';
 
 class Playing extends GameState {
-  final bool myTurn;
-  final String opponentId;
+  final _InternalGameState igs;
+
+  StreamSubscription sMsgListen;
+  StreamSubscription pMsgListen;
 
   Playing(this.myTurn, this.opponentId, StreamController<PlayerMessage> p,
       StreamController<ServerMessage> s, CGS change)
-      : super(p, s, change);
-
-  get build => PlayingWidget(
-        this.myTurn,
-        this.opponentId,
-        super.pMsgCtrl,
-        super.sMsgCtrl,
-        super.changeState,
-      );
-
-  dispose() {}
-}
-
-class PlayingWidget extends StatefulWidget {
-  final bool myTurn;
-  final String opponentId;
-  final StreamController<PlayerMessage> pMsgCtrl;
-  final StreamController<ServerMessage> sMsgCtrl;
-  final CGS changeState;
-
-  PlayingWidget(this.myTurn, this.opponentId, this.pMsgCtrl, this.sMsgCtrl,
-      this.changeState);
+      : super(p, s, change) {}
 
   @override
-  createState() => _PlayingState(myTurn, opponentId);
+  get build => Internal(igs);
+
+  @override
+  dispose() {
+    igs.dispose();
+  }
 }
 
-class _PlayingState extends State<PlayingWidget> {
+class InternalGameWidget extends StatefulWidget {
+  InternalGameWidget() {
+    sMsgListen = sMsgCtrl.stream.listen(igs.handleServerMessage);
+
+    igs.field = OnlineField();
+    igs.field.turn = myTurn ? igs.field.me : igs.field.me.other;
+    if (opponentId != null) {
+      _loadOpponentInfo();
+    }
+  }
+
+  @override
+  _InternalGameWidgetState createState() => _InternalGameWidgetState();
+}
+
+class _InternalGameWidgetState extends State<InternalGameWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+class _InternalGameState {
+  final bool myTurn;
   final String opponentId;
+
   OnlineField field;
   bool awaitingConfirmation;
   bool leaving = false;
@@ -61,10 +71,7 @@ class _PlayingState extends State<PlayingWidget> {
   PublicUser opponentInfo;
   bool opponentLeft = false;
 
-  StreamSubscription sMsgListen;
-  StreamSubscription pMsgListen;
-
-  _PlayingState(bool myTurn, [this.opponentId]) {
+  _InternalGameState(this.myTurn, [this.opponentId]) {
     field = OnlineField();
     field.turn = myTurn ? field.me : field.me.other;
     if (opponentId != null) {
@@ -73,6 +80,7 @@ class _PlayingState extends State<PlayingWidget> {
   }
 
   void handleServerMessage(ServerMessage msg) {
+    print("   ${msg.toString()} being handled");
     if (msg is MsgPlaceChip) {
       setState(() {
         this._dropChipNamed(msg.row, field.me.other);
@@ -101,6 +109,7 @@ class _PlayingState extends State<PlayingWidget> {
   }
 
   void handlePlayerMessage(PlayerMessage msg) {
+    print("   ${msg.toString()} being handled");
     if (msg is PlayerMsgPlayAgain) {
       setState(() => field.waitingToPlayAgain = true);
       _loadOpponentInfo();
@@ -166,19 +175,27 @@ class _PlayingState extends State<PlayingWidget> {
     }
   }
 
-  @override
   void initState() {
-    super.initState();
     sMsgListen = widget.sMsgCtrl.stream.listen(handleServerMessage);
     pMsgListen = widget.pMsgCtrl.stream.listen(handlePlayerMessage);
   }
 
-  @override
   void dispose() {
     sMsgListen.cancel();
     pMsgListen.cancel();
-    super.dispose();
   }
+}
+
+class PlayingWidget extends StatelessWidget {
+  final _InternalGameState internalGameState;
+  PlayingWidget(this.internalGameState);
+}
+
+class _PlayingState extends State<PlayingWidget> {
+  final String opponentId;
+  final _InternalGameState internalGameState;
+
+  _PlayingState() {}
 
   @override
   Widget build(BuildContext context) {
