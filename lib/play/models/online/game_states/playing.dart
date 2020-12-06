@@ -16,23 +16,22 @@ import 'game_state.dart';
 class PlayingState extends GameState {
   PlayingState(
     void Function(PlayerMessage msg) sendPlayerMessage, {
-    bool myTurnToStart,
-    String opponentId,
+    required bool myTurnToStart,
+    String? opponentId,
   }) : super(sendPlayerMessage) {
-    field = OnlineField();
     field.turn = myTurnToStart ? field.me : field.me.other;
     _loadOpponentInfo(opponentId: opponentId);
   }
 
-  OnlineField field;
-  bool awaitingConfirmation;
+  OnlineField field = OnlineField();
+  bool awaitingConfirmation = false;
   bool leaving = false;
-  ToastState toastState;
-  Timer toastTimer;
+  ToastState? toastState;
+  Timer? toastTimer;
   OpponentInfo opponentInfo = OpponentInfo();
 
   @override
-  GameState handlePlayerMessage(PlayerMessage msg) {
+  GameState? handlePlayerMessage(PlayerMessage msg) {
     if (msg is PlayerMsgPlayAgain) {
       field.waitingToPlayAgain = true;
     } else if (msg is PlayerMsgPlaceChip) {
@@ -44,7 +43,7 @@ class PlayingState extends GameState {
   }
 
   @override
-  GameState handleServerMessage(ServerMessage msg) {
+  GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgPlaceChip) {
       field.dropChipNamed(msg.row, field.me.other);
       notifyListeners();
@@ -81,23 +80,24 @@ class PlayingState extends GameState {
     return null;
   }
 
-  @override
-  StatelessWidget Function(GameState) get viewer => (s) => PlayingViewer(s);
+  // @override
+  // StatelessWidget Function(GameState) get viewer => (s) => PlayingViewer(s);
 
-  void _loadOpponentInfo({String opponentId}) async {
+  void _loadOpponentInfo({String? opponentId}) async {
     if (opponentId == null) {
-      if (this.opponentInfo == null) {
-        return;
+      if (this.opponentInfo.user != null) {
+        opponentId = this.opponentInfo.user!.id;
       } else {
-        opponentId = this.opponentInfo.user.id;
+        return;
       }
     }
 
     http.Response response =
         await http.get("${constants.URL}/api/users/$opponentId");
     if (response.statusCode == 200) {
-      this.opponentInfo =
-          OpponentInfo(user: PublicUser.fromMap(jsonDecode(response.body)));
+      if (this.opponentInfo != null) {
+        this.opponentInfo.user = PublicUser.fromMap(jsonDecode(response.body));
+      }
       // TODO vvv
       /*if (UserinfoProvider.of(context)
             .user
@@ -125,11 +125,11 @@ class PlayingState extends GameState {
     super.sendPlayerMessage(PlayerMsgPlayAgain());
   }
 
-  void showPopup(String s, {bool angery}) {}
+  void showPopup(String s, {bool angery = false}) {}
 }
 
 class OpponentInfo {
-  final PublicUser user;
+  PublicUser? user;
   bool hasLeft = false;
 
   OpponentInfo({this.user});

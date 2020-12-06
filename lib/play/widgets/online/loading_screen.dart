@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 class LoadingScreen extends StatelessWidget {
   const LoadingScreen({
-    Key key,
-    @required this.title,
+    Key? key,
+    required this.title,
     this.label,
   }) : super(key: key);
 
   final String title;
-  final String label;
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class LoadingScreen extends StatelessWidget {
             SizedBox(height: 8),
             label != null
                 ? Text(
-                    label,
+                    label!,
                     style: TextStyle(
                       fontSize: 15,
                     ),

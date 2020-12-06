@@ -7,7 +7,7 @@ import 'package:four_in_a_row/util/vibration.dart';
 class InLobbyViewer extends StatelessWidget {
   final InLobbyState state;
 
-  const InLobbyViewer(this.state, {Key key}) : super(key: key);
+  const InLobbyViewer(this.state, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class InLobbyViewer extends StatelessWidget {
                 ),
                 SizedBox(height: 18),
                 Text(
-                  state.code,
+                  state.code!,
                   style: TextStyle(fontSize: 48),
                   textAlign: TextAlign.center,
                 ),
@@ -41,7 +41,7 @@ class InLobbyViewer extends StatelessWidget {
 class InLobbyReadyViewer extends StatefulWidget {
   final InLobbyReadyState state;
 
-  const InLobbyReadyViewer(this.state, {Key key}) : super(key: key);
+  const InLobbyReadyViewer(this.state, {Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _InLobbyReadyViewerState();
@@ -49,7 +49,7 @@ class InLobbyReadyViewer extends StatefulWidget {
 
 class _InLobbyReadyViewerState extends State<InLobbyReadyViewer> {
   bool longerThanExpected = false;
-  Timer longerThanExpectedTimer;
+  late Timer longerThanExpectedTimer;
 
   @override
   initState() {
@@ -61,7 +61,7 @@ class _InLobbyReadyViewerState extends State<InLobbyReadyViewer> {
 
   @override
   dispose() {
-    longerThanExpectedTimer?.cancel();
+    longerThanExpectedTimer.cancel();
     super.dispose();
   }
 
@@ -76,14 +76,14 @@ class _InLobbyReadyViewerState extends State<InLobbyReadyViewer> {
                 tween: Tween<double>(begin: 0.0, end: 1.0),
                 curve: Curves.slowMiddle,
                 duration: Duration(milliseconds: 1500),
-                builder: (ctx, value, child) {
+                builder: (ctx, double value, child) {
                   double opacity = value;
                   if (value >= 0.5) opacity = 1 - opacity;
                   return Opacity(
                     opacity: 2 * opacity,
                     child: Transform.translate(
                       offset:
-                          Offset.lerp(Offset(-100, 0), Offset(100, 0), value),
+                          Offset.lerp(Offset(-100, 0), Offset(100, 0), value)!,
                       child: child,
                     ),
                   );

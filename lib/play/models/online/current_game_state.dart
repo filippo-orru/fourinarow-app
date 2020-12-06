@@ -10,13 +10,13 @@ import 'game_states/game_state.dart';
 class GameStateManager with ChangeNotifier {
   final ServerConnection _serverConnection;
 
-  GameState _cgs; // currentGameState
+  late GameState _cgs; // currentGameState
   GameState get currentGameState => _cgs;
 
-  GameLoginState _gls;
+  late GameLoginState _gls;
   GameLoginState get gameLoginState => _gls;
 
-  CurrentServerInfo serverInfo;
+  CurrentServerInfo? serverInfo;
 
   GameStateManager(this._serverConnection) {
     _cgs = IdleState(_sendPlayerMessage);
@@ -66,17 +66,17 @@ class GameStateManager with ChangeNotifier {
   void _listenToStreams() {
     this._serverConnection.incoming.listen((msg) {
       this._handleServerMessage(msg);
-      GameState newGameState = _cgs.handleServerMessage(msg);
+      GameState? newGameState = _cgs.handleServerMessage(msg);
       this._cgs = newGameState ?? _cgs;
 
-      GameLoginState newLoginState = _gls.handleServerMessage(msg);
+      GameLoginState? newLoginState = _gls.handleServerMessage(msg);
       this._gls = newLoginState ?? _gls;
       notifyListeners();
     });
     this._serverConnection.outgoing.listen((msg) {
       this._handlePlayerMessage(msg);
 
-      GameState newGameState = _cgs.handlePlayerMessage(msg);
+      GameState? newGameState = _cgs.handlePlayerMessage(msg);
       this._cgs = newGameState ?? _cgs;
       notifyListeners();
     });

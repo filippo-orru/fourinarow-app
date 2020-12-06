@@ -14,7 +14,7 @@ import 'package:provider/provider.dart';
 
 class MainMenu extends StatefulWidget {
   const MainMenu({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -61,7 +61,7 @@ PageRouteBuilder slideUpRoute(Widget content) {
 }
 
 class _MainMenuState extends State<MainMenu> {
-  RouteObserverProvider observerProvider;
+  late RouteObserverProvider observerProvider;
   bool loadingUserInfo = false;
 
   void accountCheck({bool force = false}) async {
@@ -163,7 +163,7 @@ class _MainMenuState extends State<MainMenu> {
               child: SmallColorButton(
                 label: 'donate',
                 icon: Icons.chat,
-                color: Colors.green[300],
+                color: Colors.green[300]!,
                 onTap: () => showChat(context),
               ),
             ),
@@ -171,7 +171,7 @@ class _MainMenuState extends State<MainMenu> {
               children: [
                 SmallColorButton(
                   icon: Icons.people,
-                  color: Colors.purple[300],
+                  color: Colors.purple[300]!,
                   onTap: () => accountCheck(),
                 ),
                 loadingUserInfo ? CircularProgressIndicator() : SizedBox(),
@@ -231,17 +231,17 @@ class _MainMenuState extends State<MainMenu> {
 }
 
 class SmallColorButton extends StatefulWidget {
-  final String label;
+  final String? label;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
   const SmallColorButton({
-    Key key,
+    Key? key,
     this.label,
-    @required this.icon,
-    @required this.color,
-    @required this.onTap,
+    required this.icon,
+    required this.color,
+    required this.onTap,
   }) : super(key: key);
 
   @override
@@ -250,7 +250,7 @@ class SmallColorButton extends StatefulWidget {
 
 class _SmallColorButtonState extends State<SmallColorButton>
     with SingleTickerProviderStateMixin {
-  AnimationController animCtrl;
+  late AnimationController animCtrl;
 
   bool expanded = false;
 

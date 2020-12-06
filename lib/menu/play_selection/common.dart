@@ -5,10 +5,10 @@ import 'package:four_in_a_row/menu/common/play_button.dart';
 
 class PlaySelectionScreen extends StatelessWidget {
   PlaySelectionScreen({
-    @required this.index,
-    @required this.title,
-    @required this.description,
-    @required this.offset,
+    required this.index,
+    required this.title,
+    required this.description,
+    required this.offset,
     this.content,
     this.pushRoute,
     this.bgColor = Colors.white,
@@ -17,9 +17,9 @@ class PlaySelectionScreen extends StatelessWidget {
   final int index;
   final String title;
   final String description;
-  final Widget content;
+  final Widget? content;
   final double offset;
-  final VoidCallback pushRoute;
+  final VoidCallback? pushRoute;
   final Color bgColor;
 
   @override
@@ -41,8 +41,8 @@ class PlaySelectionScreen extends StatelessWidget {
 
 class PlaySelectionContent extends StatelessWidget {
   PlaySelectionContent({
-    @required this.title,
-    @required this.description,
+    required this.title,
+    required this.description,
     this.content,
     this.pushRoute,
     // this.navigateTo,
@@ -52,8 +52,8 @@ class PlaySelectionContent extends StatelessWidget {
 
   final String title;
   final String description;
-  final Widget content;
-  final VoidCallback pushRoute;
+  final Widget? content;
+  final VoidCallback? pushRoute;
   final Color bgColor;
 
   @override
@@ -103,7 +103,7 @@ class PlaySelectionContent extends StatelessWidget {
                 child: PlayButton(
                   label: 'Go!',
                   color: Colors.white38,
-                  onTap: pushRoute,
+                  onTap: () => pushRoute?.call(),
                 ),
               ),
             ),

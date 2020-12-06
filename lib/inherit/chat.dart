@@ -18,6 +18,7 @@ class ChatState with ChangeNotifier {
     _serverConnection.send(PlayerMsgChatMessage(msg));
     ServerMessage? serverMsg;
     serverMsg = await _serverConnection.incoming
+        .map<ServerMessage?>((e) => e)
         .firstWhere((serverMsg) => serverMsg is MsgOkay)
         .timeout(Duration(milliseconds: 750), onTimeout: () => null);
 

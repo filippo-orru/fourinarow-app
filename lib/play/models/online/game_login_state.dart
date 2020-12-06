@@ -5,7 +5,7 @@ abstract class GameLoginState {
 
   GameLoginState(this.sendPlayerMessage);
 
-  GameLoginState handleServerMessage(ServerMessage msg);
+  GameLoginState? handleServerMessage(ServerMessage msg);
 }
 
 class GameLoginLoggedOut extends GameLoginState {
@@ -13,7 +13,7 @@ class GameLoginLoggedOut extends GameLoginState {
       : super(sendPlayerMessage);
 
   @override
-  GameLoginState handleServerMessage(ServerMessage msg) {
+  GameLoginState? handleServerMessage(ServerMessage msg) {
     return null;
   }
 }
@@ -23,7 +23,7 @@ class GameLoginLoggedIn extends GameLoginState {
       : super(sendPlayerMessage);
 
   @override
-  GameLoginState handleServerMessage(ServerMessage msg) {
+  GameLoginState? handleServerMessage(ServerMessage msg) {
     return null;
   }
 }

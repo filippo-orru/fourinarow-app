@@ -92,7 +92,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
                       : (hasRetried
                           ? TweenAnimationBuilder(
                               duration: Duration(milliseconds: 2000),
-                              builder: (ctx, anim, child) =>
+                              builder: (ctx, double anim, child) =>
                                   Opacity(opacity: anim, child: child),
                               tween: Tween<double>(begin: 1, end: 0),
                               child: Text('No connection'),

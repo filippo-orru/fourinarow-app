@@ -5,7 +5,7 @@ import 'package:four_in_a_row/play/widgets/online/loading_screen.dart';
 class WaitingForLobbyInfoViewer extends StatelessWidget {
   final WaitingForLobbyInfoState state;
 
-  const WaitingForLobbyInfoViewer(this.state, {Key key}) : super(key: key);
+  const WaitingForLobbyInfoViewer(this.state, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class WaitingForLobbyInfoViewer extends StatelessWidget {
 class WaitingForWWOkayViewer extends StatelessWidget {
   final WaitingForWWOkayState state;
 
-  const WaitingForWWOkayViewer(this.state, {Key key}) : super(key: key);
+  const WaitingForWWOkayViewer(this.state, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class WaitingForWWOkayViewer extends StatelessWidget {
 class WaitingForWWOpponentViewer extends StatelessWidget {
   final WaitingForWWOpponentState state;
 
-  const WaitingForWWOpponentViewer(this.state, {Key key}) : super(key: key);
+  const WaitingForWWOpponentViewer(this.state, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

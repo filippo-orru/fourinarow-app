@@ -6,11 +6,11 @@ import 'package:four_in_a_row/main.dart';
 class PlayButton extends StatefulWidget {
   const PlayButton({
     this.label = 'Play',
-    @required this.color,
-    this.onTap,
+    required this.color,
+    required this.onTap,
     // this.stayExpanded = false,
     this.diameter = 128,
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   final String label;
@@ -25,28 +25,28 @@ class PlayButton extends StatefulWidget {
 
 class _PlayButtonState extends State<PlayButton>
     with TickerProviderStateMixin, RouteAware {
-  AnimationController sizeAnimController;
-  Animation<double> circleSize;
-  Animation<double> textSize;
-  AnimationController growSizeAnimController;
-  Animation<double> growSize;
-  Animation<double> ceilOpacity;
-  Animation<double> growFade;
+  late AnimationController sizeAnimController;
+  late Animation<double> circleSize;
+  late Animation<double> textSize;
+  late AnimationController growSizeAnimController;
+  late Animation<double> growSize;
+  late Animation<double> ceilOpacity;
+  late Animation<double> growFade;
 
   static const int GROW_ANIM_DURATION = 240;
 
-  RouteObserverProvider observerProvider;
+  RouteObserverProvider? observerProvider;
 
   @override
   void didChangeDependencies() {
     observerProvider = RouteObserverProvider.of(context);
     super.didChangeDependencies();
-    observerProvider.observer.subscribe(this, ModalRoute.of(context));
+    observerProvider!.observer.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
   void dispose() {
-    observerProvider.observer.unsubscribe(this);
+    observerProvider?.observer.unsubscribe(this);
     growSizeAnimController.dispose();
     sizeAnimController.dispose();
     super.dispose();
@@ -172,7 +172,7 @@ class _PlayButtonState extends State<PlayButton>
 
 class FadingRing extends StatefulWidget {
   FadingRing(
-      {@required this.child,
+      {required this.child,
       this.color = Colors.redAccent,
       this.startingDiameter = 128});
 
@@ -186,9 +186,9 @@ class FadingRing extends StatefulWidget {
 
 class _FadingRingState extends State<FadingRing>
     with SingleTickerProviderStateMixin {
-  AnimationController sizeAnimController;
-  Animation<double> size;
-  Animation<double> opacity;
+  late AnimationController sizeAnimController;
+  late Animation<double> size;
+  late Animation<double> opacity;
 
   @override
   void dispose() {

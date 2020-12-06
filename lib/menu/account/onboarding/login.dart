@@ -13,14 +13,14 @@ class LoginPage extends StatefulWidget {
   final pwCtrl = TextEditingController();
   final void Function(BuildContext context, String, String) callback;
 
-  LoginPage({@required this.callback});
+  LoginPage({required this.callback});
 
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  Future<http.Response> loginFuture;
+  Future<http.Response>? loginFuture;
 
   void onPressed() {
     setState(() {
@@ -42,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  String textFromStatuscode(int code) {
+  String textFromStatuscode(int? code) {
     if (code == 200) {
       return "You have been logged in successfully!";
     } else if (code == 403) {
@@ -88,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   child: Text(
                                     textFromStatuscode(
-                                        snapshot.data.statusCode),
+                                        snapshot.data?.statusCode),
                                     style: TextStyle(
                                       color: Colors.black,
                                     ),

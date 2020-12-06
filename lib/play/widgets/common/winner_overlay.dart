@@ -7,20 +7,20 @@ import 'board.dart';
 
 class WinnerOverlay extends StatelessWidget {
   const WinnerOverlay(
-    this.winner, {
+    this.winDetails, {
     this.useColorNames = true,
-    @required this.onTap,
-    @required this.board,
+    required this.onTap,
+    required this.board,
     this.bottomText,
     this.ranked = false,
-    Key key,
+    Key? key,
   }) : super(key: key);
 
-  final WinDetails winner;
+  final WinDetails? winDetails;
   final bool useColorNames;
   final Function() onTap;
   final Board board;
-  final String bottomText;
+  final String? bottomText;
   final bool ranked;
 
   @override
@@ -68,13 +68,13 @@ class WinnerOverlay extends StatelessWidget {
           ),
         );
       },
-      child: winner == null
+      child: winDetails == null
           ? SizedBox()
           : GestureDetector(
               onTap: onTap,
               child: Container(
                 decoration: BoxDecoration(
-                  color: winner.winner.color(),
+                  color: winDetails!.winner.color(),
                   // borderRadius: BorderRadius.all(Radius.circular(8)),
                   // boxShadow: [
                   //   BoxShadow(
@@ -111,8 +111,8 @@ class WinnerOverlay extends StatelessWidget {
                             SizedBox(height: 8),
                             Text(
                               (useColorNames
-                                      ? winner.winner.colorWord
-                                      : winner.winner.playerWord)
+                                      ? winDetails!.winner.colorWord
+                                      : winDetails!.winner.playerWord)
                                   .toUpperCase(),
                               style: TextStyle(
                                 fontSize: 98,
@@ -126,10 +126,10 @@ class WinnerOverlay extends StatelessWidget {
                                     tween: IntTween(begin: 1, end: 25),
                                     curve: Curves.easeInOutQuart,
                                     duration: Duration(milliseconds: 1800),
-                                    builder: (ctx, value, child) {
+                                    builder: (ctx, int value, child) {
                                       if (value % 3 == 0) Vibrations.tiny();
                                       return Text(
-                                        (winner.me ? "+" : "-") +
+                                        (winDetails!.me ? "+" : "-") +
                                             value.toString() +
                                             " SR",
                                         style: TextStyle(

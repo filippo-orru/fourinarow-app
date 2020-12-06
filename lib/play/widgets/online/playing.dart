@@ -9,18 +9,19 @@ import 'package:four_in_a_row/play/widgets/common/board.dart';
 import 'package:four_in_a_row/play/widgets/common/winner_overlay.dart';
 import 'package:four_in_a_row/util/toast.dart';
 
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:provider/provider.dart';
 
 class PlayingViewer extends AbstractGameStateViewer {
   final PlayingState _playingState;
 
-  const PlayingViewer(this._playingState, {Key key}) : super(key: key);
+  const PlayingViewer(this._playingState, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    Toast toast;
+    Toast? toast;
     if (_playingState.toastState != null) {
-      toast = Toast(_playingState.toastState);
+      toast = Toast(_playingState.toastState!);
     }
 
     return Stack(
@@ -49,8 +50,8 @@ class PlayingViewer extends AbstractGameStateViewer {
             ],
           ),
         ),
-        _playingState.opponentInfo != null
-            ? OpponentInfoWidget(_playingState.opponentInfo.user)
+        _playingState.opponentInfo.user != null
+            ? OpponentInfoWidget(_playingState.opponentInfo.user!)
             : SizedBox(),
         Positioned(
           bottom: 32,
@@ -68,7 +69,7 @@ class PlayingViewer extends AbstractGameStateViewer {
             }
           },
           board: Board(_playingState.field, dropChip: (_) {}),
-          ranked: _playingState.opponentInfo != null, // TODO rework
+          ranked: _playingState.opponentInfo.user != null, // TODO rework
           bottomText: _playingState.opponentInfo.hasLeft
               ? 'Tap to leave'
               : _playingState.field.waitingToPlayAgain
@@ -90,14 +91,18 @@ class OpponentInfoWidget extends StatefulWidget {
   _OpponentInfoState createState() => _OpponentInfoState();
 }
 
+enum AddedState { NotAdded, Adding, Added }
+
 class _OpponentInfoState extends State<OpponentInfoWidget> {
-  bool added = false;
+  AddedState added = AddedState.NotAdded;
   bool errorAdding = false;
 
   @override
   void initState() {
     super.initState();
-    added = widget.user.isFriend == true;
+    if (widget.user.isFriend == true) {
+      added = AddedState.Added;
+    }
   }
 
   @override
@@ -156,29 +161,30 @@ class _OpponentInfoState extends State<OpponentInfoWidget> {
                 IconButton(
                     icon: errorAdding
                         ? Icon(Icons.close)
-                        : added == null
+                        : added == AddedState.Adding
                             ? CircularProgressIndicator()
-                            : added == true
+                            : added == AddedState.Added
                                 ? Icon(Icons.check)
                                 : Icon(Icons.add),
-                    onPressed: added == false && errorAdding == false
-                        ? () {
-                            // if () {
-                            setState(() => added = null);
-                            context
-                                .read<UserInfo>()
-                                .addFriend(widget.user.id)
-                                .then((ok) => setState(() {
-                                      if (ok) {
-                                        added = true;
-                                      } else {
-                                        errorAdding = true;
-                                        added = false;
-                                      }
-                                    }));
-                            // }
-                          }
-                        : null),
+                    onPressed:
+                        added == AddedState.NotAdded && errorAdding == false
+                            ? () {
+                                // if () {
+                                setState(() => added = AddedState.Adding);
+                                context
+                                    .read<UserInfo>()
+                                    .addFriend(widget.user.id)
+                                    .then((ok) => setState(() {
+                                          if (ok) {
+                                            added = AddedState.Added;
+                                          } else {
+                                            errorAdding = true;
+                                            added = AddedState.NotAdded;
+                                          }
+                                        }));
+                                // }
+                              }
+                            : null),
               ],
             ),
           ),
@@ -192,7 +198,7 @@ class OnlineTurnIndicator extends StatelessWidget {
   const OnlineTurnIndicator(
     this.myTurn,
     this.awaitingConfirmation, {
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   final bool myTurn;
@@ -253,11 +259,11 @@ class ConnectionIndicator extends StatefulWidget {
 
 class _ConnectionIndicatorState extends State<ConnectionIndicator>
     with TickerProviderStateMixin {
-  AnimationController breatheCtrl;
-  AnimationController turnRed;
-  Animation<Color> colorAnim;
-  Animation<double> opacityAnim;
-  Timer delayedExecution;
+  late AnimationController breatheCtrl;
+  late AnimationController turnRed;
+  late Animation<Color> colorAnim;
+  late Animation<double> opacityAnim;
+  Timer? delayedExecution;
 
   @override
   void initState() {

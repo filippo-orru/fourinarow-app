@@ -10,15 +10,14 @@ class RegisterPage extends StatefulWidget {
   final pwCtrl = TextEditingController();
   final void Function(BuildContext context, String, String) callback;
 
-  RegisterPage({@required this.callback});
+  RegisterPage({required this.callback});
 
   @override
   _RegisterPageState createState() => _RegisterPageState();
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  Future<http.Response> registerFuture;
-  BuildContext context;
+  Future<http.Response>? registerFuture;
 
   void onPressed() {
     setState(() {
@@ -38,7 +37,7 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
-  String textFromStatuscode(int code) {
+  String textFromStatuscode(int? code) {
     if (code == 200) {
       return "Your account has been created!";
     } else if (code == 403) {
@@ -52,7 +51,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    this.context = this.context ?? context;
     return Stack(
       children: [
         AccessAccountScreen(
@@ -88,7 +86,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ),
                                   child: Text(
                                     textFromStatuscode(
-                                        snapshot.data.statusCode),
+                                        snapshot.data?.statusCode),
                                     style: TextStyle(
                                       color: Colors.black,
                                     ),

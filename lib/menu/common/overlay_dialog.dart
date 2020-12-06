@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 class OverlayDialog extends StatefulWidget {
   OverlayDialog(
     this.show, {
-    @required this.hide,
-    @required this.child,
+    required this.hide,
+    required this.child,
     // @required this.userInfo,
     // @required this.myId,
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   final bool show;
@@ -23,9 +23,9 @@ class OverlayDialog extends StatefulWidget {
 class _OverlayDialogState extends State<OverlayDialog>
     with SingleTickerProviderStateMixin {
   static const Duration DURATION = Duration(milliseconds: 200);
-  AnimationController animCtrl;
-  Animation<double> opacityAnim;
-  Animation<Offset> offsetAnim;
+  late AnimationController animCtrl;
+  late Animation<double> opacityAnim;
+  late Animation<Offset> offsetAnim;
   bool show = false;
 
   void _hide([selfInitiated = false]) {

@@ -7,40 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:four_in_a_row/util/constants.dart' as constants;
 
-class _InheritedUserinfoProvider extends InheritedWidget {
-  _InheritedUserinfoProvider({Key key, this.child, this.data})
-      : super(key: key, child: child);
+import 'package:four_in_a_row/util/extensions.dart';
 
-  final Widget child;
-  final UserInfo data;
-
-  @override
-  bool updateShouldNotify(_InheritedUserinfoProvider oldWidget) {
-    // bool shouldNotify = oldWidget.data.user != this.data.user ||
-    //     oldWidget.data.refreshing != this.data.refreshing ||
-    //     oldWidget.data.offline != this.data.offline;
-    // print("User info should notify: $shouldNotify");
-    // return shouldNotify;
-    return true;
-  }
-}
-
-/*
-class UserinfoProvider_ extends StatefulWidget {
-  UserinfoProvider({Key key, @required this.child}) : super(key: key);
-
-  final Widget child;
-
-  @override
-  createState() => UserinfoProvider();
-
-  static UserinfoProvider of(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<_InheritedUserinfoProvider>()
-        ?.data;
-  }
-}
-*/
 class UserInfo with ChangeNotifier {
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   http.Client _client = http.Client();
@@ -50,12 +18,12 @@ class UserInfo with ChangeNotifier {
   bool offline = false;
   // bool loadedInfo = false;
 
-  String username;
-  String password;
+  String? username;
+  String? _password;
 
-  User user;
+  User? user;
 
-  bool get loggedIn => username != null && password != null && user != null;
+  bool get loggedIn => username != null && _password != null && user != null;
 
   UserInfo() {
     _prefs.then((_) {
@@ -63,15 +31,17 @@ class UserInfo with ChangeNotifier {
     });
   }
 
-  Map<String, String> get _body => {
-        "username": username,
-        "password": password,
-      };
+  Map<String, String> _body(String username, String password) {
+    return {
+      "username": username,
+      "password": password,
+    };
+  }
 
   void logOut() async {
     // this._ok = false;
     this.username = null;
-    this.password = null;
+    this._password = null;
     this.user = null;
 
     var prefs = await _prefs;
@@ -95,11 +65,11 @@ class UserInfo with ChangeNotifier {
     prefs.setString('password', password);
 
     this.username = username;
-    this.password = password;
+    this._password = password;
     _loadInfo();
   }
 
-  Future<bool> addFriend(String id, [VoidCallback callback]) async {
+  Future<bool> addFriend(String id, [VoidCallback? callback]) async {
     var response = await _client
         .post("${constants.URL}/api/users/me/friends?id=$id", body: _body);
     if (response.statusCode == 200) {
@@ -115,11 +85,7 @@ class UserInfo with ChangeNotifier {
     }
   }
 
-  Future<UserInfo> refresh({shouldSetState: true}) {
-    return _loadInfo(delay: true, shouldSetState: shouldSetState);
-  }
-
-  Future<UserInfo> _loadInfo({
+  Future<UserInfo?> _loadInfo({
     delay = false,
     shouldSetState = false,
   }) async {
@@ -127,27 +93,26 @@ class UserInfo with ChangeNotifier {
       refreshing = true;
     }
 
-    if (username == null || password == null) {
-      return null;
-    }
+    if (username == null) return null;
+    if (_password == null) return null;
     // rebuild();
 
     var req = http.Request("GET", Uri.parse('${constants.URL}/api/users/me'))
       ..headers['Authorization'] = "Basic " +
-          base64.encode(Utf8Codec().encode(username + ":" + password));
+          base64.encode(Utf8Codec().encode(username! + ":" + _password!));
     // ..bodyFields = _body;
 
     try {
       var response = await _client.send(req);
       if (response.statusCode == 200) {
-        User user =
+        User? user =
             User.fromMap(jsonDecode(await response.stream.bytesToString()));
 
         this.user = user;
       }
       offline = false;
     } on SocketException catch (e) {
-      if (e.osError.errorCode == 7) {
+      if (e.osError?.errorCode == 7) {
         offline = true;
       }
     } on http.ClientException {
@@ -165,7 +130,11 @@ class UserInfo with ChangeNotifier {
     // .catchError(() {});
   }
 
-  Future<PublicUser> getUserInfo({@required String userId}) async {
+  Future<UserInfo?> refresh({shouldSetState: true}) {
+    return _loadInfo(delay: true, shouldSetState: shouldSetState);
+  }
+
+  Future<PublicUser?> getUserInfo({required String userId}) async {
     var resp = await _client.get("${constants.URL}/api/users/$userId");
     if (resp.statusCode == 200) {
       return PublicUser.fromMap(jsonDecode(resp.body));
@@ -181,7 +150,7 @@ class GameInfo extends Equatable {
 
   GameInfo(this.skillRating, this.playerRank);
 
-  factory GameInfo.fromMap(Map<String, dynamic> map) {
+  static GameInfo? fromMap(Map<String, dynamic> map) {
     for (String key in ['skill_rating']) {
       if (!map.containsKey(key)) return null;
     }
@@ -211,15 +180,17 @@ class PublicUser {
     this.isPlaying = false,
   });
 
-  factory PublicUser.fromMap(Map<String, dynamic> map) {
+  static PublicUser? fromMap(Map<String, dynamic> map) {
     for (String key in ['username', 'game_info', 'id']) {
       if (!map.containsKey(key)) return null;
     }
+    GameInfo? gameInfo = GameInfo.fromMap(map['game_info']);
+    if (gameInfo == null) return null;
 
     return PublicUser(
       map['id'],
       map['username'],
-      GameInfo.fromMap(map['game_info']),
+      gameInfo,
       isPlaying: map['playing'] ?? false,
     );
   }
@@ -227,12 +198,12 @@ class PublicUser {
 
 class User extends Equatable {
   User({
-    this.id,
-    this.username,
+    required this.id,
+    required this.username,
     // this.password,
-    this.email,
-    this.friends,
-    this.gameInfo,
+    required this.email,
+    required this.friends,
+    required this.gameInfo,
   });
 
   final String id;
@@ -242,20 +213,25 @@ class User extends Equatable {
   final List<PublicUser> friends;
   final GameInfo gameInfo;
 
-  factory User.fromMap(Map<String, dynamic> map) {
+  static User? fromMap(Map<String, dynamic> map) {
     for (String key in ['id', 'username', 'game_info', 'friends', 'email']) {
       if (!map.containsKey(key)) return null;
     }
+    List<PublicUser> friends = (map['friends'] as List<dynamic>)
+        .map((dynamic friendMap) =>
+            PublicUser.fromMap(friendMap as Map<String, dynamic>))
+        .toList()
+        .filterNotNull();
+
+    GameInfo? gameInfo = GameInfo.fromMap(map['game_info']);
+    if (gameInfo == null) return null;
 
     return User(
       id: map['id'] as String,
       username: map['username'] as String,
       email: map['email'] as String,
-      friends: (map['friends'] as List<dynamic>)
-          .map((dynamic friendMap) =>
-              PublicUser.fromMap(friendMap as Map<String, dynamic>))
-          .toList(),
-      gameInfo: GameInfo.fromMap(map['game_info']),
+      friends: friends,
+      gameInfo: gameInfo,
     );
   }
 

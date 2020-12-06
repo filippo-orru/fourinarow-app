@@ -10,7 +10,7 @@ extension PlayerExtension on Player {
       case Player.Two:
         return Colors.red;
       default:
-        return null;
+        throw UnimplementedError("More than two players: add color()");
     }
   }
 
@@ -21,7 +21,7 @@ extension PlayerExtension on Player {
       case Player.Two:
         return "Red";
       default:
-        return null;
+        throw UnimplementedError("More than two players: add colorWord");
     }
   }
 
@@ -32,7 +32,7 @@ extension PlayerExtension on Player {
       case Player.Two:
         return "Enemy";
       default:
-        return null;
+        throw UnimplementedError("More than two players: add playerWord");
     }
   }
 

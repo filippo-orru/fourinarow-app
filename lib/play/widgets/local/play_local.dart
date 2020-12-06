@@ -13,17 +13,14 @@ import '../common/board.dart';
 import '../common/winner_overlay.dart';
 
 class PlayingLocal extends StatefulWidget {
-  const PlayingLocal({Key key}) : super(key: key);
+  const PlayingLocal({Key? key}) : super(key: key);
 
   @override
   _PlayingLocalState createState() => _PlayingLocalState();
 }
 
 class _PlayingLocalState extends State<PlayingLocal> {
-  LocalField field;
-  _PlayingLocalState() {
-    field = LocalField();
-  }
+  LocalField field = LocalField();
 
   _dropChip(int column) {
     setState(() {
@@ -113,7 +110,7 @@ class _PlayingLocalState extends State<PlayingLocal> {
 class FieldResetButton extends StatelessWidget {
   FieldResetButton(this._fieldReset, this._turn);
 
-  final Function _fieldReset;
+  final void Function() _fieldReset;
   final Player _turn;
 
   @override

@@ -30,21 +30,21 @@ class _BattleRequestPopupState extends State<BattleRequestPopup>
     with SingleTickerProviderStateMixin {
   final Duration slideDuration = Duration(milliseconds: 250);
 
-  AnimationController animCtrl;
-  Animation<Offset> slideAnim;
+  late AnimationController animCtrl;
+  late Animation<Offset> slideAnim;
   bool show = false;
-  Ticker remainingTicker;
-  Duration remaining;
-  Timer timeoutTimer;
-  Timer animationTimer;
+  Ticker? remainingTicker;
+  Duration? remaining;
+  Timer? timeoutTimer;
+  Timer? animationTimer;
 
-  String usernameOverride;
-  VoidCallback joinCallbackOverride;
+  String? usernameOverride;
+  VoidCallback? joinCallbackOverride;
 
   void join() async {
     await hide();
     if (joinCallbackOverride != null) {
-      joinCallbackOverride();
+      joinCallbackOverride?.call();
     } else {
       widget.joinCallback();
     }
@@ -94,7 +94,7 @@ class _BattleRequestPopupState extends State<BattleRequestPopup>
     remainingTicker = Ticker((dur) {
       setState(() {
         if (dur > BattleRequestPopup.DURATION) {
-          remainingTicker.stop();
+          remainingTicker?.stop();
           remaining = Duration.zero;
         } else {
           remaining = BattleRequestPopup.DURATION - dur;
@@ -104,12 +104,12 @@ class _BattleRequestPopupState extends State<BattleRequestPopup>
     // tween = Tween<Offset>(begin: Offset(0.5, 0), end: Offset.zero);
     animationTimer = Timer(BattleRequestPopup.DURATION - slideDuration, hide);
 
-    remainingTicker.start();
+    remainingTicker?.start();
 
     setState(() => show = true);
     timeoutTimer = Timer(BattleRequestPopup.DURATION, () {
       setState(() => show = false);
-      remainingTicker.stop();
+      remainingTicker?.stop();
     });
   }
 
@@ -122,7 +122,7 @@ class _BattleRequestPopupState extends State<BattleRequestPopup>
       child: show
           ? AnimatedBuilder(
               animation: animCtrl,
-              builder: (ctx, Widget child) {
+              builder: (ctx, Widget? child) {
                 // print("slideAnim.value: ${slideAnim.value}");
                 return Opacity(
                   opacity: animCtrl.value <= 0.5
@@ -211,7 +211,7 @@ class _BattleRequestPopupState extends State<BattleRequestPopup>
                       ),
                     ),
                     CountDownBar(
-                        value: remaining.inMilliseconds /
+                        value: remaining!.inMilliseconds /
                             BattleRequestPopup.DURATION.inMilliseconds),
                   ],
                 ),
@@ -224,8 +224,8 @@ class _BattleRequestPopupState extends State<BattleRequestPopup>
 
 class CountDownBar extends StatelessWidget {
   const CountDownBar({
-    Key key,
-    @required this.value,
+    Key? key,
+    required this.value,
   }) : super(key: key);
 
   final double value;

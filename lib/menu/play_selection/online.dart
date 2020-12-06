@@ -100,7 +100,7 @@ class UserRankDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Selector<UserInfo, Tuple2<bool, int>>(
         selector: (_, userInfo) =>
-            Tuple2(userInfo.loggedIn, userInfo.user?.gameInfo?.skillRating),
+            Tuple2(userInfo.loggedIn, userInfo.user?.gameInfo.skillRating),
         builder: (_, tuple, __) => tuple.item1 == true
             ? Container(
                 width: 180,
@@ -182,8 +182,8 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
   bool expandedLobbyCode = false;
   bool showMore = false;
 
-  AnimationController moveUpAnimCtrl;
-  Animation<Offset> moveUpAnim;
+  late AnimationController moveUpAnimCtrl;
+  late Animation<Offset> moveUpAnim;
 
   @override
   void initState() {
@@ -285,7 +285,7 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
       child: expandedLobbyCode
           ? AnimatedBuilder(
               animation: moveUpAnim,
-              builder: (BuildContext context, Widget child) {
+              builder: (BuildContext context, Widget? child) {
                 return Transform.translate(
                   offset: moveUpAnim.value,
                   child: child,
@@ -391,9 +391,9 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
 
 class FlatIconButton extends StatelessWidget {
   const FlatIconButton({
-    Key key,
+    Key? key,
     this.enabled = true,
-    @required this.onPressed,
+    required this.onPressed,
     this.icon = Icons.check,
     this.bgColor = Colors.white12,
   }) : super(key: key);

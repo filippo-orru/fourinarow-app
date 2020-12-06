@@ -13,8 +13,8 @@ class WinningGameChip extends StatefulWidget {
 
 class _WinningGameChipState extends State<WinningGameChip>
     with SingleTickerProviderStateMixin {
-  Animation<double> animation;
-  AnimationController animController;
+  late Animation<double> animation;
+  late AnimationController animController;
 
   @override
   initState() {
@@ -62,8 +62,8 @@ class GameChip extends StatefulWidget {
 
 class _GameChipState extends State<GameChip>
     with SingleTickerProviderStateMixin {
-  Animation<double> animation;
-  AnimationController animController;
+  late Animation<double> animation;
+  late AnimationController animController;
 
   @override
   initState() {
@@ -99,7 +99,7 @@ class _GameChipState extends State<GameChip>
 }
 
 class GameChipStatic extends StatelessWidget {
-  const GameChipStatic(Color color, {Key key})
+  const GameChipStatic(Color color, {Key? key})
       : _color = color,
         super(key: key);
 

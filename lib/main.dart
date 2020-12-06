@@ -48,7 +48,7 @@ class _MyAppState extends State<MyApp> {
 
   bool exitConfirm = false;
 
-  NavigatorState _navigator;
+  NavigatorState? _navigator;
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +112,7 @@ class _MyAppState extends State<MyApp> {
                   children: [
                     Flexible(
                       child: Stack(children: [
-                        child,
+                        child!,
                         Positioned(
                           top: MediaQuery.of(ctx).padding.top,
                           right: 0,
@@ -195,14 +195,13 @@ class _MyAppState extends State<MyApp> {
 }
 
 class RouteObserverProvider extends InheritedWidget {
-  RouteObserverProvider(
-      {Key key, @required this.child, @required this.observer})
+  RouteObserverProvider({Key? key, required this.child, required this.observer})
       : super(key: key, child: child);
 
   final Widget child;
   final RouteObserver observer;
 
-  static RouteObserverProvider of(BuildContext context) {
+  static RouteObserverProvider? of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<RouteObserverProvider>();
   }
 

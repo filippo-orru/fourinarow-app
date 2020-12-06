@@ -22,7 +22,7 @@ import '../common/menu_common.dart';
 // }
 
 class PlaySelection extends StatefulWidget {
-  const PlaySelection({Key key}) : super(key: key);
+  const PlaySelection({Key? key}) : super(key: key);
 
   createState() => _PlaySelectionState();
 
@@ -39,7 +39,7 @@ class _PlaySelectionState extends State<PlaySelection> {
     pageCtrl.addListener(() {
       setState(() {
         offset = pageCtrl.position.pixels;
-        page = pageCtrl.page;
+        page = pageCtrl.page ?? 0.0;
       });
     });
   }
@@ -149,7 +149,7 @@ class SwitchPageButton extends StatelessWidget {
   const SwitchPageButton(
     this.pageCtrl, {
     this.forward = true,
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   final bool forward;
@@ -157,9 +157,7 @@ class SwitchPageButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double page = pageCtrl.position.hasPixels
-        ? pageCtrl.initialPage.toDouble()
-        : pageCtrl.page;
+    final double page = pageCtrl.page ?? pageCtrl.initialPage.toDouble();
 
     return AnimatedBuilder(
       animation: pageCtrl,
@@ -202,8 +200,8 @@ class _WavesState extends State<Waves> with SingleTickerProviderStateMixin {
 
   double viewHeight;
 
-  AnimationController offsetAnim;
-  Tween<Offset> offsetTween;
+  late AnimationController offsetAnim;
+  late Tween<Offset> offsetTween;
 
   @override
   void initState() {
@@ -287,15 +285,16 @@ class SwipeDialog extends StatefulWidget {
 
 class _SwipeDialogState extends State<SwipeDialog>
     with SingleTickerProviderStateMixin {
-  SharedPreferences _prefs;
+  late SharedPreferences prefs;
+  late AnimationController animCtrl;
+
   bool _show = false;
   bool _triedItOut = false;
-
-  AnimationController animCtrl;
 
   @override
   void initState() {
     super.initState();
+    SharedPreferences.getInstance().then((p) => prefs = p);
     _checkPrefs();
 
     animCtrl = AnimationController(
@@ -323,22 +322,21 @@ class _SwipeDialogState extends State<SwipeDialog>
   }
 
   void _checkPrefs() async {
-    _prefs = _prefs ?? await SharedPreferences.getInstance();
-    if (_prefs.containsKey('shown_swype_dialog')) {
+    if (prefs.containsKey('shown_swype_dialog')) {
       // this._show = true;
-      this._show = !_prefs.getBool('shown_swype_dialog');
+      this._show = !prefs.getBool('shown_swype_dialog');
     } else {
       this._show = true;
-      await _prefs.setBool('shown_swype_dialog', false);
+      await prefs.setBool('shown_swype_dialog', false);
     }
     setState(() {});
   }
 
   void tappedDialog() async {
     if (_triedItOut) {
-      if (_prefs != null) {
+      if (prefs != null) {
         setState(() => this._show = false);
-        await _prefs.setBool('shown_swype_dialog', true);
+        await prefs.setBool('shown_swype_dialog', true);
       }
     } else {
       remindToTryOut();
@@ -460,7 +458,7 @@ class _SwipeDialogState extends State<SwipeDialog>
 
 class SlideIndicator extends StatefulWidget {
   const SlideIndicator({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -469,9 +467,8 @@ class SlideIndicator extends StatefulWidget {
 
 class _SlideIndicatorState extends State<SlideIndicator>
     with SingleTickerProviderStateMixin {
-  AnimationController animCtrl;
-  // Animation<double> moveLeft;
-  CurveTween fade;
+  late AnimationController animCtrl;
+  late CurveTween fade;
 
   @override
   void initState() {

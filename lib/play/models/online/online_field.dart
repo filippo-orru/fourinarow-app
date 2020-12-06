@@ -16,8 +16,8 @@ class OnlineField extends Field {
   }
 
   @override
-  WinDetails checkWin() {
-    WinDetails winDetails = super.checkWin();
+  WinDetails? checkWin() {
+    WinDetails? winDetails = super.checkWin();
     if (winDetails?.winner == this.me) {
       Vibrations.win();
     } else if (winDetails?.winner == this.me.other) {

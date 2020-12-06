@@ -8,24 +8,24 @@ class ToastState {
   final bool angery;
 
   ToastState(this.text,
-      {this.duration = DEFAULT_DURATION, this.angery = false, Key key});
+      {this.duration = DEFAULT_DURATION, this.angery = false, Key? key});
 }
 
 class Toast extends StatefulWidget {
   final ToastState toastState;
 
-  Toast(this.toastState, {Key key}) : super(key: key);
+  Toast(this.toastState, {Key? key}) : super(key: key);
 
   @override
   _ToastState createState() => _ToastState();
 }
 
 class _ToastState extends State<Toast> with TickerProviderStateMixin {
-  AnimationController opacityCtrl;
-  Animation<double> opacity;
+  late AnimationController opacityCtrl;
+  late Animation<double> opacity;
 
-  AnimationController wiggleCtrl;
-  Animation<Offset> wiggle;
+  late AnimationController wiggleCtrl;
+  late Animation<Offset> wiggle;
   final int maxWiggles = 3;
 
   @override
@@ -88,7 +88,8 @@ class _ToastState extends State<Toast> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(
-                color: widget.toastState.angery ? Colors.red : Colors.grey[600],
+                color:
+                    widget.toastState.angery ? Colors.red : Colors.grey[600]!,
                 width: widget.toastState.angery ? 4 : 1,
               ),
               borderRadius: BorderRadius.all(

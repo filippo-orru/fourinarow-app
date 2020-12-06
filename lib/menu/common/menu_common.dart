@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class MenuWrapper extends StatelessWidget {
   final Widget child;
-  MenuWrapper({@required this.child, Key key}) : super(key: key);
+  MenuWrapper({required this.child, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +32,9 @@ class MenuWrapper extends StatelessWidget {
 
 class ArmsButton extends StatefulWidget {
   final String label;
-  final Function callback;
+  final void Function()? callback;
 
-  ArmsButton(this.label, {Key key, this.callback}) : super(key: key);
+  ArmsButton(this.label, {Key? key, this.callback}) : super(key: key);
 
   @override
   _ArmsButtonState createState() => _ArmsButtonState();
@@ -74,7 +74,7 @@ class _ArmsButtonState extends State<ArmsButton> {
   }
 }
 
-PageRouteBuilder fadeRoute({@required Widget child, int millDuration = 300}) {
+PageRouteBuilder fadeRoute({required Widget child, int millDuration = 300}) {
   final opacityTween =
       Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.ease));
   // final sizeTween =

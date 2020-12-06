@@ -11,6 +11,7 @@ import 'package:four_in_a_row/util/constants.dart' as constants;
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import '../common/overlay_dialog.dart';
+import 'package:four_in_a_row/util/extensions.dart';
 
 import '../main_menu.dart';
 import 'onboarding/onboarding.dart';
@@ -24,24 +25,25 @@ class FriendsList extends StatefulWidget {
 
 class _FriendsListState extends State<FriendsList>
     with SingleTickerProviderStateMixin {
-  AnimationController expandMore;
-  Animation<Offset> offsetTween;
+  late AnimationController expandMore;
+  late Animation<Offset> offsetTween;
 
   bool showAddFriend = false;
-  String showBattleRequest;
+  String? showBattleRequest;
 
   void battleRequest(String id) async {
     var gsm = context.read<GameStateManager>();
     // Navigator.of(context).push(slideUpRoute());
     setState(() => showBattleRequest = id);
-    bool opponentJoined = await gsm
+    bool? opponentJoined = await gsm
         .startGame(ORqBattle(id))
+        .toNullable()
         .timeout(BattleRequestDialog.TIMEOUT, onTimeout: () => null);
 
     // if (msg == null) {
     //   hideBattleRequestDialog();
     // } else
-    if (opponentJoined) {
+    if (opponentJoined == true) {
       Navigator.of(context).push(slideUpRoute(GameStateViewer()));
       await Future.delayed(Duration(milliseconds: 180));
       hideBattleRequestDialog(leave: false);
@@ -98,7 +100,7 @@ class _FriendsListState extends State<FriendsList>
                       hide: () => setState(
                         () => showAddFriend = false,
                       ),
-                      myId: userInfo.user.id,
+                      myId: userInfo.user!.id,
                       userInfo: userInfo,
                     ),
                     BattleRequestDialog(
@@ -155,9 +157,9 @@ class _FriendsListState extends State<FriendsList>
 
 class CustomAppBar extends StatelessWidget {
   const CustomAppBar({
-    @required this.title,
+    required this.title,
     this.refreshing = false,
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   final String title;
@@ -230,9 +232,9 @@ class CustomAppBar extends StatelessWidget {
 
 class _FriendsListInner extends StatefulWidget {
   _FriendsListInner({
-    Key key,
-    @required this.userInfo,
-    @required this.onBattleRequest,
+    Key? key,
+    required this.userInfo,
+    required this.onBattleRequest,
   }) : super(key: key);
 
   final UserInfo userInfo;
@@ -246,15 +248,15 @@ class _FriendsListInner extends StatefulWidget {
 }
 
 class __FriendsListInnerState extends State<_FriendsListInner> {
-  List<int> expanded = new List();
+  List<int> expanded = List.empty();
 
   @override
   Widget build(BuildContext context) {
-    var elements = widget.userInfo.user.friends
+    var elements = widget.userInfo.user?.friends
         .asMap()
         .map((i, PublicUser f) {
           var tile = FriendListDisplay(f, widget.onBattleRequest);
-          if (i != widget.userInfo.user.friends.length - 1) {
+          if (i != widget.userInfo.user!.friends.length - 1) {
             return MapEntry(
               i,
               Column(
@@ -302,9 +304,9 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
 
 class MoreButton extends StatelessWidget {
   const MoreButton({
-    Key key,
-    @required this.label,
-    @required this.onTap,
+    Key? key,
+    required this.label,
+    required this.onTap,
   }) : super(key: key);
 
   final String label;
@@ -355,7 +357,7 @@ class BottomSheet extends StatefulWidget {
 
   const BottomSheet(
     this.userInfo, {
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -366,10 +368,10 @@ class _BottomSheetState extends State<BottomSheet>
     with SingleTickerProviderStateMixin {
   static const double HEIGHT = 400;
 
-  AnimationController animCtrl;
-  Animation<double> moveUpAnim;
-  Animation<double> rotateAnim;
-  Animation<double> opacityAnim;
+  late AnimationController animCtrl;
+  late Animation<double> moveUpAnim;
+  late Animation<double> rotateAnim;
+  late Animation<double> opacityAnim;
   bool expanded = false;
 
   Future<void> show() async {
@@ -387,8 +389,6 @@ class _BottomSheetState extends State<BottomSheet>
   @override
   void initState() {
     super.initState();
-    animCtrl =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 260));
 
     moveUpAnim = Tween<double>(begin: 0, end: HEIGHT)
         .chain(CurveTween(curve: Curves.easeInOutQuart))
@@ -502,9 +502,10 @@ class _BottomSheetState extends State<BottomSheet>
                               else
                                 show();
                             },
-                            splashColor: Colors.purple[300].withOpacity(0.5),
+                            splashColor: Colors.purple[300]!.withOpacity(0.5),
                             // focusColor: Colors.blue,
-                            highlightColor: Colors.purple[100].withOpacity(0.5),
+                            highlightColor:
+                                Colors.purple[100]!.withOpacity(0.5),
                             // hoverColor: Colors.green,
                             child: Padding(
                               padding: EdgeInsets.only(left: 24, right: 24),
@@ -563,7 +564,7 @@ class _BottomSheetState extends State<BottomSheet>
                                 print('object');
                               },
                               // leading: Icon(Icons.sentiment_satisfied),
-                              title: Text(widget.userInfo.username),
+                              title: Text(widget.userInfo.username!),
                               subtitle: Text('Change username (soon)'),
                               contentPadding:
                                   EdgeInsets.symmetric(horizontal: 24),
@@ -575,9 +576,9 @@ class _BottomSheetState extends State<BottomSheet>
                               onTap: () {
                                 print('object');
                               },
-                              title: Text(widget.userInfo.user.email ??
+                              title: Text(widget.userInfo.user?.email ??
                                   "Set email (soon)"),
-                              subtitle: Text(widget.userInfo.user.email == null
+                              subtitle: Text(widget.userInfo.user?.email == null
                                   ? 'You haven\'t set an email yet'
                                   : 'Change email (soon)'),
                               contentPadding:
@@ -640,7 +641,7 @@ class _BottomSheetState extends State<BottomSheet>
 }
 
 class FriendListDisplay extends StatelessWidget {
-  FriendListDisplay(this.friend, this.battleRequest, {Key key})
+  FriendListDisplay(this.friend, this.battleRequest, {Key? key})
       : super(key: key);
 
   final PublicUser friend;
@@ -683,12 +684,12 @@ class FriendListDisplay extends StatelessWidget {
 class BattleRequestDialog extends StatefulWidget {
   static const TIMEOUT = BattleRequestPopup.DURATION;
 
-  final String showBattleRequest;
+  final String? showBattleRequest;
   final VoidCallback hide;
 
   BattleRequestDialog(
     this.showBattleRequest, {
-    @required this.hide,
+    required this.hide,
   });
 
   @override
@@ -697,7 +698,7 @@ class BattleRequestDialog extends StatefulWidget {
 
 class _BattleRequestDialogState extends State<BattleRequestDialog> {
   double timerVal = 1;
-  Ticker ticker;
+  late Ticker ticker;
 
   @override
   initState() {
@@ -715,7 +716,7 @@ class _BattleRequestDialogState extends State<BattleRequestDialog> {
     super.didUpdateWidget(oldWidget);
     if (widget.showBattleRequest != null &&
         oldWidget.showBattleRequest == null) {
-      ticker?.stop();
+      ticker.stop();
       ticker = Ticker((time) {
         setState(() => timerVal =
             time.inMilliseconds / BattleRequestDialog.TIMEOUT.inMilliseconds);
@@ -733,8 +734,8 @@ class _BattleRequestDialogState extends State<BattleRequestDialog> {
 
   @override
   dispose() {
-    ticker?.stop();
-    ticker?.dispose();
+    ticker.stop();
+    ticker.dispose();
     super.dispose();
   }
 
@@ -781,12 +782,12 @@ class _BattleRequestDialogState extends State<BattleRequestDialog> {
 
 class AddFriendDialog extends StatefulWidget {
   AddFriendDialog({
-    Key key,
+    Key? key,
     // @required this.searchResults,
-    @required this.visible,
-    @required this.myId,
-    @required this.userInfo,
-    @required this.hide,
+    required this.visible,
+    required this.myId,
+    required this.userInfo,
+    required this.hide,
     // @required this.searching,
     // @required this.addingFriend,
     // @required this.searchText,
@@ -804,11 +805,11 @@ class AddFriendDialog extends StatefulWidget {
 }
 
 class _AddFriendDialogState extends State<AddFriendDialog> {
-  Map<int, PublicUser> searchResults;
+  Map<int, PublicUser>? searchResults;
   bool searching = false;
-  int addingFriend;
-  String searchText;
-  List<int> successfullyAdded = new List();
+  int? addingFriend;
+  String? searchText;
+  List<int> successfullyAdded = new List.empty();
 
   void setSearchText(String text) {
     this.searchText = text;
@@ -822,16 +823,20 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
     var response = await http.get(url);
 
     if (response.statusCode == 200) {
-      searchResults =
-          (jsonDecode(response.body) as List<dynamic>).asMap().map((i, dyn) {
-        return MapEntry(i, PublicUser.fromMap(dyn as Map<String, dynamic>));
-      });
+      searchResults = (jsonDecode(response.body) as List<dynamic>)
+          .asMap()
+          .map<int, PublicUser?>((i, dyn) {
+        PublicUser? user = PublicUser.fromMap(dyn as Map<String, dynamic>);
+        if (user == null) return MapEntry(i, null);
+        return MapEntry(i, user);
+      }).filterNotNull();
 
-      searchResults.removeWhere((index, publicUser) =>
+      searchResults!.removeWhere((index, publicUser) =>
           publicUser == null || publicUser.id == widget.myId);
 
-      searchResults.forEach((index, publicUser) {
-        if (widget.userInfo.user.friends.any((f) => f.id == publicUser.id)) {
+      searchResults!.forEach((index, publicUser) {
+        if (widget.userInfo.user?.friends.any((f) => f.id == publicUser.id) ==
+            true) {
           publicUser.isFriend = true;
         }
       });
@@ -850,8 +855,9 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
     setState(() => addingFriend = index);
     // if (
     await widget.userInfo.addFriend(id);
-    searchResults.forEach((index, publicUser) {
-      if (widget.userInfo.user.friends.any((f) => f.id == publicUser.id)) {
+    searchResults?.forEach((index, publicUser) {
+      if (widget.userInfo.user?.friends.any((f) => f.id == publicUser.id) ==
+          true) {
         publicUser.isFriend = true;
       }
     });
@@ -866,7 +872,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
   }
 
   @override
-  void didUpdateWidget(Widget oldWidget) {
+  void didUpdateWidget(AddFriendDialog oldWidget) {
     super.didUpdateWidget(oldWidget);
     searching = false;
     // widget.searchbarFocusNode.requestFocus();
@@ -930,7 +936,9 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
                   ),
                 ),
               ),
-              searchResults != null ? buildSearchresults() : SizedBox(),
+              searchResults != null
+                  ? buildSearchresults(searchResults!)
+                  : SizedBox(),
             ],
           ),
         ),
@@ -941,8 +949,8 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
   IconButton buildSearchbutton() {
     return IconButton(
       iconSize: 24,
-      splashColor: Colors.purple[300].withOpacity(0.5),
-      highlightColor: Colors.purple[200].withOpacity(0.5),
+      splashColor: Colors.purple[300]!.withOpacity(0.5),
+      highlightColor: Colors.purple[200]!.withOpacity(0.5),
       icon: searching ? CircularProgressIndicator() : Icon(Icons.search),
       onPressed: search,
     );
@@ -966,7 +974,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
     );
   }
 
-  Widget buildSearchresults() {
+  Widget buildSearchresults(Map<int, PublicUser> searchResults) {
     Map<int, Widget> results = searchResults.map((index, publicUser) {
       return MapEntry(
           index,
@@ -974,8 +982,8 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
             title: Text(publicUser.name),
             subtitle: Text("SR: ${publicUser.gameInfo.skillRating}"),
             trailing: IconButton(
-              splashColor: Colors.red[700].withOpacity(0.5),
-              highlightColor: Colors.red[700].withOpacity(0.5),
+              splashColor: Colors.red[700]!.withOpacity(0.5),
+              highlightColor: Colors.red[700]!.withOpacity(0.5),
               icon: publicUser.isFriend
                   ? Icon(Icons.check)
                   : addingFriend == index

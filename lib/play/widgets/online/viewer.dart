@@ -7,12 +7,11 @@ import 'package:provider/provider.dart';
 export 'playing.dart';
 
 class GameStateViewer extends StatelessWidget {
-  getViewer(GameState cgs) {
-    Type<AbstractGameStateViewer> viewer;
+  Widget getViewer(GameState cgs) {
     if (cgs is PlayingState) {
-      viewer = PlayingViewer;
+      return PlayingViewer(cgs);
     }
-    return viewer;
+    throw UnimplementedError("Missing viewer for game state $cgs");
   }
 
   @override

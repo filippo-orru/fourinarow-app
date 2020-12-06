@@ -6,7 +6,7 @@ import 'player.dart';
 
 class Field {
   static const int fieldSize = 7;
-  List<List<Player>> _array;
+  late List<List<Player?>> _array;
   int _chips = 0;
   Player turn = Player.One;
   List<int> lastChips = [];
@@ -40,12 +40,12 @@ class Field {
     }
   }
 
-  List<List<Player>> get array {
+  List<List<Player?>> get array {
     return _array;
   }
 
   bool get isEmpty {
-    for (List<Player> column in _array) {
+    for (List<Player?> column in _array) {
       if (column.any((c) => c != null)) {
         // print("field not empty");
         return false;
@@ -78,10 +78,10 @@ class Field {
     }
   }
 
-  WinDetails checkWin() {
+  WinDetails? checkWin() {
     const int range = fieldSize - 4;
     for (int r = -range; r <= range; r++) {
-      Player lastPlayer;
+      Player? lastPlayer;
       int combo = 0;
       for (int i = 0; i < fieldSize; i++) {
         if (i + r < 0 || i + r >= fieldSize) {
@@ -136,14 +136,14 @@ class Field {
       }
     }
 
-    final List<int> xCombo = List(fieldSize);
-    final List<Player> xPlayer = List(fieldSize);
-    Player lastPlayer;
+    final List<int> xCombo = List.empty();
+    final List<Player?> xPlayer = List.empty();
+    Player? lastPlayer;
     int combo = 0;
     // List.generate(fieldSize, (_) => List(), growable: false);
     for (int x = 0; x < fieldSize; x++) {
       for (int y = 0; y < fieldSize; y++) {
-        Player cell = _array[x][y];
+        Player? cell = _array[x][y];
         if (cell == null) {
           combo = 0;
           lastPlayer = null;

@@ -8,7 +8,7 @@ class IdleState extends GameState {
       : super(sendPlayerMessage);
 
   @override
-  GameState handlePlayerMessage(PlayerMessage msg) {
+  GameState? handlePlayerMessage(PlayerMessage msg) {
     if (msg is PlayerMsgLobbyJoin) {
       return WaitingForLobbyInfoState(super.sendPlayerMessage, code: msg.code);
     } else if (msg is PlayerMsgLobbyRequest) {
@@ -23,13 +23,13 @@ class IdleState extends GameState {
   }
 
   @override
-  GameState handleServerMessage(ServerMessage msg) {
+  GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgLobbyResponse) {
       return InLobbyState(super.sendPlayerMessage, msg.code);
     }
     return null;
   }
 
-  @override
-  AbstractGameStateViewer get viewer => (s) => IdleViewer(s);
+  // @override
+  // AbstractGameStateViewer get viewer => (s) => IdleViewer(s);
 }

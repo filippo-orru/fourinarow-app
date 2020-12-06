@@ -15,7 +15,7 @@ class ChatScreen extends StatelessWidget {
 class _ChatScreenInternal extends StatefulWidget {
   final ChatState chatState;
 
-  const _ChatScreenInternal(this.chatState, {Key key}) : super(key: key);
+  const _ChatScreenInternal(this.chatState, {Key? key}) : super(key: key);
 
   @override
   _ChatScreenInternalState createState() => _ChatScreenInternalState();
@@ -100,7 +100,7 @@ enum WidgetChangeApplyCycle { IDLE, REQUESTED, BUILT }
 class CreateMessageWidget extends StatefulWidget {
   final void Function(String, void Function(bool)) onMessageSent;
 
-  const CreateMessageWidget({Key key, @required this.onMessageSent})
+  const CreateMessageWidget({Key? key, required this.onMessageSent})
       : super(key: key);
 
   @override
@@ -109,7 +109,7 @@ class CreateMessageWidget extends StatefulWidget {
 
 class _CreateMessageWidgetState extends State<CreateMessageWidget> {
   TextEditingController _textEditCtrl = TextEditingController();
-  FocusNode _textFieldFocus;
+  late FocusNode _textFieldFocus;
   bool _textFieldHadFocus = false; // TODO ???
 
   bool _sendingMessage = false;
@@ -218,7 +218,7 @@ class _CreateMessageWidgetState extends State<CreateMessageWidget> {
 class ChatMessageWidget extends StatelessWidget {
   final ChatMessage message;
 
-  const ChatMessageWidget(this.message, {Key key}) : super(key: key);
+  const ChatMessageWidget(this.message, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

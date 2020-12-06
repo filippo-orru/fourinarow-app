@@ -7,15 +7,15 @@ import 'package:four_in_a_row/play/models/common/player.dart';
 class BorderButton extends StatelessWidget {
   const BorderButton(
     this.label, {
-    Key key,
-    @required this.icon,
-    @required this.callback,
-    @required this.borderColor,
+    Key? key,
+    required this.icon,
+    required this.callback,
+    required this.borderColor,
   }) : super(key: key);
 
   final String label;
   final IconData icon;
-  final Function callback;
+  final void Function() callback;
   final Color borderColor;
 
   @override
@@ -53,8 +53,8 @@ class BorderButton extends StatelessWidget {
 
 class TurnIndicator extends StatelessWidget {
   const TurnIndicator({
-    Key key,
-    @required this.turn,
+    Key? key,
+    required this.turn,
   }) : super(key: key);
 
   final Player turn;

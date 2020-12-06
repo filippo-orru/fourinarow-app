@@ -7,24 +7,20 @@ import 'package:four_in_a_row/util/constants.dart' as constants;
 
 class AccountTextField extends StatelessWidget {
   const AccountTextField({
-    Key key,
-    @required this.txtCtrl,
-    @required this.hint,
+    Key? key,
+    required this.txtCtrl,
+    required this.hint,
     this.password = false,
     this.focusNode,
     this.nextFocus,
     this.onSubmit,
-  })  : assert(txtCtrl != null),
-        assert(hint != null),
-        assert(focusNode != null || nextFocus != null),
-        assert(onSubmit == null || nextFocus == null),
-        super(key: key);
+  }) : super(key: key);
 
   final TextEditingController txtCtrl;
   final String hint;
-  final FocusNode focusNode;
-  final FocusNode nextFocus;
-  final VoidCallback onSubmit;
+  final FocusNode? focusNode;
+  final FocusNode? nextFocus;
+  final VoidCallback? onSubmit;
   final bool password;
 
   @override
@@ -32,13 +28,13 @@ class AccountTextField extends StatelessWidget {
     return TextFormField(
       onFieldSubmitted: (_) {
         if (nextFocus != null) {
-          nextFocus.requestFocus();
+          nextFocus!.requestFocus();
         } else {
-          onSubmit();
+          onSubmit?.call();
         }
       },
       controller: txtCtrl,
-      focusNode: focusNode ?? FocusNode(),
+      focusNode: focusNode,
       obscureText: this.password,
       keyboardType: TextInputType.visiblePassword,
       textInputAction:
@@ -57,12 +53,12 @@ class AccountTextField extends StatelessWidget {
 
 class AccessAccountScreen extends StatefulWidget {
   AccessAccountScreen({
-    Key key,
-    @required this.title,
-    @required this.usernameCtrl,
-    @required this.pwCtrl,
-    @required this.accentColor,
-    @required this.onSubmit,
+    Key? key,
+    required this.title,
+    required this.usernameCtrl,
+    required this.pwCtrl,
+    required this.accentColor,
+    required this.onSubmit,
     this.registering = false,
   })  : usernameFocusNode = FocusNode(),
         passwordFocusNode = FocusNode(),
@@ -200,6 +196,7 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
                     focusColor: widget.accentColor,
                     value: oldEnough,
                     onChanged: (v) {
+                      if (v == null) return;
                       setState(() => oldEnough = v);
                       _checkInputs();
                     },

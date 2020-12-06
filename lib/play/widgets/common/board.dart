@@ -9,7 +9,7 @@ class Board extends StatelessWidget {
   final Field _field;
   final Function(int) _dropChip;
 
-  Board(this._field, {Key key, @required Function(int) dropChip})
+  Board(this._field, {Key? key, required Function(int) dropChip})
       : _dropChip = dropChip,
         super(key: key);
 
@@ -18,7 +18,7 @@ class Board extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    WinDetails details = _field.checkWin();
+    WinDetails? details = _field.checkWin();
     List<Point> winning = [];
 
     if (details != null) {
@@ -76,15 +76,15 @@ class Board extends StatelessWidget {
 class _CreateRow extends StatelessWidget {
   const _CreateRow(
     this.x, {
-    Key key,
-    @required this.column,
-    @required Function(int) dropChip,
-    @required this.winning,
-  })  : _dropChip = dropChip,
+    Key? key,
+    required this.column,
+    required Function(int) dropChip,
+    required this.winning,
+  })   : _dropChip = dropChip,
         super(key: key);
 
   final int x;
-  final List<Player> column;
+  final List<Player?> column;
   final Function(int) _dropChip;
   final List<Point> winning;
 
@@ -121,13 +121,13 @@ class _CreateRow extends StatelessWidget {
 class _CreateCell extends StatelessWidget {
   _CreateCell(
     this.point, {
-    @required this.cell,
-    @required this.winning,
-    Key key,
+    required this.cell,
+    required this.winning,
+    Key? key,
   }) : super(key: key);
 
   final Point<int> point;
-  final Player cell;
+  final Player? cell;
   // final WinDetails details;
   final bool winning;
 
@@ -136,7 +136,10 @@ class _CreateCell extends StatelessWidget {
     Widget chip = SizedBox();
 
     if (cell != null) {
-      chip = GameChip(cell.color());
+      chip = GameChip(cell!.color());
+      if (winning) {
+        chip = WinningGameChip(cell!.color());
+      }
     }
 
     // if (details != null) {
@@ -144,7 +147,6 @@ class _CreateCell extends StatelessWidget {
     //   Point<int> pointDelta = point - details.start;
     //   for (int i = -4; i < 4; i++) {
     //     if (pointDelta + details.delta * i == details.delta * 3) {
-    if (winning) chip = WinningGameChip(cell.color());
     //       break;
     //     }
     //   }

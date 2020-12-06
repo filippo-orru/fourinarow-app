@@ -4,7 +4,7 @@ import 'package:four_in_a_row/play/widgets/online/other.dart';
 import 'game_state.dart';
 
 class WaitingForLobbyInfoState extends GameState {
-  final String code;
+  final String? code;
 
   WaitingForLobbyInfoState(
     void Function(PlayerMessage) sendPlayerMessage, {
@@ -12,12 +12,12 @@ class WaitingForLobbyInfoState extends GameState {
   }) : super(sendPlayerMessage);
 
   @override
-  GameState handlePlayerMessage(PlayerMessage msg) {
+  GameState? handlePlayerMessage(PlayerMessage msg) {
     return null;
   }
 
   @override
-  GameState handleServerMessage(ServerMessage msg) {
+  GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgLobbyResponse) {
       return InLobbyState(super.sendPlayerMessage, msg.code);
     } else if (msg is MsgOkay && code != null) {
@@ -26,8 +26,8 @@ class WaitingForLobbyInfoState extends GameState {
     return null;
   }
 
-  @override
-  AbstractGameStateViewer get viewer => (s) => WaitingForLobbyInfoViewer(s);
+  // @override
+  // AbstractGameStateViewer get viewer => (s) => WaitingForLobbyInfoViewer(s);
 }
 
 class WaitingForWWOkayState extends GameState {
@@ -35,20 +35,20 @@ class WaitingForWWOkayState extends GameState {
       : super(sendPlayerMessage);
 
   @override
-  GameState handlePlayerMessage(PlayerMessage msg) {
+  GameState? handlePlayerMessage(PlayerMessage msg) {
     return null;
   }
 
   @override
-  GameState handleServerMessage(ServerMessage msg) {
+  GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgOkay) {
       return WaitingForWWOpponentState(super.sendPlayerMessage);
     }
     return null;
   }
 
-  @override
-  AbstractGameStateViewer get viewer => (s) => WaitingForWWOkayViewer(s);
+  // @override
+  // AbstractGameStateViewer get viewer => (s) => WaitingForWWOkayViewer(s);
 }
 
 class WaitingForWWOpponentState extends GameState {
@@ -56,18 +56,18 @@ class WaitingForWWOpponentState extends GameState {
       : super(sendPlayerMessage);
 
   @override
-  GameState handlePlayerMessage(PlayerMessage msg) {
+  GameState? handlePlayerMessage(PlayerMessage msg) {
     return null;
   }
 
   @override
-  GameState handleServerMessage(ServerMessage msg) {
+  GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgOppJoined) {
       return InLobbyReadyState(super.sendPlayerMessage);
     }
     return null;
   }
 
-  @override
-  AbstractGameStateViewer get viewer => (s) => WaitingForWWOpponentViewer(s);
+  // @override
+  // AbstractGameStateViewer get viewer => (s) => WaitingForWWOpponentViewer(s);
 }
