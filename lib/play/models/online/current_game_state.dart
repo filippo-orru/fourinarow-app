@@ -48,7 +48,7 @@ class GameStateManager with ChangeNotifier {
   }
 
   void closingViewer() {
-    leave();
+    Future.delayed(Duration(milliseconds: 350), () => leave());
   }
 
   void leave() {

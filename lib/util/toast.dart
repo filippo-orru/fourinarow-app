@@ -6,9 +6,17 @@ class ToastState {
   final String text;
   final Duration duration;
   final bool angery;
+  final VoidCallback? onComplete;
 
-  ToastState(this.text,
-      {this.duration = DEFAULT_DURATION, this.angery = false, Key? key});
+  ToastState(
+    this.text, {
+    Key? key,
+    this.duration = DEFAULT_DURATION,
+    this.angery = false,
+    this.onComplete,
+  }) {
+    Future.delayed(duration, () => onComplete?.call());
+  }
 }
 
 class Toast extends StatefulWidget {

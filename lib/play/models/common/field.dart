@@ -4,14 +4,29 @@ import 'package:four_in_a_row/util/vibration.dart';
 
 import 'player.dart';
 
-class Field {
-  static const int fieldSize = 7;
+abstract class Field {
+  static const int size = 7;
+
   late List<List<Player?>> _array;
+
+  List<List<Player?>> get array {
+    return _array;
+  }
+}
+
+class FieldFinished extends Field {
+  final WinDetails winDetails;
+  bool waitingToPlayAgain = false;
+
+  FieldFinished(this.winDetails);
+}
+
+class FieldPlaying extends Field {
   int _chips = 0;
   Player turn = Player.One;
   List<int> lastChips = [];
 
-  Field() {
+  FieldPlaying() {
     this.reset();
   }
 
@@ -24,7 +39,7 @@ class Field {
   }
 
   dropChipNamed(int column, Player p) {
-    if (column < Field.fieldSize &&
+    if (column < Field.size &&
         column >= 0 &&
         _array[column].any((c) => c == null)) {
       vibrate();
@@ -40,10 +55,6 @@ class Field {
     }
   }
 
-  List<List<Player?>> get array {
-    return _array;
-  }
-
   bool get isEmpty {
     for (List<Player?> column in _array) {
       if (column.any((c) => c != null)) {
@@ -55,13 +66,13 @@ class Field {
     return true;
   }
 
-  int get chips => _chips;
+  // int get chips => _chips;
 
   // Player get turn => _turn;
 
   reset() {
     _array = List.generate(
-        fieldSize, (_) => List.filled(fieldSize, null, growable: false),
+        Field.size, (_) => List.filled(Field.size, null, growable: false),
         growable: false);
     turn = Player.One;
   }
@@ -69,7 +80,7 @@ class Field {
   void undo() {
     if (lastChips.isNotEmpty) {
       int lastChip = lastChips.removeLast();
-      for (int i = 0; i < fieldSize; i++) {
+      for (int i = 0; i < Field.size; i++) {
         if (array[lastChip][i] != null) {
           array[lastChip][i] = null;
           return;
@@ -85,12 +96,12 @@ class Field {
   // |   x           |
   // |   o           | rest probably doesnt matter. or does it?
   WinDetails? checkWin() {
-    const int range = fieldSize - 4;
+    const int range = Field.size - 4;
     for (int r = -range; r <= range; r++) {
       Player? lastPlayer;
       int combo = 0;
-      for (int i = 0; i < fieldSize; i++) {
-        if (i + r < 0 || i + r >= fieldSize) {
+      for (int i = 0; i < Field.size; i++) {
+        if (i + r < 0 || i + r >= Field.size) {
           continue;
         }
         final cellPlayer = _array[i + r][i];
@@ -115,11 +126,11 @@ class Field {
       lastPlayer = null;
       combo = 0;
 
-      for (int i = fieldSize - 1; i >= 0; i--) {
-        if (i + r < 0 || i + r >= fieldSize) {
+      for (int i = Field.size - 1; i >= 0; i--) {
+        if (i + r < 0 || i + r >= Field.size) {
           continue;
         }
-        int realY = fieldSize - 1 - i;
+        int realY = Field.size - 1 - i;
         final cellPlayer = _array[i + r][realY];
         if (cellPlayer == null) {
           combo = 0;
@@ -142,13 +153,13 @@ class Field {
       }
     }
 
-    final List<int> xCombo = List.filled(fieldSize, 0);
-    final List<Player?> xPlayer = List.filled(fieldSize, null);
+    final List<int> xCombo = List.filled(Field.size, 0);
+    final List<Player?> xPlayer = List.filled(Field.size, null);
     Player? lastPlayer;
     int combo = 0;
-    // List.generate(fieldSize, (_) => List(), growable: false);
-    for (int x = 0; x < fieldSize; x++) {
-      for (int y = 0; y < fieldSize; y++) {
+    // List.generate(Field.size, (_) => List(), growable: false);
+    for (int x = 0; x < Field.size; x++) {
+      for (int y = 0; y < Field.size; y++) {
         Player? cell = _array[x][y];
         if (cell == null) {
           combo = 0;

@@ -19,7 +19,7 @@ class IdleState extends GameState {
       return InLobbyState(super.sendPlayerMessage, null);
     }
 
-    return null;
+    return super.handlePlayerMessage(msg);
   }
 
   @override
@@ -27,7 +27,7 @@ class IdleState extends GameState {
     if (msg is MsgLobbyResponse) {
       return InLobbyState(super.sendPlayerMessage, msg.code);
     }
-    return null;
+    return super.handleServerMessage(msg);
   }
 
   // @override

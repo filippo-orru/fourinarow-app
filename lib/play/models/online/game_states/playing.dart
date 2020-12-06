@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/widgets.dart';
+import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/widgets/online/playing.dart';
 import 'package:four_in_a_row/util/vibration.dart';
 import 'package:http/http.dart' as http;
@@ -10,7 +11,6 @@ import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/util/toast.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
-import 'package:four_in_a_row/play/models/online/online_field.dart';
 import 'game_state.dart';
 
 class PlayingState extends GameState {
@@ -19,13 +19,19 @@ class PlayingState extends GameState {
     required bool myTurnToStart,
     String? opponentId,
   }) : super(sendPlayerMessage) {
-    field.turn = myTurnToStart ? field.me : field.me.other;
+    FieldPlaying _field = FieldPlaying();
+    _field.turn = myTurnToStart ? me : me.other;
+    this.field = _field;
     _loadOpponentInfo(opponentId: opponentId);
   }
 
-  OnlineField field = OnlineField();
-  bool awaitingConfirmation = false;
+  final Player me = Player.One;
+  late Field field;
+
   bool leaving = false;
+
+  bool awaitingConfirmation = false;
+
   ToastState? toastState;
   Timer? toastTimer;
   OpponentInfo opponentInfo = OpponentInfo();
@@ -33,20 +39,25 @@ class PlayingState extends GameState {
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
     if (msg is PlayerMsgPlayAgain) {
-      field.waitingToPlayAgain = true;
+      if (field is FieldFinished) {
+        (field as FieldFinished).waitingToPlayAgain = true;
+      }
     } else if (msg is PlayerMsgPlaceChip) {
       awaitingConfirmation = true;
     } else if (msg is PlayerMsgLeave) {
       leaving = true;
     }
-    return null;
+    return super.handlePlayerMessage(msg);
   }
 
   @override
   GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgPlaceChip) {
-      field.dropChipNamed(msg.row, field.me.other);
-      notifyListeners();
+      var _field = field;
+      if (_field is FieldPlaying) {
+        dropChipNamed(msg.row, me.other);
+        notifyListeners();
+      }
     } else if (msg is MsgGameStart) {
       this._reset(msg.myTurn);
     } else if (msg.isConfirmation) {
@@ -55,7 +66,7 @@ class PlayingState extends GameState {
     } else if (msg is MsgOppLeft) {
       opponentInfo.hasLeft = true;
       notifyListeners();
-      if (field.checkWin() == null) {
+      if (field is FieldPlaying) {
         this.leaving = true;
         showPopup("Opponent left", angery: true);
         //Future.delayed(this.toastState.duration * 0.6, () => this.pop());
@@ -95,9 +106,7 @@ class PlayingState extends GameState {
     http.Response response =
         await http.get("${constants.URL}/api/users/$opponentId");
     if (response.statusCode == 200) {
-      if (this.opponentInfo != null) {
-        this.opponentInfo.user = PublicUser.fromMap(jsonDecode(response.body));
-      }
+      this.opponentInfo.user = PublicUser.fromMap(jsonDecode(response.body));
       // TODO vvv
       /*if (UserinfoProvider.of(context)
             .user
@@ -109,15 +118,33 @@ class PlayingState extends GameState {
   }
 
   void _reset(bool myTurn) {
-    field = OnlineField();
-    field.turn = myTurn ? field.me : field.me.other;
+    FieldPlaying _field = FieldPlaying();
+    _field.turn = myTurn ? me : me.other;
   }
 
   void dropChip(int column) {
-    if (field.turn == field.me) {
-      field.dropChipNamed(column, field.me);
+    var _field = field;
+    if (_field is FieldPlaying && _field.turn == me) {
+      dropChipNamed(column, me);
 
       super.sendPlayerMessage(PlayerMsgPlaceChip(column));
+    }
+  }
+
+  void dropChipNamed(int column, Player p) {
+    Field _field = field;
+    if (_field is FieldPlaying) {
+      _field.dropChipNamed(column, p);
+      WinDetails? winDetails = _field.checkWin();
+      if (winDetails != null) {
+        field = FieldFinished(winDetails);
+        notifyListeners();
+        if (winDetails.winner == this.me) {
+          Vibrations.win();
+        } else if (winDetails.winner == this.me.other) {
+          Vibrations.loose();
+        }
+      }
     }
   }
 
@@ -125,7 +152,14 @@ class PlayingState extends GameState {
     super.sendPlayerMessage(PlayerMsgPlayAgain());
   }
 
-  void showPopup(String s, {bool angery = false}) {}
+  void showPopup(String s, {bool angery = false}) {
+    toastState = ToastState("Opponent left", angery: angery, onComplete: () {
+      // TODO: how do i change state here?
+      // possible solution: pass class with sendPlayerMsg() and changeState() to
+      // GameState and call thaht here
+    });
+    notifyListeners();
+  }
 }
 
 class OpponentInfo {

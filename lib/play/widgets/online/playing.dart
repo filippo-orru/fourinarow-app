@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
@@ -23,6 +24,19 @@ class PlayingViewer extends AbstractGameStateViewer {
     if (_playingState.toastState != null) {
       toast = Toast(_playingState.toastState!);
     }
+    var _field = _playingState.field;
+
+    WinDetails? winDetails;
+    bool waitingToPlayAgain = false;
+    if (_field is FieldFinished) {
+      waitingToPlayAgain = _field.waitingToPlayAgain;
+      winDetails = _field.winDetails;
+    }
+
+    Player turn = _playingState.me;
+    if (_field is FieldPlaying) {
+      turn = _field.turn;
+    }
 
     return Stack(
       children: [
@@ -34,8 +48,7 @@ class PlayingViewer extends AbstractGameStateViewer {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               OnlineTurnIndicator(
-                  _playingState.field.turn == _playingState.field.me,
-                  _playingState.awaitingConfirmation),
+                  turn == _playingState.me, _playingState.awaitingConfirmation),
               Expanded(
                 child: Center(
                   child: Board(_playingState.field,
@@ -59,7 +72,7 @@ class PlayingViewer extends AbstractGameStateViewer {
           child: ConnectionIndicator(_playingState.awaitingConfirmation),
         ),
         WinnerOverlay(
-          _playingState.field.checkWin(),
+          winDetails,
           useColorNames: false,
           onTap: () {
             if (!_playingState.opponentInfo.hasLeft) {
@@ -72,7 +85,7 @@ class PlayingViewer extends AbstractGameStateViewer {
           ranked: _playingState.opponentInfo.user != null, // TODO rework
           bottomText: _playingState.opponentInfo.hasLeft
               ? 'Tap to leave'
-              : _playingState.field.waitingToPlayAgain
+              : waitingToPlayAgain
                   ? 'Waiting for opponent...'
                   : 'Tap to play again!',
         ),
@@ -262,7 +275,7 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
   late AnimationController breatheCtrl;
   late AnimationController turnRed;
   late Animation<Color> colorAnim;
-  late Animation<double> opacityAnim;
+  late Animation<double> breatheAnim;
   Timer? delayedExecution;
 
   @override
@@ -274,7 +287,7 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
         Tween<Color>(begin: Colors.green, end: Colors.red).animate(turnRed);
 
     breatheCtrl =
-        AnimationController(vsync: this, duration: Duration(seconds: 1))
+        AnimationController(vsync: this, duration: Duration(seconds: 2))
           // brea
           ..addStatusListener((status) {
             if (status == AnimationStatus.completed &&
@@ -284,7 +297,7 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
               breatheCtrl.forward();
             }
           });
-    opacityAnim = Tween<double>(begin: 0.6, end: 1)
+    breatheAnim = Tween<double>(begin: 0.6, end: 0.9)
         .chain(CurveTween(curve: Curves.easeInOutSine))
         .animate(breatheCtrl);
     breatheCtrl.forward();
@@ -318,19 +331,36 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: opacityAnim,
-      child: AnimatedBuilder(
-        animation: colorAnim,
-        builder: (ctx, child) => Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(100)),
-            color: colorAnim.value,
+    return AnimatedBuilder(
+      animation: colorAnim,
+      builder: (_, child) => Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(100)),
+              color: colorAnim.value,
+            ),
+            width: 24,
+            height: 24,
           ),
-          width: 18,
-          height: 18,
-        ),
-        // child:
+          AnimatedBuilder(
+            animation: breatheAnim,
+            builder: (_, child) => Opacity(
+              opacity: breatheAnim.value,
+              child: Transform.scale(scale: breatheAnim.value, child: child),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(100)),
+                color: Colors.white30,
+              ),
+              width: 24,
+              height: 24,
+            ),
+            // child:
+          ),
+        ],
       ),
     );
   }

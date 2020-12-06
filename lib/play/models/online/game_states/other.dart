@@ -13,7 +13,7 @@ class WaitingForLobbyInfoState extends GameState {
 
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
-    return null;
+    return super.handlePlayerMessage(msg);
   }
 
   @override
@@ -36,7 +36,7 @@ class WaitingForWWOkayState extends GameState {
 
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
-    return null;
+    return super.handlePlayerMessage(msg);
   }
 
   @override
@@ -57,7 +57,7 @@ class WaitingForWWOpponentState extends GameState {
 
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
-    return null;
+    return super.handlePlayerMessage(msg);
   }
 
   @override

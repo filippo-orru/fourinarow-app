@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:four_in_a_row/connection/messages.dart';
+import 'package:four_in_a_row/play/models/online/game_states/idle.dart';
 
 export 'idle.dart';
 export 'in_lobby.dart';
@@ -7,12 +8,19 @@ export 'other.dart';
 export 'playing.dart';
 
 abstract class GameState with ChangeNotifier {
-  final void Function(PlayerMessage) sendPlayerMessage;
   GameState(this.sendPlayerMessage);
 
-  GameState? handleServerMessage(ServerMessage msg);
+  final void Function(PlayerMessage) sendPlayerMessage;
 
-  GameState? handlePlayerMessage(PlayerMessage msg);
+  @mustCallSuper
+  GameState? handleServerMessage(ServerMessage msg) {}
+
+  @mustCallSuper
+  GameState? handlePlayerMessage(PlayerMessage msg) {
+    if (msg is PlayerMsgLeave) {
+      return IdleState(sendPlayerMessage);
+    }
+  }
 }
 
 // typedef AbstractGameStateViewer = Widget Function(GameState);

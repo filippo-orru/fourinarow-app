@@ -10,7 +10,7 @@ class InLobbyState extends GameState {
 
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
-    return null;
+    return super.handlePlayerMessage(msg);
   }
 
   @override
@@ -31,7 +31,7 @@ class InLobbyReadyState extends GameState {
 
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
-    return null;
+    return super.handlePlayerMessage(msg);
   }
 
   @override

@@ -6,10 +6,10 @@ import 'package:four_in_a_row/play/models/common/game_chip.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
 
 class Board extends StatelessWidget {
-  final Field _field;
+  final Field field;
   final Function(int) _dropChip;
 
-  Board(this._field, {Key? key, required Function(int) dropChip})
+  Board(this.field, {Key? key, required Function(int) dropChip})
       : _dropChip = dropChip,
         super(key: key);
 
@@ -18,19 +18,25 @@ class Board extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    WinDetails? details = _field.checkWin();
+    var _field = field;
+    WinDetails? details;
+    if (_field is FieldFinished) {
+      details = _field.winDetails;
+    } else if (_field is FieldPlaying) {
+      details = _field.checkWin();
+    }
     List<Point> winning = [];
 
     if (details != null) {
       Point<int> pointer = details.start;
-      for (int i = 0; i < Field.fieldSize; i++) {
+      for (int i = 0; i < Field.size; i++) {
         if (pointer.x < 0 ||
-            pointer.x >= Field.fieldSize ||
+            pointer.x >= Field.size ||
             pointer.y < 0 ||
-            pointer.y >= Field.fieldSize) {
+            pointer.y >= Field.size) {
           break;
         }
-        if (_field.array[pointer.x][pointer.y] == details.winner) {
+        if (field.array[pointer.x][pointer.y] == details.winner) {
           winning.add(pointer);
           pointer += details.delta;
         } else {
@@ -51,7 +57,7 @@ class Board extends StatelessWidget {
           constraints: BoxConstraints.expand(),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: _field.array
+            children: field.array
                 .asMap()
                 .map((x, column) {
                   return MapEntry(

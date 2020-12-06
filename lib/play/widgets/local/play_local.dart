@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:four_in_a_row/play/models/local/local_field.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
 import 'package:four_in_a_row/util/vibration.dart';
@@ -20,7 +19,7 @@ class PlayingLocal extends StatefulWidget {
 }
 
 class _PlayingLocalState extends State<PlayingLocal> {
-  LocalField field = LocalField();
+  FieldPlaying field = FieldPlaying();
 
   _dropChip(int column) {
     setState(() {
@@ -90,8 +89,8 @@ class _PlayingLocalState extends State<PlayingLocal> {
                             () {
                               if (mounted)
                                 setState(
-                                  () => field.dropChip(
-                                      Random().nextInt(Field.fieldSize)),
+                                  () => field
+                                      .dropChip(Random().nextInt(Field.size)),
                                 );
                             },
                           );
