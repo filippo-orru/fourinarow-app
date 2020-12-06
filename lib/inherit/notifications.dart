@@ -5,21 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationsProvider extends StatefulWidget {
-  NotificationsProvider({Key key, this.child}) : super(key: key);
+  NotificationsProvider({Key? key, required this.child}) : super(key: key);
   final Widget child;
 
   @override
   createState() => NotificationsProviderState();
 
-  static NotificationsProviderState of(BuildContext context) {
+  static NotificationsProviderState? of(BuildContext context) {
     return context
         .dependOnInheritedWidgetOfExactType<_NotificationsProviderInherit>()
-        .state;
+        ?.state;
   }
 }
 
 class NotificationsProviderState extends State<NotificationsProvider> {
-  FlutterLocalNotificationsPlugin flutterNotifications;
+  late FlutterLocalNotificationsPlugin flutterNotifications;
 
   final StreamController<String> _selectedStreamCtrl =
       StreamController.broadcast();
@@ -46,6 +46,31 @@ class NotificationsProviderState extends State<NotificationsProvider> {
     }
   }
 
+  void comeToPlay() {
+    this.flutterNotifications?.cancel(MyNotifications.gameFound);
+    this.flutterNotifications?.show(
+          MyNotifications.gameFound,
+          'Game Starting!',
+          'Come back quickly to play!',
+          MyNotifications.gameFoundSpecifics,
+        );
+
+/* TODO add callback for timeout and switch to provider<mynotifications> with functions like comeToPlay()
+    // Cancel notification after a minute
+    Timer cancelNotificationTimer = Timer(
+      Duration(seconds: 60),
+      () {
+        this.flutterNotifications?.cancel(MyNotifications.gameFound);
+        leaveGame();
+      },
+    );
+    lifecycle.onReady = () {
+      cancelNotificationTimer?.cancel();
+      notifProv.flutterNotifications?.cancel(MyNotifications.gameFound);
+    };
+    */
+  }
+
   @override
   void initState() {
     super.initState();
@@ -65,7 +90,7 @@ class NotificationsProviderState extends State<NotificationsProvider> {
 }
 
 class _NotificationsProviderInherit extends InheritedWidget {
-  _NotificationsProviderInherit(Widget child, this.state, {Key key})
+  _NotificationsProviderInherit(Widget child, this.state, {Key? key})
       : super(key: key, child: child);
 
   final NotificationsProviderState state;

@@ -1,9 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/play/game_logic/field.dart';
-import 'package:four_in_a_row/play/game_logic/game_chip.dart';
-import 'package:four_in_a_row/play/game_logic/player.dart';
+import 'package:four_in_a_row/play/models/common/field.dart';
+import 'package:four_in_a_row/play/models/common/game_chip.dart';
+import 'package:four_in_a_row/play/models/common/player.dart';
 
 class Board extends StatelessWidget {
   final Field _field;

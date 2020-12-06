@@ -1,6 +1,6 @@
-import '../game_logic/player.dart';
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/play/game_logic/field.dart';
+import 'package:four_in_a_row/play/models/common/field.dart';
+import 'package:four_in_a_row/play/models/common/player.dart';
 import 'package:four_in_a_row/util/vibration.dart';
 
 import 'board.dart';

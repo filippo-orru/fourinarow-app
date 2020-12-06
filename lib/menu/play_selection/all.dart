@@ -1,16 +1,19 @@
 // export 'play_locally.dart';
 import 'dart:math';
-import 'package:four_in_a_row/inherit/connection/server_conn.dart';
+import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/menu/account/offline.dart';
 import 'package:four_in_a_row/menu/main_menu.dart';
+import 'package:four_in_a_row/play/models/online/current_game_state.dart';
+import 'package:four_in_a_row/play/widgets/online/viewer.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/menu/play_selection/common.dart';
 import 'package:four_in_a_row/menu/play_selection/online.dart';
-import 'package:four_in_a_row/play/local/play_local.dart';
-import 'package:four_in_a_row/play/online/play_online.dart';
+import 'package:four_in_a_row/play/widgets/local/play_local.dart';
+import 'package:four_in_a_row/play/widgets/online/playing.dart';
 
 import '../common/menu_common.dart';
 
@@ -19,6 +22,8 @@ import '../common/menu_common.dart';
 // }
 
 class PlaySelection extends StatefulWidget {
+  const PlaySelection({Key key}) : super(key: key);
+
   createState() => _PlaySelectionState();
 
   static PageRouteBuilder route() {
@@ -47,14 +52,15 @@ class _PlaySelectionState extends State<PlaySelection> {
   }
 
   void playOnline() {
-    var serverConn = ServerConnProvider.of(context);
-    if (serverConn.connected) {
-      serverConn.startGame(ORqWorldwide());
-      // Navigator.of(context).push(fadeRoute(child: PlayingOnline()));
-    } else {
+    // TODO: smart isConnected? logic
+
+    context.read<GameStateManager>().startGame(ORqWorldwide());
+    Navigator.of(context).push(fadeRoute(child: GameStateViewer()));
+    //if (widget._serverConnection.connected) {
+    /*} else {
       Navigator.of(context)
           .push(slideUpRoute(OfflineScreen(OfflineCaller.OnlineMatch)));
-    }
+    }*/
   }
 
   @override
@@ -105,7 +111,7 @@ class _PlaySelectionState extends State<PlaySelection> {
               index: 0,
               title: 'Online',
               description: 'You against the world!',
-              content: PlayOnline(),
+              content: MenuContentPlayOnline(),
               pushRoute: playOnline,
               offset: offset,
               bgColor: Colors.redAccent,
@@ -151,10 +157,9 @@ class SwitchPageButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var page = pageCtrl.position.minScrollExtent != null &&
-            pageCtrl.position.maxScrollExtent != null
-        ? pageCtrl?.page ?? 0.0
-        : 0.0;
+    final double page = pageCtrl.position.hasPixels
+        ? pageCtrl.initialPage.toDouble()
+        : pageCtrl.page;
 
     return AnimatedBuilder(
       animation: pageCtrl,

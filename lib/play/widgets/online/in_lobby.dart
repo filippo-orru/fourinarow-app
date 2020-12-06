@@ -1,58 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/inherit/connection/messages.dart';
-import 'package:four_in_a_row/inherit/lifecycle.dart';
-import 'package:four_in_a_row/inherit/notifications.dart';
+import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/util/vibration.dart';
-import 'all.dart';
 
-class InLobby extends GameState {
-  final String code;
-  StreamSubscription sMsgListen;
+class InLobbyViewer extends StatelessWidget {
+  final InLobbyState state;
 
-  InLobby(this.code, StreamController<PlayerMessage> p,
-      StreamController<ServerMessage> s, CGS change)
-      : super(p, s, change) {
-    sMsgListen = sMsgCtrl.stream.listen(handleMessage);
-  }
-
-  get build => InLobbyWidget(code);
-
-  dispose() => sMsgListen.cancel();
-
-  void handleMessage(ServerMessage msg) {
-    if (msg is MsgOppJoined) {
-      changeState(
-          InLobbyReady(super.pMsgCtrl, super.sMsgCtrl, super.changeState));
-    } else {
-      super.handleServerMessageSuper(msg);
-    }
-  }
-}
-
-class InLobbyWidget extends StatefulWidget {
-  final String code;
-  InLobbyWidget(this.code);
-
-  createState() => InLobbyState();
-}
-
-class InLobbyState extends State<InLobbyWidget> {
-  @override
-  initState() {
-    super.initState();
-  }
-
-  @override
-  dispose() {
-    super.dispose();
-  }
+  const InLobbyViewer(this.state, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: widget.code == null
+      child: state.code == null
           ? Text(
               'Wait for your opponent to join',
               style: TextStyle(fontSize: 20),
@@ -68,7 +28,7 @@ class InLobbyState extends State<InLobbyWidget> {
                 ),
                 SizedBox(height: 18),
                 Text(
-                  widget.code,
+                  state.code,
                   style: TextStyle(fontSize: 48),
                   textAlign: TextAlign.center,
                 ),
@@ -78,37 +38,16 @@ class InLobbyState extends State<InLobbyWidget> {
   }
 }
 
-class InLobbyReady extends GameState {
-  StreamSubscription sMsgListen;
+class InLobbyReadyViewer extends StatefulWidget {
+  final InLobbyReadyState state;
 
-  InLobbyReady(StreamController<PlayerMessage> p,
-      StreamController<ServerMessage> s, CGS change)
-      : super(p, s, change) {
-    sMsgListen = sMsgCtrl.stream.listen(handleMessage);
-  }
+  const InLobbyReadyViewer(this.state, {Key key}) : super(key: key);
 
-  // @override
-  void handleMessage(ServerMessage msg) {
-    if (msg is MsgGameStart) {
-      changeState(Playing(msg.myTurn, msg.opponentId, super.pMsgCtrl,
-          super.sMsgCtrl, super.changeState));
-    } else {
-      super.handleServerMessageSuper(msg);
-    }
-  }
-
-  get build => InLobbyReadyWidget();
-
-  dispose() {
-    sMsgListen.cancel();
-  }
+  @override
+  State<StatefulWidget> createState() => _InLobbyReadyViewerState();
 }
 
-class InLobbyReadyWidget extends StatefulWidget {
-  createState() => InLobbyReadyState();
-}
-
-class InLobbyReadyState extends State<InLobbyReadyWidget> {
+class _InLobbyReadyViewerState extends State<InLobbyReadyViewer> {
   bool longerThanExpected = false;
   Timer longerThanExpectedTimer;
 

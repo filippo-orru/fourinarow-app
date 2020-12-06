@@ -2,24 +2,33 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/chat.dart';
+import 'package:provider/provider.dart';
 
-class ChatScreen extends StatefulWidget {
-  final ChatProviderState chatProviderState;
-
-  const ChatScreen({Key key, @required this.chatProviderState})
-      : super(key: key);
-
+class ChatScreen extends StatelessWidget {
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  Widget build(BuildContext context) {
+    return Consumer<ChatState>(
+        builder: (_, chatState, __) => _ChatScreenInternal(chatState));
+  }
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenInternal extends StatefulWidget {
+  final ChatState chatState;
+
+  const _ChatScreenInternal(this.chatState, {Key key}) : super(key: key);
+
+  @override
+  _ChatScreenInternalState createState() => _ChatScreenInternalState();
+}
+
+class _ChatScreenInternalState extends State<_ChatScreenInternal> {
   ScrollController _scrollController = new ScrollController();
   bool _scrollToBottomOnNextBuild = false;
+  // ChatState _chatState = context.watch ChatState
 
   void _sendMessage(String msg, void Function(bool) callback) async {
     msg = msg.trim();
-    bool success = await widget.chatProviderState.sendMessage(msg);
+    bool success = await widget.chatState.sendMessage(msg);
     callback(success);
     _scrollToBottom();
   }
@@ -32,15 +41,16 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    widget.chatProviderState.notifier.addListener(_scrollToBottom);
-    widget.chatProviderState.read();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.chatState.unread > 0) {
+      _scrollToBottom();
+    }
+    widget.chatState.read();
   }
 
   @override
   void dispose() {
-    widget.chatProviderState.notifier.removeListener(_scrollToBottom);
     super.dispose();
   }
 
@@ -53,39 +63,32 @@ class _ChatScreenState extends State<ChatScreen> {
             duration: const Duration(milliseconds: 150), curve: Curves.easeOut);
       });
     }
-    return ValueListenableBuilder(
-      valueListenable: widget.chatProviderState.notifier,
-      builder: (ctx, x, child) {
-        widget.chatProviderState.read();
-        return child;
-      },
-      child: Scaffold(
-        appBar: AppBar(title: Text("Chat")),
-        body: Container(
-          constraints: BoxConstraints.expand(),
-          color: Colors.white,
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () =>
-                      FocusScope.of(context).requestFocus(new FocusNode()),
-                  child: ListView(
-                    controller: _scrollController,
-                    children: <Widget>[] +
-                        widget.chatProviderState.messages
-                            .map((message) => ChatMessageWidget(message))
-                            .toList() +
-                        [SizedBox(height: 16)],
-                  ),
+    return Scaffold(
+      appBar: AppBar(title: Text("Chat")),
+      body: Container(
+        constraints: BoxConstraints.expand(),
+        color: Colors.white,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () =>
+                    FocusScope.of(context).requestFocus(new FocusNode()),
+                child: ListView(
+                  controller: _scrollController,
+                  children: <Widget>[] +
+                      widget.chatState.messages
+                          .map((message) => ChatMessageWidget(message))
+                          .toList() +
+                      [SizedBox(height: 16)],
                 ),
               ),
-              CreateMessageWidget(
-                onMessageSent: _sendMessage,
-              ),
-            ],
-          ),
+            ),
+            CreateMessageWidget(
+              onMessageSent: _sendMessage,
+            ),
+          ],
         ),
       ),
     );
@@ -107,7 +110,7 @@ class CreateMessageWidget extends StatefulWidget {
 class _CreateMessageWidgetState extends State<CreateMessageWidget> {
   TextEditingController _textEditCtrl = TextEditingController();
   FocusNode _textFieldFocus;
-  bool _textFieldHadFocus = false;
+  bool _textFieldHadFocus = false; // TODO ???
 
   bool _sendingMessage = false;
 

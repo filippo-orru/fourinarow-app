@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/chat.dart';
-import 'package:four_in_a_row/inherit/connection/server_conn.dart';
+import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/main.dart';
 import 'package:four_in_a_row/menu/account/friends.dart';
 import 'package:four_in_a_row/menu/account/onboarding/onboarding.dart';
@@ -9,6 +9,8 @@ import 'package:four_in_a_row/menu/chat.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'common/play_button.dart';
+
+import 'package:provider/provider.dart';
 
 class MainMenu extends StatefulWidget {
   const MainMenu({
@@ -62,28 +64,27 @@ class _MainMenuState extends State<MainMenu> {
   RouteObserverProvider observerProvider;
   bool loadingUserInfo = false;
 
-  void accountCheck(BuildContext context, {bool force = false}) async {
-    var userInfo = UserinfoProvider.of(context);
-    if (userInfo?.loggedIn ?? false) {
-      Navigator.of(context).push(slideUpRoute(FriendsList(userInfo)));
-    } else if (userInfo?.offline ?? true) {
+  void accountCheck({bool force = false}) async {
+    Navigator.of(context).push(slideUpRoute(FriendsList()));
+
+    // TODO move this to friendslist (show loading -> okay(list) / notLoggedIn )
+    /*if (widget._userInfo.loggedIn ?? false) {
+    } else if (widget._userInfo.offline ?? true) {
       Navigator.of(context)
           .push(slideUpRoute(OfflineScreen(OfflineCaller.Friends)));
-    } else if ((userInfo?.refreshing ?? false) && !force) {
+    } else if ((widget._userInfo.refreshing ?? false) && !force) {
       setState(() => loadingUserInfo = true);
 
-      Future.delayed(Duration(milliseconds: 1800),
-          () => accountCheck(context, force: true));
+      Future.delayed(
+          Duration(milliseconds: 1800), () => accountCheck(force: true));
     } else {
       setState(() => loadingUserInfo = false);
       Navigator.of(context).push(slideUpRoute(AccountOnboarding()));
-    }
+    }*/
   }
 
   void showChat(BuildContext context) {
-    Navigator.of(context).push(slideUpRoute(ChatScreen(
-      chatProviderState: ChatProvider.of(context),
-    )));
+    Navigator.of(context).push(slideUpRoute(ChatScreen()));
   }
 
   @override
@@ -93,8 +94,6 @@ class _MainMenuState extends State<MainMenu> {
 
   @override
   Widget build(BuildContext context) {
-    ServerConnProvider.of(context).menuContext = context;
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
@@ -134,19 +133,17 @@ class _MainMenuState extends State<MainMenu> {
   }
 
   Stack buildBottomBar(BuildContext context) {
-    ChatProviderState chatProviderState = ChatProvider.of(context);
-
     return Stack(
       alignment: Alignment.center,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            ValueListenableBuilder(
-              valueListenable: chatProviderState.notifier,
-              builder: (ctx, x, child) => Stack(children: [
+            Selector<ChatState, int>(
+              selector: (_, chatState) => chatState.unread,
+              builder: (_, unread, child) => Stack(children: [
                 child,
-                chatProviderState.unread > 0
+                unread > 0
                     ? Positioned(
                         top: 0,
                         right: 0,
@@ -158,7 +155,7 @@ class _MainMenuState extends State<MainMenu> {
                             borderRadius: BorderRadius.all(Radius.circular(32)),
                           ),
                           alignment: Alignment.center,
-                          child: Text(chatProviderState.unread.toString(),
+                          child: Text(unread.toString(),
                               style: TextStyle(color: Colors.white)),
                         ))
                     : SizedBox(),
@@ -175,7 +172,7 @@ class _MainMenuState extends State<MainMenu> {
                 SmallColorButton(
                   icon: Icons.people,
                   color: Colors.purple[300],
-                  onTap: () => accountCheck(context),
+                  onTap: () => accountCheck(),
                 ),
                 loadingUserInfo ? CircularProgressIndicator() : SizedBox(),
               ],

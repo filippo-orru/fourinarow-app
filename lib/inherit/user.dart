@@ -12,7 +12,7 @@ class _InheritedUserinfoProvider extends InheritedWidget {
       : super(key: key, child: child);
 
   final Widget child;
-  final UserinfoProviderState data;
+  final UserInfo data;
 
   @override
   bool updateShouldNotify(_InheritedUserinfoProvider oldWidget) {
@@ -25,22 +25,23 @@ class _InheritedUserinfoProvider extends InheritedWidget {
   }
 }
 
-class UserinfoProvider extends StatefulWidget {
+/*
+class UserinfoProvider_ extends StatefulWidget {
   UserinfoProvider({Key key, @required this.child}) : super(key: key);
 
   final Widget child;
 
   @override
-  createState() => UserinfoProviderState();
+  createState() => UserinfoProvider();
 
-  static UserinfoProviderState of(BuildContext context) {
+  static UserinfoProvider of(BuildContext context) {
     return context
         .dependOnInheritedWidgetOfExactType<_InheritedUserinfoProvider>()
         ?.data;
   }
 }
-
-class UserinfoProviderState extends State<UserinfoProvider> {
+*/
+class UserInfo with ChangeNotifier {
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   http.Client _client = http.Client();
 
@@ -56,11 +57,11 @@ class UserinfoProviderState extends State<UserinfoProvider> {
 
   bool get loggedIn => username != null && password != null && user != null;
 
-  // void rebuild() {
-  //   // print("rebuilding user info");
-  //   if (mounted) setState(() {});
-  // }
-  //  && _username != null && _password != null;
+  UserInfo() {
+    _prefs.then((_) {
+      loadCredentials();
+    });
+  }
 
   Map<String, String> get _body => {
         "username": username,
@@ -114,18 +115,16 @@ class UserinfoProviderState extends State<UserinfoProvider> {
     }
   }
 
-  Future<UserinfoProviderState> refresh({shouldSetState: true}) {
+  Future<UserInfo> refresh({shouldSetState: true}) {
     return _loadInfo(delay: true, shouldSetState: shouldSetState);
   }
 
-  Future<UserinfoProviderState> _loadInfo({
+  Future<UserInfo> _loadInfo({
     delay = false,
     shouldSetState = false,
   }) async {
-    if (this.mounted == true && shouldSetState == true) {
-      setState(() {
-        refreshing = true;
-      });
+    if (shouldSetState == true) {
+      refreshing = true;
     }
 
     if (username == null || password == null) {
@@ -159,7 +158,7 @@ class UserinfoProviderState extends State<UserinfoProvider> {
     if (this.loggedIn && delay) {
       await Future.delayed(Duration(milliseconds: 300));
     }
-    this.setState(() => print("set state in userinfo refresh"));
+    print("set state in userinfo refresh");
     // print("reloaded user info");
     return Future.value(this);
 
@@ -174,71 +173,7 @@ class UserinfoProviderState extends State<UserinfoProvider> {
       throw HttpException("Not found");
     }
   }
-
-  @override
-  void initState() {
-    super.initState();
-    _prefs.then((_) {
-      // _prefs = prefs;
-      loadCredentials();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // print(" user info: build");
-    return _InheritedUserinfoProvider(child: widget.child, data: this);
-  }
-
-  // @override
-  // bool operator ==(Object other) {
-  // if (other is UserinfoProviderState) {
-  //   return other.friends == friends &&
-  //       other.gameInfo == gameInfo &&
-  //       other.email == email &&
-  //       other.username == username &&
-  //       other.loggedIn == loggedIn;
-  // }
-  //   return other.hashCode == this.hashCode;
-  // }
-
-  // @override
-  // int get hashCode =>
-  //     friends.hashCode +
-  //     gameInfo.hashCode +
-  //     email.hashCode +
-  //     username.hashCode +
-  //     loggedIn.hashCode;
 }
-
-// class Friend {
-//   final String id;
-//   final String name;
-//   final int sr;
-//   const Friend(this.id, this.name, this.sr);
-
-//   factory Friend.fromMap(Map<String, dynamic> map) {
-//     for (String key in ['username', 'game_info', 'id']) {
-//       if (!map.containsKey(key)) return null;
-//     }
-//     return Friend(
-//       map['id'],
-//       map['username'],
-//       (map['game_info'] as Map<String, dynamic>)['skill_rating'] as int,
-//     );
-//   }
-// }
-
-// class UserinfoResponse {
-//   UserinfoResponse(this.id, this.name, this.friends, this.email, this.gameInfo);
-
-//   final String id;
-//   final String name;
-//   final List<PublicUser> friends;
-//   final String email;
-//   final GameInfo gameInfo;
-
-// }
 
 class GameInfo extends Equatable {
   final int skillRating;

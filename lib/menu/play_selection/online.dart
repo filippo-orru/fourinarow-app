@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:four_in_a_row/inherit/connection/server_conn.dart';
+import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/play/models/online/current_game_state.dart';
+import 'package:provider/provider.dart';
+import 'package:tuple/tuple.dart';
 
-class PlayOnline extends StatefulWidget {
-  PlayOnline();
+class MenuContentPlayOnline extends StatefulWidget {
+  // final UserInfo userInfo;
+  // final ServerConnection serverConnection;
+  // final GameStateManager currentGameState;
+
+  // MenuContentPlayOnline(
+  //     this.userInfo, this.serverConnection, this.currentGameState);
 
   @override
-  _PlayOnlineState createState() => _PlayOnlineState();
+  _MenuContentPlayOnlineState createState() => _MenuContentPlayOnlineState();
 }
 
-class _PlayOnlineState extends State<PlayOnline> {
-  UserinfoProviderState userInfo;
-
+class _MenuContentPlayOnlineState extends State<MenuContentPlayOnline> {
   // @override
   // initState() {
   //   super.initState();
@@ -27,7 +33,6 @@ class _PlayOnlineState extends State<PlayOnline> {
 
   @override
   Widget build(BuildContext context) {
-    ServerConnState serverConn = ServerConnProvider.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.end,
@@ -64,21 +69,27 @@ class _PlayOnlineState extends State<PlayOnline> {
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(height: 24),
-            Text(
-                serverConn.connected
-                    ? (serverConn.currentServerInfo == null
-                        ? "..."
-                        : "Currently online: " +
-                            serverConn
-                                .currentServerInfo.currentlyConnectedPlayers
-                                .toString() +
-                            (serverConn.currentServerInfo.playerWaitingInLobby
-                                ? ". Players in queue"
-                                : ""))
-                    : "No connection",
-                style: TextStyle(color: Colors.white70))
+            Selector<ServerConnection, bool>(
+              selector: (_, serverConnection) => serverConnection.connected,
+              builder: (_, isConnected, __) =>
+                  Selector<GameStateManager, CurrentServerInfo>(
+                selector: (_, gsm) => gsm.serverInfo,
+                builder: (_, serverInfo, __) => Text(
+                  isConnected
+                      ? (serverInfo == null
+                          ? "..."
+                          : "Currently online: " +
+                              serverInfo.currentlyConnectedPlayers.toString() +
+                              (serverInfo.playerWaitingInLobby
+                                  ? ". Players in queue"
+                                  : ""))
+                      : "No connection",
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ),
+            ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -87,83 +98,80 @@ class _PlayOnlineState extends State<PlayOnline> {
 class UserRankDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var userInfo = UserinfoProvider.of(context);
-
-    return userInfo?.loggedIn == true
-        ? Container(
-            width: 180,
-            height: 100,
-            decoration: BoxDecoration(
-              color: Colors.white12,
-              borderRadius: BorderRadius.all(Radius.circular(8)),
-            ),
-            alignment: Alignment.center,
-            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
+    return Selector<UserInfo, Tuple2<bool, int>>(
+        selector: (_, userInfo) =>
+            Tuple2(userInfo.loggedIn, userInfo.user?.gameInfo?.skillRating),
+        builder: (_, tuple, __) => tuple.item1 == true
+            ? Container(
+                width: 180,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.white12,
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ),
+                alignment: Alignment.center,
+                padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: <Widget>[
-                    Text(
-                      "${userInfo.user.gameInfo.skillRating}",
-                      style: TextStyle(
-                        fontSize: 48,
-                        color: Colors.grey[100],
-                        shadows: [
-                          Shadow(
-                            blurRadius: 1,
-                            color: Colors.black12,
-                            offset: Offset(0, 2),
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: <Widget>[
+                        Text(
+                          "${tuple.item2}",
+                          style: TextStyle(
+                            fontSize: 48,
+                            color: Colors.grey[100],
+                            shadows: [
+                              Shadow(
+                                blurRadius: 1,
+                                color: Colors.black12,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                            fontFamily: 'RobotoSlab',
                           ),
-                        ],
-                        fontFamily: 'RobotoSlab',
-                      ),
-                    ),
-                    SizedBox(width: 6),
-                    Text(
-                      'SR',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[100],
-                        shadows: [
-                          Shadow(
-                            blurRadius: 1,
-                            color: Colors.black.withOpacity(0.08),
-                            offset: Offset(0, 2),
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          'SR',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[100],
+                            shadows: [
+                              Shadow(
+                                blurRadius: 1,
+                                color: Colors.black.withOpacity(0.08),
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                            fontFamily: 'RobotoSlab',
                           ),
-                        ],
-                        fontFamily: 'RobotoSlab',
-                      ),
+                        ),
+                      ],
                     ),
+                    // Text(
+                    //   "#${userInfo.gameInfo.playerRank} World Wide".toUpperCase(),
+                    //   style: TextStyle(
+                    //     fontSize: 15,
+                    //     letterSpacing: 0.6,
+                    //     color: Colors.white.withOpacity(0.6),
+                    //     fontStyle: FontStyle.italic,
+                    //     // fontFamily: 'RobotoSlab',
+                    //   ),
+                    // ),
                   ],
                 ),
-                // Text(
-                //   "#${userInfo.gameInfo.playerRank} World Wide".toUpperCase(),
-                //   style: TextStyle(
-                //     fontSize: 15,
-                //     letterSpacing: 0.6,
-                //     color: Colors.white.withOpacity(0.6),
-                //     fontStyle: FontStyle.italic,
-                //     // fontFamily: 'RobotoSlab',
-                //   ),
-                // ),
-              ],
-            ),
-          )
-        : SizedBox();
+              )
+            : SizedBox());
   }
 }
 
 class JoinLobbyButtons extends StatefulWidget {
-  JoinLobbyButtons();
-
-  // final bool showMore;
-
   @override
   _JoinLobbyButtonsState createState() => _JoinLobbyButtonsState();
 }
@@ -176,18 +184,6 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
 
   AnimationController moveUpAnimCtrl;
   Animation<Offset> moveUpAnim;
-
-  void createLobby() {
-    ServerConnProvider.of(context).startGame(ORqLobby(null));
-    // Navigator.of(context).push(fadeRoute(child: PlayingOnline()));
-  }
-
-  void joinLobby(userInfo) {
-    ServerConnProvider.of(context)
-        .startGame(ORqLobby(this.lobbyCodeController.text));
-    // route: fadeRoute(child: PlayingOnline()));
-    // Navigator.of(context).push(fadeRoute(child: PlayingOnline()));
-  }
 
   @override
   void initState() {
@@ -263,24 +259,24 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
     );
   }
 
-  Container buildCreateLobby() {
+  Widget buildCreateLobby() {
     return Container(
-      // constraints:
-      //     BoxConstraints.tightFor(
-      height: 48,
-      child: FlatButton(
-        color: Colors.white24,
-        splashColor: Colors.white54,
-        onPressed: createLobby,
-        // setState(() => expandedLobbyCode = true),
-        child: Text(
-          'CREATE LOBBY',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.75),
+        // constraints:
+        //     BoxConstraints.tightFor(
+        height: 48,
+        child: FlatButton(
+          color: Colors.white24,
+          splashColor: Colors.white54,
+          onPressed: () =>
+              context.read<GameStateManager>().startGame(ORqLobbyRequest()),
+          // setState(() => expandedLobbyCode = true),
+          child: Text(
+            'CREATE LOBBY',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.75),
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   AnimatedSwitcher buildJoinLobby(BuildContext context) {
@@ -356,15 +352,19 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
                           maxLength: 4,
                           textCapitalization: TextCapitalization.characters,
                           enableInteractiveSelection: false,
-                          onSubmitted: (_) =>
-                              joinLobby(UserinfoProvider.of(context)),
+                          onSubmitted: (_) => context
+                              .read<GameStateManager>()
+                              .startGame(
+                                  ORqLobbyJoin(lobbyCodeController.text)),
                         ),
                       ),
                     ),
                   ),
                   SizedBox(width: 12),
                   FlatIconButton(
-                    onPressed: () => joinLobby(UserinfoProvider.of(context)),
+                    onPressed: () => context
+                        .read<GameStateManager>()
+                        .startGame(ORqLobbyJoin(lobbyCodeController.text)),
                     icon: Icons.check,
                   ),
                 ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class _LifecycleInherit extends InheritedWidget {
-  _LifecycleInherit({Key key, Widget child, this.state})
+  _LifecycleInherit({Key? key, required Widget child, required this.state})
       : super(key: key, child: child);
 
   final LifecycleProviderState state;
@@ -13,35 +13,35 @@ class _LifecycleInherit extends InheritedWidget {
 }
 
 class LifecycleProvider extends StatefulWidget {
-  LifecycleProvider({@required this.child});
+  LifecycleProvider({required this.child});
 
   final Widget child;
 
   @override
   LifecycleProviderState createState() => LifecycleProviderState();
 
-  static LifecycleProviderState of(BuildContext context) {
+  static LifecycleProviderState? of(BuildContext context) {
     return context
         .dependOnInheritedWidgetOfExactType<_LifecycleInherit>()
-        .state;
+        ?.state;
   }
 }
 
 class LifecycleProviderState extends State<LifecycleProvider>
     with WidgetsBindingObserver {
   AppLifecycleState state = AppLifecycleState.resumed;
-  VoidCallback onReady;
-  VoidCallback onHide;
+  VoidCallback? onReady;
+  VoidCallback? onHide;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance!.addObserver(this);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    WidgetsBinding.instance!.removeObserver(this);
     super.dispose();
   }
 
@@ -50,10 +50,10 @@ class LifecycleProviderState extends State<LifecycleProvider>
     setState(() {
       this.state = state;
       print("Appstate: $state");
-      if (state == AppLifecycleState.resumed && onReady != null) {
-        onReady();
-      } else if (state == AppLifecycleState.paused && onHide != null) {
-        onHide();
+      if (state == AppLifecycleState.resumed) {
+        onReady?.call();
+      } else if (state == AppLifecycleState.paused) {
+        onHide?.call();
       }
     });
   }

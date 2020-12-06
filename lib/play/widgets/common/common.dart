@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../game_logic/player.dart';
 
 import 'dart:math';
+
+import 'package:four_in_a_row/play/models/common/player.dart';
 
 class BorderButton extends StatelessWidget {
   const BorderButton(

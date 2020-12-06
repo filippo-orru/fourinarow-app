@@ -1,205 +1,28 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-// import 'package:four_in_a_row/menu/account/friends.dart';
-import 'package:http/http.dart' as http;
-import 'package:four_in_a_row/util/constants.dart' as constants;
-
-import '../../game_logic/player.dart';
-import '../../common/board.dart';
-import '../../common/winner_overlay.dart';
-import '../online_field.dart';
-import 'package:four_in_a_row/inherit/connection/messages.dart';
 import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/play/models/common/player.dart';
+import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
+import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
+import 'package:four_in_a_row/play/widgets/common/board.dart';
+import 'package:four_in_a_row/play/widgets/common/winner_overlay.dart';
 import 'package:four_in_a_row/util/toast.dart';
-import 'package:four_in_a_row/util/vibration.dart';
 
-import 'all.dart';
+import 'package:provider/provider.dart';
 
-class Playing extends GameState {
-  final _InternalGameState igs;
+class PlayingViewer extends AbstractGameStateViewer {
+  final PlayingState _playingState;
 
-  StreamSubscription sMsgListen;
-  StreamSubscription pMsgListen;
-
-  Playing(this.myTurn, this.opponentId, StreamController<PlayerMessage> p,
-      StreamController<ServerMessage> s, CGS change)
-      : super(p, s, change) {}
-
-  @override
-  get build => Internal(igs);
-
-  @override
-  dispose() {
-    igs.dispose();
-  }
-}
-
-class InternalGameWidget extends StatefulWidget {
-  InternalGameWidget() {
-    sMsgListen = sMsgCtrl.stream.listen(igs.handleServerMessage);
-
-    igs.field = OnlineField();
-    igs.field.turn = myTurn ? igs.field.me : igs.field.me.other;
-    if (opponentId != null) {
-      _loadOpponentInfo();
-    }
-  }
-
-  @override
-  _InternalGameWidgetState createState() => _InternalGameWidgetState();
-}
-
-class _InternalGameWidgetState extends State<InternalGameWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
-
-class _InternalGameState {
-  final bool myTurn;
-  final String opponentId;
-
-  OnlineField field;
-  bool awaitingConfirmation;
-  bool leaving = false;
-  Toast toast;
-  Timer toastTimer;
-  BuildContext context;
-  PublicUser opponentInfo;
-  bool opponentLeft = false;
-
-  _InternalGameState(this.myTurn, [this.opponentId]) {
-    field = OnlineField();
-    field.turn = myTurn ? field.me : field.me.other;
-    if (opponentId != null) {
-      _loadOpponentInfo();
-    }
-  }
-
-  void handleServerMessage(ServerMessage msg) {
-    print("   ${msg.toString()} being handled");
-    if (msg is MsgPlaceChip) {
-      setState(() {
-        this._dropChipNamed(msg.row, field.me.other);
-      });
-    } else if (msg is MsgGameStart) {
-      this._reset(msg.myTurn);
-    } else if (msg.isConfirmation) {
-      setState(() => awaitingConfirmation = false);
-    } else if (msg is MsgOppLeft) {
-      setState(() => opponentLeft = true);
-      if (field.checkWin() == null) {
-        this.leaving = true;
-        showPopup("Opponent left", angery: true);
-        Future.delayed(this.toast.duration * 0.6, () => this.pop());
-      } else {
-        showPopup("Opponent left");
-      }
-      // return Idle(widget.sink);
-    } else if (msg is MsgLobbyClosing && !this.leaving && !this.opponentLeft) {
-      widget.changeState(Error(
-          LobbyClosed(), widget.pMsgCtrl, widget.sMsgCtrl, widget.changeState));
-    } else if (msg is MsgError && msg.maybeErr == MsgErrorType.NotInLobby) {
-      widget.changeState(Error(
-          LobbyClosed(), widget.pMsgCtrl, widget.sMsgCtrl, widget.changeState));
-    }
-  }
-
-  void handlePlayerMessage(PlayerMessage msg) {
-    print("   ${msg.toString()} being handled");
-    if (msg is PlayerMsgPlayAgain) {
-      setState(() => field.waitingToPlayAgain = true);
-      _loadOpponentInfo();
-    } else if (msg is PlayerMsgPlaceChip) {
-      setState(() => awaitingConfirmation = true);
-    } else if (msg is PlayerMsgLeave) {
-      leaving = true;
-    }
-  }
-
-  void _loadOpponentInfo() async {
-    http.Response response =
-        await http.get("${constants.URL}/api/users/$opponentId");
-    if (response.statusCode == 200) {
-      this.opponentInfo = PublicUser.fromMap(jsonDecode(response.body));
-      if (UserinfoProvider.of(context)
-          .user
-          .friends
-          .any((friend) => friend.id == opponentInfo.id)) {
-        opponentInfo.isFriend = true;
-      }
-    }
-    setState(() {});
-  }
-
-  void pop() {
-    if (this.context != null && mounted) {
-      Navigator.of(context).pop();
-    }
-  }
-
-  void showPopup(String text, {bool angery = false}) {
-    setState(() => this.toast = Toast(text, angery: angery));
-    toastTimer?.cancel();
-    toastTimer = Timer(this.toast.duration, () => this.toast = null);
-  }
-
-  void _reset(bool myTurn) {
-    setState(() {
-      field = OnlineField();
-      field.turn = myTurn ? field.me : field.me.other;
-    });
-  }
-
-  void _dropChipNamed(int column, Player player) {
-    setState(() {
-      field.dropChipNamed(column, player);
-    });
-    var winDetails = field.checkWin();
-    if (winDetails?.winner == field.me) {
-      Vibrations.win();
-    } else if (winDetails?.winner == field.me.other) {
-      Vibrations.loose();
-    }
-    // showPopup('SR: $field');
-  }
-
-  void _dropChip(int column) {
-    if (field.turn == field.me) {
-      this._dropChipNamed(column, field.me);
-
-      widget.pMsgCtrl.add(PlayerMsgPlaceChip(column));
-    }
-  }
-
-  void initState() {
-    sMsgListen = widget.sMsgCtrl.stream.listen(handleServerMessage);
-    pMsgListen = widget.pMsgCtrl.stream.listen(handlePlayerMessage);
-  }
-
-  void dispose() {
-    sMsgListen.cancel();
-    pMsgListen.cancel();
-  }
-}
-
-class PlayingWidget extends StatelessWidget {
-  final _InternalGameState internalGameState;
-  PlayingWidget(this.internalGameState);
-}
-
-class _PlayingState extends State<PlayingWidget> {
-  final String opponentId;
-  final _InternalGameState internalGameState;
-
-  _PlayingState() {}
+  const PlayingViewer(this._playingState, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    this.context = context;
+    Toast toast;
+    if (_playingState.toastState != null) {
+      toast = Toast(_playingState.toastState);
+    }
+
     return Stack(
       children: [
         Container(
@@ -209,10 +32,13 @@ class _PlayingState extends State<PlayingWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              OnlineTurnIndicator(field.turn == field.me, awaitingConfirmation),
+              OnlineTurnIndicator(
+                  _playingState.field.turn == _playingState.field.me,
+                  _playingState.awaitingConfirmation),
               Expanded(
                 child: Center(
-                  child: Board(field, dropChip: _dropChip),
+                  child: Board(_playingState.field,
+                      dropChip: _playingState.dropChip),
                 ),
               ),
               // Align(
@@ -223,53 +49,55 @@ class _PlayingState extends State<PlayingWidget> {
             ],
           ),
         ),
-        opponentInfo != null ? OpponentInfo(this.opponentInfo) : SizedBox(),
+        _playingState.opponentInfo != null
+            ? OpponentInfoWidget(_playingState.opponentInfo.user)
+            : SizedBox(),
         Positioned(
           bottom: 32,
           right: 32,
-          child: ConnectionIndicator(awaitingConfirmation),
+          child: ConnectionIndicator(_playingState.awaitingConfirmation),
         ),
         WinnerOverlay(
-          field.checkWin(),
+          _playingState.field.checkWin(),
           useColorNames: false,
           onTap: () {
-            if (!opponentLeft) {
-              widget.pMsgCtrl.add(PlayerMsgPlayAgain());
+            if (!_playingState.opponentInfo.hasLeft) {
+              _playingState.playAgain();
             } else {
               Navigator.of(context).pop();
             }
           },
-          board: Board(field, dropChip: (_) {}),
-          ranked: opponentInfo != null,
-          bottomText: opponentLeft
+          board: Board(_playingState.field, dropChip: (_) {}),
+          ranked: _playingState.opponentInfo != null, // TODO rework
+          bottomText: _playingState.opponentInfo.hasLeft
               ? 'Tap to leave'
-              : field.waitingToPlayAgain
+              : _playingState.field.waitingToPlayAgain
                   ? 'Waiting for opponent...'
                   : 'Tap to play again!',
         ),
-        this.toast ?? SizedBox(),
+        toast ?? SizedBox(),
       ],
     );
   }
 }
 
-class OpponentInfo extends StatefulWidget {
-  OpponentInfo(this.opponentInfo);
+class OpponentInfoWidget extends StatefulWidget {
+  final PublicUser user;
 
-  final PublicUser opponentInfo;
+  OpponentInfoWidget(this.user);
 
   @override
   _OpponentInfoState createState() => _OpponentInfoState();
 }
 
-class _OpponentInfoState extends State<OpponentInfo> {
+class _OpponentInfoState extends State<OpponentInfoWidget> {
   bool added = false;
   bool errorAdding = false;
 
   @override
   void initState() {
     super.initState();
-    added = widget.opponentInfo.isFriend;
+    added = widget.user.isFriend == true;
   }
 
   @override
@@ -306,7 +134,7 @@ class _OpponentInfoState extends State<OpponentInfo> {
                     // ),
                     SizedBox(width: 6),
                     Text(
-                      widget.opponentInfo.name,
+                      widget.user.name,
                       style: TextStyle(
                         fontSize: 20,
                         fontFamily: 'RobotoSlab',
@@ -315,7 +143,7 @@ class _OpponentInfoState extends State<OpponentInfo> {
                     ),
                     SizedBox(width: 6),
                     Text(
-                      "${widget.opponentInfo.gameInfo.skillRating} SR",
+                      "${widget.user.gameInfo.skillRating} SR",
                       style: TextStyle(
                         fontSize: 14,
                         fontFamily: 'RobotoSlab',
@@ -337,8 +165,9 @@ class _OpponentInfoState extends State<OpponentInfo> {
                         ? () {
                             // if () {
                             setState(() => added = null);
-                            UserinfoProvider.of(context)
-                                .addFriend(widget.opponentInfo.id)
+                            context
+                                .read<UserInfo>()
+                                .addFriend(widget.user.id)
                                 .then((ok) => setState(() {
                                       if (ok) {
                                         added = true;
@@ -359,36 +188,6 @@ class _OpponentInfoState extends State<OpponentInfo> {
   }
 }
 
-// class LeaveOnlineButton extends StatelessWidget {
-//   LeaveOnlineButton(this._fieldReset);
-
-//   final Function _fieldReset;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     // final borderColor = _turn.color().withOpacity(0.5);
-//     return BorderButton(
-//       "Reset",
-//       icon: Icons.refresh,
-//       callback: _fieldReset,
-//       borderColor: Colors.black26,
-//     );
-//   }
-// }
-
-// class OpponentJoined extends GameState {
-//   @override
-//   GameState handleMessage(ServerMessage msg) {
-//     super.handleMessage(msg);
-//     return null;
-//     // TODuO: implement handleMessage
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Text("Opponent has joined!");
-//   }
-// }
 class OnlineTurnIndicator extends StatelessWidget {
   const OnlineTurnIndicator(
     this.myTurn,

@@ -1,18 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/inherit/connection/server_conn.dart';
+import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/inherit/user.dart';
+import 'package:provider/provider.dart';
 
-enum OfflineCaller {
-  Friends,
-  OnlineMatch,
-}
+// enum OfflineCaller {
+//   Friends,
+//   OnlineMatch,
+// }
 
 class OfflineScreen extends StatefulWidget {
-  final OfflineCaller caller;
+  // final OfflineCaller caller;
 
-  OfflineScreen(this.caller);
+  // OfflineScreen(this.caller);
 
   @override
   _OfflineScreenState createState() => _OfflineScreenState();
@@ -23,21 +24,24 @@ class _OfflineScreenState extends State<OfflineScreen> {
   bool loading = false;
 
   Future<bool> action() async {
-    switch (widget.caller) {
-      case OfflineCaller.OnlineMatch:
-        return await ServerConnProvider.of(context).refresh();
+    return context.read<ServerConnection>().refresh();
+    // switch (widget.caller) {
+    //   case OfflineCaller.OnlineMatch:
+    //     return await ServerConnProvider.of(context).refresh();
 
-      case OfflineCaller.Friends:
-        var userInfo = await UserinfoProvider.of(context).refresh();
-        return !userInfo.offline;
-        break;
-      default:
-        return false;
-    }
+    //   case OfflineCaller.Friends:
+    //     var userInfo = await UserInfo.of(context).refresh();
+    //     return !userInfo.offline;
+    //     break;
+    //   default:
+    //     return false;
+    // }
   }
 
   void retry() async {
     setState(() => loading = true);
+
+    await Future.delayed(Duration(milliseconds: 600)); // Better UX
 
     if (await action() == true) {
       Navigator.of(context).pop();
@@ -49,18 +53,18 @@ class _OfflineScreenState extends State<OfflineScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String description;
+    String description = 'Please connect to the internet to continue.';
 
-    switch (widget.caller) {
-      case OfflineCaller.OnlineMatch:
-        description =
-            'Please connect to the internet to access the friends tab.';
-        break;
-      case OfflineCaller.Friends:
-        description =
-            'Please connect to the internet to access the friends tab.';
-        break;
-    }
+    // TODO either delete or add in smarter way
+    // switch (widget.caller) {
+    //   case OfflineCaller.OnlineMatch:
+    //     description =
+    //     break;
+    //   case OfflineCaller.Friends:
+    //     description =
+    //         'Please connect to the internet to access the friends tab.';
+    //     break;
+    // }
 
     return Scaffold(
       body: Container(

@@ -1,3 +1,3 @@
-import '../game_logic/field.dart';
+import '../common/field.dart';
 
 class LocalField extends Field {}

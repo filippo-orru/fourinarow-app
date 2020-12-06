@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/scheduler.dart';
-import 'package:four_in_a_row/inherit/connection/messages.dart';
-import 'package:four_in_a_row/inherit/connection/server_conn.dart';
-import 'package:four_in_a_row/play/online/play_online.dart';
+import 'package:four_in_a_row/connection/messages.dart';
+import 'package:four_in_a_row/connection/server_connection.dart';
+import 'package:four_in_a_row/play/models/online/current_game_state.dart';
+import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:four_in_a_row/util/battle_req_popup.dart';
 import 'package:http/http.dart' as http;
 import 'package:four_in_a_row/util/constants.dart' as constants;
@@ -14,11 +15,9 @@ import '../common/overlay_dialog.dart';
 import '../main_menu.dart';
 import 'onboarding/onboarding.dart';
 
+import 'package:provider/provider.dart';
+
 class FriendsList extends StatefulWidget {
-  FriendsList(this.userInfo);
-
-  final UserinfoProviderState userInfo;
-
   @override
   _FriendsListState createState() => _FriendsListState();
 }
@@ -32,20 +31,18 @@ class _FriendsListState extends State<FriendsList>
   String showBattleRequest;
 
   void battleRequest(String id) async {
-    var serverConn = ServerConnProvider.of(context);
+    var gsm = context.read<GameStateManager>();
     // Navigator.of(context).push(slideUpRoute());
-    serverConn.startGame(ORqBattle(id));
     setState(() => showBattleRequest = id);
-    var msg = await serverConn.incoming.stream
-        .skip(1) // skip confirmation msg
-        .first
+    bool opponentJoined = await gsm
+        .startGame(ORqBattle(id))
         .timeout(BattleRequestDialog.TIMEOUT, onTimeout: () => null);
 
     // if (msg == null) {
     //   hideBattleRequestDialog();
     // } else
-    if (msg is MsgOppJoined) {
-      Navigator.of(context).push(slideUpRoute(PlayingOnline()));
+    if (opponentJoined) {
+      Navigator.of(context).push(slideUpRoute(GameStateViewer()));
       await Future.delayed(Duration(milliseconds: 180));
       hideBattleRequestDialog(leave: false);
       // serverConn.startGame(ORq(msg.lobbyCode));
@@ -53,7 +50,7 @@ class _FriendsListState extends State<FriendsList>
   }
 
   void hideBattleRequestDialog({leave = true}) {
-    if (leave) ServerConnProvider.of(context).leaveGame();
+    if (leave) context.read<GameStateManager>().leave();
     setState(() => showBattleRequest = null);
   }
 
@@ -66,22 +63,26 @@ class _FriendsListState extends State<FriendsList>
         Tween(begin: Offset(0, 0.5), end: Offset.zero).animate(expandMore);
   }
 
-  @override
-  didUpdateWidget(Widget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    widget.userInfo.refresh(shouldSetState: false).then((_) => setState(() {}));
-  }
+  // @override
+  // didUpdateWidget(Widget oldWidget) {
+  //   super.didUpdateWidget(oldWidget);
+  //   context
+  //       .read<UserInfo>()
+  //       .refresh(shouldSetState: false)
+  //       .then((_) => setState(() {}));
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Consumer<UserInfo>(
+      builder: (_, userInfo, __) => Scaffold(
         resizeToAvoidBottomInset: false,
-        body: widget.userInfo.loggedIn
+        body: userInfo.loggedIn
             ? Container(
                 child: Stack(
                   fit: StackFit.loose,
                   children: [
-                    buildFriendsList(),
+                    buildFriendsList(userInfo),
                     Positioned(
                       right: 24,
                       bottom: BottomSheet.HEIGHT,
@@ -91,14 +92,14 @@ class _FriendsListState extends State<FriendsList>
                         onPressed: () => setState(() => showAddFriend = true),
                       ),
                     ),
-                    BottomSheet(widget.userInfo),
+                    BottomSheet(userInfo),
                     AddFriendDialog(
                       visible: showAddFriend,
                       hide: () => setState(
                         () => showAddFriend = false,
                       ),
-                      myId: widget.userInfo.user.id,
-                      userInfo: widget.userInfo,
+                      myId: userInfo.user.id,
+                      userInfo: userInfo,
                     ),
                     BattleRequestDialog(
                       showBattleRequest,
@@ -107,21 +108,23 @@ class _FriendsListState extends State<FriendsList>
                   ],
                 ),
               )
-            : buildErrScreen(context));
+            : buildErrScreen(userInfo),
+      ),
+    );
   }
 
-  SafeArea buildFriendsList() {
+  SafeArea buildFriendsList(UserInfo userInfo) {
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomAppBar(
             title: 'Friends',
-            refreshing: widget.userInfo.refreshing,
+            refreshing: userInfo.refreshing,
           ),
           Expanded(
               child: _FriendsListInner(
-            userInfo: widget.userInfo,
+            userInfo: userInfo,
             onBattleRequest: battleRequest,
           )),
         ],
@@ -129,7 +132,7 @@ class _FriendsListState extends State<FriendsList>
     );
   }
 
-  Center buildErrScreen(BuildContext context) {
+  Center buildErrScreen(UserInfo userInfo) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -140,7 +143,7 @@ class _FriendsListState extends State<FriendsList>
               color: Colors.grey[100],
               elevation: 2,
               onPressed: () {
-                widget.userInfo.logOut();
+                userInfo.logOut();
                 Navigator.of(context).pop();
               },
               child: Text('Log out'))
@@ -232,7 +235,7 @@ class _FriendsListInner extends StatefulWidget {
     @required this.onBattleRequest,
   }) : super(key: key);
 
-  final UserinfoProviderState userInfo;
+  final UserInfo userInfo;
   final GlobalKey<RefreshIndicatorState> refreshKey =
       GlobalKey<RefreshIndicatorState>();
 
@@ -348,7 +351,7 @@ class BottomSheet extends StatefulWidget {
   static const double _CONT_HEIGHT = 78;
   static const double _MARGIN = 24;
 
-  final UserinfoProviderState userInfo;
+  final UserInfo userInfo;
 
   const BottomSheet(
     this.userInfo, {
@@ -792,7 +795,7 @@ class AddFriendDialog extends StatefulWidget {
 
   final bool visible;
   final String myId;
-  final UserinfoProviderState userInfo;
+  final UserInfo userInfo;
   final FocusNode searchbarFocusNode = FocusNode();
   final VoidCallback hide;
 

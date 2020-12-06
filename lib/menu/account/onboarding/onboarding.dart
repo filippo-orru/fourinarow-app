@@ -15,8 +15,8 @@ class AccountOnboarding extends StatefulWidget {
 class _AccountOnboardingState extends State<AccountOnboarding> {
   void successfullyLoggedIn(
       BuildContext context, String username, String password) async {
-    var userInfo = UserinfoProvider.of(context);
-    if (userInfo != null) {
+    // TODO successfully logged in
+/*    context.read<UserInfos>()
       userInfo.setCredentials(username, password);
       Future.delayed(Duration(milliseconds: 1500), () {
         Navigator.of(context)
@@ -25,6 +25,7 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
               builder: (BuildContext context) => FriendsList(userInfo)));
       });
     }
+    */
   }
 
   @override

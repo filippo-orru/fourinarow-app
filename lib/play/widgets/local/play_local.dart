@@ -2,14 +2,15 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/play/common/board.dart';
-import 'package:four_in_a_row/play/common/winner_overlay.dart';
-import 'package:four_in_a_row/play/game_logic/field.dart';
 
+import 'package:four_in_a_row/play/models/local/local_field.dart';
+import 'package:four_in_a_row/play/models/common/field.dart';
+import 'package:four_in_a_row/play/models/common/player.dart';
 import 'package:four_in_a_row/util/vibration.dart';
-import '../game_logic/player.dart';
+
 import '../common/common.dart';
-import 'local_field.dart';
+import '../common/board.dart';
+import '../common/winner_overlay.dart';
 
 class PlayingLocal extends StatefulWidget {
   const PlayingLocal({Key key}) : super(key: key);
