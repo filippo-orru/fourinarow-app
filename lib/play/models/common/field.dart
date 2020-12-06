@@ -78,6 +78,12 @@ class Field {
     }
   }
 
+  // TODO: there is a bug somewhere. You can win by placing here
+  // _________________  top of the board
+  // |   x           | only three
+  // |   x           | in a row here
+  // |   x           |
+  // |   o           | rest probably doesnt matter. or does it?
   WinDetails? checkWin() {
     const int range = fieldSize - 4;
     for (int r = -range; r <= range; r++) {
@@ -136,8 +142,8 @@ class Field {
       }
     }
 
-    final List<int> xCombo = List.empty();
-    final List<Player?> xPlayer = List.empty();
+    final List<int> xCombo = List.filled(fieldSize, 0);
+    final List<Player?> xPlayer = List.filled(fieldSize, null);
     Player? lastPlayer;
     int combo = 0;
     // List.generate(fieldSize, (_) => List(), growable: false);

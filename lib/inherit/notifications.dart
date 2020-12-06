@@ -37,9 +37,9 @@ class NotificationsProviderState extends State<NotificationsProvider> {
         requestBadgePermission: false,
         requestAlertPermission: false,
       );
-      await flutterNotifications
-          .initialize(InitializationSettings(androidSettings, iosSettings),
-              onSelectNotification: (str) {
+      await flutterNotifications.initialize(
+          InitializationSettings(android: androidSettings, iOS: iosSettings),
+          onSelectNotification: (str) {
         _selectedStreamCtrl.add(str);
         return Future.value();
       });
@@ -47,8 +47,8 @@ class NotificationsProviderState extends State<NotificationsProvider> {
   }
 
   void comeToPlay() {
-    this.flutterNotifications?.cancel(MyNotifications.gameFound);
-    this.flutterNotifications?.show(
+    this.flutterNotifications.cancel(MyNotifications.gameFound);
+    this.flutterNotifications.show(
           MyNotifications.gameFound,
           'Game Starting!',
           'Come back quickly to play!',
@@ -104,41 +104,41 @@ class _NotificationsProviderInherit extends InheritedWidget {
 class MyNotifications {
   static const battleRequest = 1;
   static const battleRequestSpecifics = NotificationDetails(
-    AndroidNotificationDetails(
+    android: AndroidNotificationDetails(
       '1',
       'Battle Requests',
       'Shown when someone requests a battle.',
       category: 'CATEGORY_MESSAGE',
-      importance: Importance.Max,
-      priority: Priority.Max,
+      importance: Importance.max,
+      priority: Priority.max,
     ),
-    IOSNotificationDetails(),
+    iOS: IOSNotificationDetails(),
   );
 
   static const gameFound = 2;
   static const gameFoundSpecifics = NotificationDetails(
-    AndroidNotificationDetails(
+    android: AndroidNotificationDetails(
       '2',
       'Game Started',
       'Shown when you find an online game while the app is in the background.',
       category: 'CATEGORY_MESSAGE',
-      importance: Importance.Max,
-      priority: Priority.Max,
+      importance: Importance.max,
+      priority: Priority.max,
     ),
-    IOSNotificationDetails(),
+    iOS: IOSNotificationDetails(),
   );
 
   static const searchingGame = 3;
   static const searchingGameSpecifics = NotificationDetails(
-    AndroidNotificationDetails(
+    android: AndroidNotificationDetails(
       '3',
       'Searching Game',
       'Shown persistently while searching for a game',
       category: 'CATEGORY_SERVICE',
-      importance: Importance.Low,
-      priority: Priority.Low,
+      importance: Importance.low,
+      priority: Priority.low,
       ongoing: true,
     ),
-    IOSNotificationDetails(),
+    iOS: IOSNotificationDetails(),
   );
 }

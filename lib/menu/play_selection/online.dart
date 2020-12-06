@@ -189,7 +189,7 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
   void initState() {
     super.initState();
 
-    KeyboardVisibilityNotification().addNewListener(onChange: (bool visible) {
+    KeyboardVisibilityController().onChange.listen((bool visible) {
       visible ? moveUpAnimCtrl.forward() : moveUpAnimCtrl.reverse();
       // print("keyboard vis: $visible");
     });

@@ -157,7 +157,12 @@ class SwitchPageButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double page = pageCtrl.page ?? pageCtrl.initialPage.toDouble();
+    final double page;
+    if (pageCtrl.position.hasContentDimensions) {
+      page = pageCtrl.page ?? pageCtrl.initialPage.toDouble();
+    } else {
+      page = 0.0;
+    }
 
     return AnimatedBuilder(
       animation: pageCtrl,
@@ -285,7 +290,7 @@ class SwipeDialog extends StatefulWidget {
 
 class _SwipeDialogState extends State<SwipeDialog>
     with SingleTickerProviderStateMixin {
-  late SharedPreferences prefs;
+  Future<SharedPreferences> prefsFuture = SharedPreferences.getInstance();
   late AnimationController animCtrl;
 
   bool _show = false;
@@ -294,7 +299,6 @@ class _SwipeDialogState extends State<SwipeDialog>
   @override
   void initState() {
     super.initState();
-    SharedPreferences.getInstance().then((p) => prefs = p);
     _checkPrefs();
 
     animCtrl = AnimationController(
@@ -322,6 +326,7 @@ class _SwipeDialogState extends State<SwipeDialog>
   }
 
   void _checkPrefs() async {
+    var prefs = await prefsFuture;
     if (prefs.containsKey('shown_swype_dialog')) {
       // this._show = true;
       this._show = !prefs.getBool('shown_swype_dialog');
@@ -333,11 +338,10 @@ class _SwipeDialogState extends State<SwipeDialog>
   }
 
   void tappedDialog() async {
+    var prefs = await prefsFuture;
     if (_triedItOut) {
-      if (prefs != null) {
-        setState(() => this._show = false);
-        await prefs.setBool('shown_swype_dialog', true);
-      }
+      setState(() => this._show = false);
+      await prefs.setBool('shown_swype_dialog', true);
     } else {
       remindToTryOut();
     }

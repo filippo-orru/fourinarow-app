@@ -141,8 +141,8 @@ class _MainMenuState extends State<MainMenu> {
           children: [
             Selector<ChatState, int>(
               selector: (_, chatState) => chatState.unread,
-              builder: (_, unread, child) => Stack(children: [
-                child,
+              builder: (_, unread, Widget? child) => Stack(children: [
+                child!,
                 unread > 0
                     ? Positioned(
                         top: 0,
