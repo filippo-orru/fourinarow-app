@@ -2,6 +2,70 @@ import 'dart:convert';
 
 import 'package:four_in_a_row/play/models/online/current_game_state.dart';
 
+abstract class ReliablePacketOut implements Serializable {}
+
+abstract class Serializable {
+  String serialize();
+}
+
+abstract class ReliablePacketIn {
+  static ReliablePacketIn? parse(String str) {
+    var parts = str.split("::");
+    if (str.startsWith("ACK") && parts.length == 2) {
+      var id = int.tryParse(parts[1]);
+      if (id == null) return null;
+      return ReliablePktAckIn(id);
+    } else if (str.startsWith("MSG") && parts.length == 3) {
+      var id = int.tryParse(parts[1]);
+      var msg = ServerMessage.parse(parts[2]);
+      if (id == null || msg == null) return null;
+      return ReliablePktMsgIn(id, msg);
+    }
+    return null;
+  }
+}
+
+class ReliablePktAckIn extends ReliablePacketIn {
+  final int id;
+  ReliablePktAckIn(this.id);
+}
+
+class ReliablePktAckOut extends ReliablePacketOut {
+  final int id;
+  ReliablePktAckOut(this.id);
+
+  @override
+  String serialize() {
+    return "ACK::$id";
+  }
+}
+
+class ReliablePktMsgOut extends ReliablePacketOut {
+  final int id;
+  final PlayerMessage msg;
+  ReliablePktMsgOut(this.id, this.msg);
+
+  @override
+  String serialize() {
+    return "MSG::$id::${msg.serialize()}";
+  }
+}
+
+class ReliablePktMsgIn extends ReliablePacketIn {
+  final int id;
+  final ServerMessage msg;
+
+  ReliablePktMsgIn(this.id, this.msg);
+}
+
+class QueuedMessage<T> {
+  final DateTime sent;
+  final int id;
+  final T msg;
+
+  QueuedMessage(this.id, this.msg) : this.sent = DateTime.now();
+}
+
 abstract class ServerMessage {
   static ServerMessage? parse(String str) {
     // str = str.toUpperCase();
