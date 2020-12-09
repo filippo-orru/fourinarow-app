@@ -7,30 +7,31 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'messages.dart';
 
 class ServerConnection with ChangeNotifier {
-  StreamController<ServerMessage> _incoming =
+  StreamController<ServerMessage> _serverMsgCtrl =
       StreamController<ServerMessage>.broadcast();
-  Stream<ServerMessage> get incoming => _incoming.stream;
+  Stream<ServerMessage> get serverMessages => _serverMsgCtrl.stream;
 
-  StreamController<PlayerMessage> _outgoing =
+  StreamController<PlayerMessage> _playerMsgCtrl =
       StreamController<PlayerMessage>.broadcast();
-  Stream<PlayerMessage> get outgoing => _outgoing.stream;
+  Stream<PlayerMessage> get playerMessages => _playerMsgCtrl.stream;
 
   Timer? _timeoutTimer;
 
-  WebSocketChannel? _connection;
-  StreamSubscription? _wsMsgSub;
-  StreamSubscription? _playerMsgSub;
+  // WebSocketChannel? _connection;
+  // StreamSubscription? _wsMsgSub;
+  // StreamSubscription? _playerMsgSub;
 
   List<PlayerMessage> _playerMsgQueue = List.empty(growable: true);
 
-  bool get connected => _connection != null && _connection!.closeCode == null;
+  bool get connected =>
+      true; //_connection != null && _connection!.closeCode == null;
 
   ServerConnection() {
     _connect();
   }
 
   void send(PlayerMessage msg) {
-    this._outgoing.add(msg);
+    this._playerMsgCtrl.add(msg);
   }
 
   bool refresh() {
@@ -39,13 +40,13 @@ class ServerConnection with ChangeNotifier {
   }
 
   void close() {
-    _outgoing.close();
-    _incoming.close();
+    _playerMsgCtrl.close();
+    _serverMsgCtrl.close();
   }
 
   void _connect() {
-    _wsMsgSub?.cancel();
-    _playerMsgSub?.cancel();
+    // _wsMsgSub?.cancel();
+    // _playerMsgSub?.cancel();
 
     this._connection = WebSocketChannel.connect(
       Uri.parse(WS_URL),
@@ -63,7 +64,7 @@ class ServerConnection with ChangeNotifier {
 
   void _sendMessagesInQueue() {
     while (_playerMsgQueue.isNotEmpty) {
-      this._outgoing.add(_playerMsgQueue.removeLast());
+      this._playerMsgCtrl.add(_playerMsgQueue.removeLast());
     }
   }
 
@@ -74,7 +75,7 @@ class ServerConnection with ChangeNotifier {
         var onlineMsg = ServerMessage.parse(msg);
         if (onlineMsg == null) return;
 
-        _incoming.sink.add(onlineMsg);
+        _serverMsgCtrl.sink.add(onlineMsg);
       } else {
         print(">> #OTR# \"$msg\"");
       }
@@ -88,7 +89,7 @@ class ServerConnection with ChangeNotifier {
   }
 
   StreamSubscription _handlePlayerMessages(WebSocketSink wsSink) {
-    return this._outgoing.stream.listen((pmsg) {
+    return this._playerMsgCtrl.stream.listen((pmsg) {
       String msg = pmsg.serialize();
       print("<< $msg");
       if (wsSink != null) {

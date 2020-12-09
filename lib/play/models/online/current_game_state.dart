@@ -28,7 +28,8 @@ class GameStateManager with ChangeNotifier {
     if (_cgs is InLobbyState) {
       throw UnimplementedError("Maybe this should never occur");
       _serverConnection.send(PlayerMsgLeave());
-      await _serverConnection.outgoing.firstWhere((msg) => msg is MsgOkay);
+      await _serverConnection.playerMessages
+          .firstWhere((msg) => msg is MsgOkay);
     }
 
     // TODO fix login
@@ -64,7 +65,7 @@ class GameStateManager with ChangeNotifier {
   }
 
   void _listenToStreams() {
-    this._serverConnection.incoming.listen((msg) {
+    this._serverConnection.serverMessages.listen((msg) {
       this._handleServerMessage(msg);
       GameState? newGameState = _cgs.handleServerMessage(msg);
       this._cgs = newGameState ?? _cgs;
@@ -73,7 +74,7 @@ class GameStateManager with ChangeNotifier {
       this._gls = newLoginState ?? _gls;
       notifyListeners();
     });
-    this._serverConnection.outgoing.listen((msg) {
+    this._serverConnection.playerMessages.listen((msg) {
       this._handlePlayerMessage(msg);
 
       GameState? newGameState = _cgs.handlePlayerMessage(msg);

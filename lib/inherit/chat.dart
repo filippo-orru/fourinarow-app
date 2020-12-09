@@ -17,7 +17,7 @@ class ChatState with ChangeNotifier {
   Future<bool> sendMessage(String msg) async {
     _serverConnection.send(PlayerMsgChatMessage(msg));
     ServerMessage? serverMsg;
-    serverMsg = await _serverConnection.incoming
+    serverMsg = await _serverConnection.serverMessages
         .map<ServerMessage?>((e) => e)
         .firstWhere((serverMsg) => serverMsg is MsgOkay)
         .timeout(Duration(milliseconds: 750), onTimeout: () => null);
