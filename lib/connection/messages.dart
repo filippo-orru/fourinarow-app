@@ -2,12 +2,6 @@ import 'dart:convert';
 
 import 'package:four_in_a_row/play/models/online/current_game_state.dart';
 
-abstract class ReliablePacketOut implements Serializable {}
-
-abstract class Serializable {
-  String serialize();
-}
-
 abstract class ReliablePacketIn {
   static ReliablePacketIn? parse(String str) {
     var parts = str.split("::");
@@ -20,7 +14,13 @@ abstract class ReliablePacketIn {
       var msg = ServerMessage.parse(parts[2]);
       if (id == null || msg == null) return null;
       return ReliablePktMsgIn(id, msg);
+    } else if (str == "NOT_FOUND") {
+      return ReliablePktNotFound();
+    } else if (str.startsWith("READY")) {
+      var id = parts[1];
+      return ReliablePktFound(id);
     }
+
     return null;
   }
 }
@@ -28,6 +28,27 @@ abstract class ReliablePacketIn {
 class ReliablePktAckIn extends ReliablePacketIn {
   final int id;
   ReliablePktAckIn(this.id);
+}
+
+class ReliablePktMsgIn extends ReliablePacketIn {
+  final int id;
+  final ServerMessage msg;
+
+  ReliablePktMsgIn(this.id, this.msg);
+}
+
+class ReliablePktNotFound extends ReliablePacketIn {}
+
+class ReliablePktFound extends ReliablePacketIn {
+  final String id;
+
+  ReliablePktFound(this.id);
+}
+
+abstract class ReliablePacketOut implements Serializable {}
+
+abstract class Serializable {
+  String serialize();
 }
 
 class ReliablePktAckOut extends ReliablePacketOut {
@@ -51,11 +72,22 @@ class ReliablePktMsgOut extends ReliablePacketOut {
   }
 }
 
-class ReliablePktMsgIn extends ReliablePacketIn {
-  final int id;
-  final ServerMessage msg;
+class ReliablePktReqNew extends ReliablePacketOut {
+  @override
+  String serialize() {
+    return "NEW";
+  }
+}
 
-  ReliablePktMsgIn(this.id, this.msg);
+class ReliablePktReconnect extends ReliablePacketOut {
+  final String id;
+
+  ReliablePktReconnect(this.id);
+
+  @override
+  String serialize() {
+    return "REQ::$id";
+  }
 }
 
 class QueuedMessage<T> {
