@@ -72,7 +72,7 @@ class _MenuContentPlayOnlineState extends State<MenuContentPlayOnline> {
             Selector<ServerConnection, bool>(
               selector: (_, serverConnection) => serverConnection.connected,
               builder: (_, isConnected, __) =>
-                  Selector<GameStateManager, CurrentServerInfo>(
+                  Selector<GameStateManager, CurrentServerInfo?>(
                 selector: (_, gsm) => gsm.serverInfo,
                 builder: (_, serverInfo, __) => Text(
                   isConnected

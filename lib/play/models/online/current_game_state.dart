@@ -89,7 +89,11 @@ class GameStateManager with ChangeNotifier {
     }
   }
 
-  void _handlePlayerMessage(PlayerMessage msg) {}
+  void _handlePlayerMessage(PlayerMessage msg) {
+    // if (msg is PlayerMsgLeave) {
+    //   _cgs = IdleState(_sendPlayerMessage);
+    // }
+  }
 }
 
 abstract class OnlineRequest {

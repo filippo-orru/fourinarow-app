@@ -24,7 +24,10 @@ class _OfflineScreenState extends State<OfflineScreen> {
   bool loading = false;
 
   Future<bool> action() async {
-    return context.read<ServerConnection>().refresh();
+    var serverConnection = context.read<ServerConnection>();
+    serverConnection.retryConnection();
+    return serverConnection.connected;
+
     // switch (widget.caller) {
     //   case OfflineCaller.OnlineMatch:
     //     return await ServerConnProvider.of(context).refresh();

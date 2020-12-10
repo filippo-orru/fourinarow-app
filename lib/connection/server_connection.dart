@@ -9,9 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:four_in_a_row/util/constants.dart';
 import 'messages.dart';
 
-// TODO: react to sessionstate: new connection if idle, reconnect if disconnected
-// set sessionstate on disconnect and wait+Msg:Found/Msg:NotFound
-
 class ServerConnection with ChangeNotifier {
   WebSocketChannel? _connection;
 
@@ -46,15 +43,17 @@ class ServerConnection with ChangeNotifier {
 
   ServerConnection() {
     _connect();
+    _resendQueuedInterval();
   }
 
   void send(PlayerMessage msg) {
     this._playerMsgStreamCtrl.add(msg);
   }
 
-  bool refresh() {
-    // TODO
-    return connected;
+  void retryConnection({bool force = false}) {
+    if (this._sessionState is! SessionStateConnected || force) {
+      _connect();
+    }
   }
 
   void close() {
@@ -67,6 +66,7 @@ class ServerConnection with ChangeNotifier {
 
   void _connect() {
     this._connectionTries += 1;
+    print(">> #TRY# to connect (${this._connectionTries})");
     // this._serverMsgSub?.cancel();
     this._playerMsgSub?.cancel();
 
@@ -88,12 +88,21 @@ class ServerConnection with ChangeNotifier {
     // _serverMsgSub = _handleServerMsg();
     _playerMsgSub = _handlePlayerMsg();
 
-    var _sessionState = this._sessionState;
-    if (_sessionState is SessionStateIdle) {
-      _reliablePktOutStreamCtrl.add(ReliablePktReqNew());
-    } else if (_sessionState is SessionStateDisconnected) {
+    var sessionState = this._sessionState;
+    if (sessionState is SessionStateDisconnected) {
       _reliablePktOutStreamCtrl
-          .add(ReliablePktReconnect(_sessionState.identifier));
+          .add(ReliablePktReconnect(sessionState.identifier));
+      this._sessionState =
+          SessionStateWaiting(identifier: sessionState.identifier);
+    } else if (sessionState is SessionStateWaiting &&
+        sessionState.identifier != null) {
+      _reliablePktOutStreamCtrl
+          .add(ReliablePktReconnect(sessionState.identifier!));
+      this._sessionState =
+          SessionStateWaiting(identifier: sessionState.identifier!);
+    } else if (sessionState is! SessionStateConnected) {
+      _reliablePktOutStreamCtrl.add(ReliablePktReqNew());
+      this._sessionState = SessionStateWaiting();
     }
 
     notifyListeners();
@@ -117,7 +126,7 @@ class ServerConnection with ChangeNotifier {
   }
 
   StreamSubscription _handlePlayerMsg() {
-    return this.playerMsgStream.listen((msg) {
+    return this._playerMsgStreamCtrl.stream.listen((msg) {
       this._playerMsgIndex += 1;
       this
           ._reliablePktOutStreamCtrl
@@ -141,25 +150,38 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _websocketDone() {
-    print(">> #DONE#");
+    print(
+        ">> #DONE# Reason: ${_connection?.closeCode} - ${_connection?.closeReason}");
     var _sessionState = this._sessionState;
     if (_sessionState is SessionStateConnected) {
       this._sessionState = SessionStateDisconnected(_sessionState.identifier);
     }
     notifyListeners();
-    Future.delayed(Duration(seconds: max(8, _connectionTries)), _connect);
+    Future.delayed(
+        Duration(milliseconds: 500 * max(_connectionTries, 8)), _connect);
+  }
+
+  void _resetReliabilityLayer() {
+    this._playerMsgQ.removeRange(0, this._playerMsgQ.length);
+    this._serverMsgQ.removeRange(0, this._serverMsgQ.length);
+    this._playerMsgIndex = 0;
+    this._serverMsgIndex = 0;
   }
 
   void _receivedReliablePacket(ReliablePacketIn rPkt) {
     if (rPkt is ReliablePktAckIn) {
-      this._playerMsgQ.removeWhere((msg) => msg.id == rPkt.id);
+      if (this._playerMsgQ.any((msg) => msg.id == rPkt.id)) {
+        this._playerMsgQ.removeWhere((msg) => msg.id == rPkt.id);
+      } else {
+        this._resetReliabilityLayer();
+        this.retryConnection(force: true);
+      }
     } else if (rPkt is ReliablePktMsgIn) {
       final int expectedId = this._serverMsgIndex + 1;
       if (rPkt.id == expectedId) {
         this._serverMsgIndex = rPkt.id;
         this._serverMsgStreamCtrl.sink.add(rPkt.msg);
         this._ackMessage(rPkt.id);
-        this._processQueue();
       } else if (rPkt.id > expectedId) {
         this._queueMessgage(rPkt.id, rPkt.msg);
         this._ackMessage(this._serverMsgIndex);
@@ -167,11 +189,20 @@ class ServerConnection with ChangeNotifier {
         // Client re-sent already known message -> maybe ack got lost -> ack but don't process
         this._ackMessage(rPkt.id);
       }
-    } else if (this._sessionState is SessionStateDisconnected &&
+      this._processQueue();
+    } else if (this._sessionState is SessionStateWaiting &&
         rPkt is ReliablePktNotFound) {
+      this._serverMsgStreamCtrl.add(MsgReset());
       this._reliablePktOutStreamCtrl.add(ReliablePktReqNew());
+      this._sessionState = SessionStateWaiting();
     } else if (rPkt is ReliablePktFound) {
+      _connectionTries = 0;
+      var sessionState = this._sessionState;
+      if (sessionState is SessionStateWaiting && sessionState.isNew) {
+        this._resetReliabilityLayer();
+      }
       this._sessionState = SessionStateConnected(rPkt.id);
+      notifyListeners();
     } else {
       throw UnimplementedError("Unexpected Reliable Pkt $rPkt");
     }
@@ -188,17 +219,38 @@ class ServerConnection with ChangeNotifier {
   void _processQueue() {
     bool added = false;
     do {
-      this._serverMsgQ.asMap().forEach((index, queuedMessage) {
+      [...this._serverMsgQ].asMap().forEach((index, queuedMessage) {
         int expectedId = this._serverMsgIndex + 1;
         if (queuedMessage.id == expectedId) {
-          this._serverMsgIndex += 1;
-          this._serverMsgStreamCtrl.sink.add(queuedMessage.msg);
-          this._ackMessage(this._serverMsgIndex);
           this._serverMsgQ.removeAt(index);
+          this._serverMsgIndex = expectedId;
+          this._serverMsgStreamCtrl.sink.add(queuedMessage.msg);
+          this._ackMessage(expectedId);
           added = true;
         }
       });
     } while (added);
+  }
+
+  void _resendQueuedInterval() {
+    Timer.periodic(Duration(milliseconds: QUEUE_CHECK_INTERVAL_MS),
+        (_) => _resendQueued());
+  }
+
+  void _resendQueued() {
+    DateTime threshold = DateTime.now()
+        .subtract(Duration(milliseconds: QUEUE_RESEND_TIMEOUT_MS));
+    [...this._playerMsgQ].asMap().entries.forEach((MapEntry entry) {
+      int index = entry.key;
+      QueuedMessage<PlayerMessage> queuedMessage = entry.value;
+
+      if (queuedMessage.sent.isBefore(threshold)) {
+        this
+            ._reliablePktOutStreamCtrl
+            .add(ReliablePktMsgOut(queuedMessage.id, queuedMessage.msg));
+        this._playerMsgQ.removeAt(index);
+      }
+    });
   }
 }
 
@@ -206,7 +258,13 @@ abstract class SessionState {}
 
 class SessionStateIdle extends SessionState {}
 
-class SessionStateWaiting extends SessionState {}
+class SessionStateWaiting extends SessionState {
+  final String? identifier;
+
+  bool get isNew => identifier == null;
+
+  SessionStateWaiting({this.identifier});
+}
 
 class SessionStateConnected extends SessionState {
   final String identifier;

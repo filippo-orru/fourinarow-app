@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/play/models/online/current_game_state.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/widgets/online/playing.dart';
@@ -32,14 +33,45 @@ class GameStateViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<GameStateManager>(
-      builder: (_, gameStateManager, __) => WillPopScope(
+    return Consumer2<ServerConnection, GameStateManager>(
+      builder: (_, serverConnection, gameStateManager, __) => WillPopScope(
         onWillPop: () {
           gameStateManager.closingViewer();
           return Future.value(true);
         },
         child: Scaffold(
-          body: getViewer(gameStateManager.currentGameState),
+          body: Stack(children: [
+            getViewer(gameStateManager.currentGameState),
+            serverConnection.connected
+                ? SizedBox()
+                : IgnorePointer(
+                    // ignoring: !serverConnection.connected,
+                    child: Container(
+                      constraints: BoxConstraints.expand(),
+                      color: Colors.black54,
+                      child: Center(
+                        child: Container(
+                          // width: 230,
+                          // height: 120,
+                          padding: EdgeInsets.symmetric(
+                              vertical: 24, horizontal: 48),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 24),
+                              Text('Trying to reconnect')
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+          ]),
         ),
       ),
     );
