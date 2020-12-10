@@ -78,17 +78,22 @@ class PlayingState extends GameState {
     } else if (msg is MsgLobbyClosing &&
         !this.leaving &&
         !this.opponentInfo.hasLeft) {
+      return IdleState(sendPlayerMessage);
       // TODO: do I need this?
 
       // return ErrorState(
       //     LobbyClosed(), widget.pMsgCtrl, widget.sMsgCtrl, widget.changeState));
     } else if (msg is MsgError && msg.maybeErr == MsgErrorType.NotInLobby) {
+      var field = this.field;
+      if (field is FieldFinished && field.waitingToPlayAgain) {
+        // TODO close
+      }
       // TODO: do I need this? maybe just pop / dialog
 
       // widget.changeState(Error(
       //     LobbyClosed(), widget.pMsgCtrl, widget.sMsgCtrl, widget.changeState));
     }
-    return null;
+    return super.handleServerMessage(msg);
   }
 
   // @override
@@ -120,6 +125,8 @@ class PlayingState extends GameState {
   void _reset(bool myTurn) {
     FieldPlaying _field = FieldPlaying();
     _field.turn = myTurn ? me : me.other;
+    field = _field;
+    notifyListeners();
   }
 
   void dropChip(int column) {
@@ -137,7 +144,7 @@ class PlayingState extends GameState {
       _field.dropChipNamed(column, p);
       WinDetails? winDetails = _field.checkWin();
       if (winDetails != null) {
-        field = FieldFinished(winDetails);
+        field = FieldFinished(winDetails, field.array);
         notifyListeners();
         if (winDetails.winner == this.me) {
           Vibrations.win();

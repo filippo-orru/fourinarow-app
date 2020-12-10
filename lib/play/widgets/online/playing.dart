@@ -75,10 +75,10 @@ class PlayingViewer extends AbstractGameStateViewer {
           winDetails,
           useColorNames: false,
           onTap: () {
-            if (!_playingState.opponentInfo.hasLeft) {
-              _playingState.playAgain();
-            } else {
+            if (_playingState.opponentInfo.hasLeft) {
               Navigator.of(context).pop();
+            } else {
+              _playingState.playAgain();
             }
           },
           board: Board(_playingState.field, dropChip: (_) {}),

@@ -9,3 +9,7 @@ const WS_URL = kDebugMode && useLocalServer
     : "wss://fourinarow.ml/game/";
 
 const String alphabet = "abcdefghijklmnopqrstuvwxyz";
+
+const int QUEUE_CHECK_INTERVAL_MS = 500;
+
+const int QUEUE_RESEND_TIMEOUT_MS = 1000;

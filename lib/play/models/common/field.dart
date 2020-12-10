@@ -9,6 +9,13 @@ abstract class Field {
 
   late List<List<Player?>> _array;
 
+  Field({List<List<Player?>>? field}) {
+    this._array = field ??
+        List.generate(
+            Field.size, (_) => List.filled(Field.size, null, growable: false),
+            growable: false);
+  }
+
   List<List<Player?>> get array {
     return _array;
   }
@@ -18,11 +25,12 @@ class FieldFinished extends Field {
   final WinDetails winDetails;
   bool waitingToPlayAgain = false;
 
-  FieldFinished(this.winDetails);
+  FieldFinished(this.winDetails, List<List<Player?>> field)
+      : super(field: field);
 }
 
 class FieldPlaying extends Field {
-  int _chips = 0;
+  // int _chips = 0;
   Player turn = Player.One;
   List<int> lastChips = [];
 
