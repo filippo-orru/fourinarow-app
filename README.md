@@ -15,12 +15,12 @@ Or play online (beta): https://play.fourinarow.ml/
 
 ## Features:
 - world wide online play
-- account creation, friends
-- beautiful, minimalist design
-- request to battle your friends
-- subtle animations
-- local mode: two players - one device
 - over 1000 downloads
+- account creation, friends system
+- beautiful, minimalist design
+- subtle animations
+- request to battle your friends
+- local mode: two players - one device
 
 ### Under the hood:
 - clean architecture: state and view completely separate
