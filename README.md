@@ -28,4 +28,3 @@ Or play online (beta): https://play.fourinarow.ml/
 - automatic reconnection
 - message delivery guarantee
 - message reordering on client and server side
-- 
