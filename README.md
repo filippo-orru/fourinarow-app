@@ -1,16 +1,31 @@
-# four_in_a_row
+# Four in a Row
 
-A new Flutter project.
+An **online** version of the popular game **four in a row**, written in Flutter + Dart on the client and Rust on the server side.
 
-## Getting Started
+***Download here: https://play.google.com/store/apps/details?id=ml.fourinarow***
 
-This project is a starting point for a Flutter application.
+Or play online (beta): https://play.fourinarow.ml/
 
-A few resources to get you started if this is your first Flutter project:
+## Related Projects:
+- Clientside: [fourinarow-app](https://github.com/ffactory-ofcl/fourinarow-app)
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+- Serverside: [fourinarow-server](https://github.com/ffactory-ofcl/fourinarow-server)
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- \[WIP\] bot / watcher: [fourinarow-bot](https://github.com/ffactory-ofcl/fourinarow-bot)
+
+## Features:
+- world wide online play
+- account creation, friends
+- beautiful, minimalist design
+- request to battle your friends
+- subtle animations
+- local mode: two players - one device
+- over 1000 downloads
+
+### Under the hood:
+- clean architecture: state and view completely separate
+- reliable websocket connection
+- automatic reconnection
+- message delivery guarantee
+- message reordering on client and server side
+- 
