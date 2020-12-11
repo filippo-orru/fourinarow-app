@@ -1,4 +1,4 @@
-# Four in a Row
+# Four in a Row - App
 
 An **online** version of the popular game **four in a row**, written in Flutter + Dart on the client and Rust on the server side.
 
