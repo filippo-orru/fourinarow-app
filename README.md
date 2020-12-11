@@ -15,7 +15,7 @@ Or play online (beta): https://play.fourinarow.ml/
 
 ## Features:
 - world wide online play
-- over 1000 downloads
+- over 1500 downloads
 - account creation, friends system
 - beautiful, minimalist design
 - subtle animations
