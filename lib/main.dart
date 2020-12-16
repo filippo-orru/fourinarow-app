@@ -138,7 +138,7 @@ class _MyAppState extends State<MyApp> {
                               padding: EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 4),
                               child: Text(
-                                'BETA',
+                                'BETA2',
                                 style: TextStyle(
                                   color: Colors.black87,
                                   fontFamily: 'Roboto',

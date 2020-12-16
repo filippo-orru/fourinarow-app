@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:flutter/foundation.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:web_socket_channel/io.dart';
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'package:flutter/material.dart';
@@ -39,6 +42,8 @@ class ServerConnection with ChangeNotifier {
 
   bool get connected => _sessionState is SessionStateConnected;
 
+  bool get outdated => _sessionState is SessionStateOutDated;
+
   int _connectionTries = 0;
 
   ServerConnection() {
@@ -65,6 +70,9 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _connect() {
+    if (this._sessionState is SessionStateOutDated) {
+      return;
+    }
     this._connectionTries += 1;
     print(">> #TRY# to connect (${this._connectionTries})");
     // this._serverMsgSub?.cancel();
@@ -91,17 +99,17 @@ class ServerConnection with ChangeNotifier {
     var sessionState = this._sessionState;
     if (sessionState is SessionStateDisconnected) {
       _reliablePktOutStreamCtrl
-          .add(ReliablePktReconnect(sessionState.identifier));
+          .add(ReliablePktHelloOut(sessionState.identifier));
       this._sessionState =
           SessionStateWaiting(identifier: sessionState.identifier);
     } else if (sessionState is SessionStateWaiting &&
         sessionState.identifier != null) {
       _reliablePktOutStreamCtrl
-          .add(ReliablePktReconnect(sessionState.identifier!));
+          .add(ReliablePktHelloOut(sessionState.identifier!));
       this._sessionState =
           SessionStateWaiting(identifier: sessionState.identifier!);
     } else if (sessionState is! SessionStateConnected) {
-      _reliablePktOutStreamCtrl.add(ReliablePktReqNew());
+      _reliablePktOutStreamCtrl.add(ReliablePktHelloOut());
       this._sessionState = SessionStateWaiting();
     }
 
@@ -146,12 +154,15 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _websocketErr(dynamic? err) {
-    print(">> #ERR# \"${err.toString()}\"");
+    if (err is WebSocketChannelException &&
+        err.inner is SocketException &&
+        err.inner.osError.errorCode == 7) {
+    } else {
+      print(">> #ERR# \"${err.toString()}\"");
+    }
   }
 
   void _websocketDone() {
-    print(
-        ">> #DONE# Reason: ${_connection?.closeCode} - ${_connection?.closeReason}");
     var _sessionState = this._sessionState;
     if (_sessionState is SessionStateConnected) {
       this._sessionState = SessionStateDisconnected(_sessionState.identifier);
@@ -166,17 +177,11 @@ class ServerConnection with ChangeNotifier {
     this._serverMsgQ.removeRange(0, this._serverMsgQ.length);
     this._playerMsgIndex = 0;
     this._serverMsgIndex = 0;
+    this._serverMsgStreamCtrl.add(MsgReset());
   }
 
   void _receivedReliablePacket(ReliablePacketIn rPkt) {
-    if (rPkt is ReliablePktAckIn) {
-      if (this._playerMsgQ.any((msg) => msg.id == rPkt.id)) {
-        this._playerMsgQ.removeWhere((msg) => msg.id == rPkt.id);
-      } else {
-        this._resetReliabilityLayer();
-        this.retryConnection(force: true);
-      }
-    } else if (rPkt is ReliablePktMsgIn) {
+    if (rPkt is ReliablePktMsgIn) {
       final int expectedId = this._serverMsgIndex + 1;
       if (rPkt.id == expectedId) {
         this._serverMsgIndex = rPkt.id;
@@ -190,18 +195,26 @@ class ServerConnection with ChangeNotifier {
         this._ackMessage(rPkt.id);
       }
       this._processQueue();
-    } else if (this._sessionState is SessionStateWaiting &&
-        rPkt is ReliablePktNotFound) {
-      this._serverMsgStreamCtrl.add(MsgReset());
-      this._reliablePktOutStreamCtrl.add(ReliablePktReqNew());
-      this._sessionState = SessionStateWaiting();
-    } else if (rPkt is ReliablePktFound) {
-      _connectionTries = 0;
-      var sessionState = this._sessionState;
-      if (sessionState is SessionStateWaiting && sessionState.isNew) {
+    } else if (rPkt is ReliablePktAckIn) {
+      if (this._playerMsgQ.any((msg) => msg.id == rPkt.id)) {
+        this._playerMsgQ.removeWhere((msg) => msg.id == rPkt.id);
+      } else {
+        this._resetReliabilityLayer();
+        this.retryConnection(force: true);
+      }
+      // } else
+    } else if (rPkt is ReliablePktHelloInOutDated) {
+      this._sessionState = SessionStateOutDated();
+    } else if (rPkt is ReliablePktHelloIn) {
+      if (this._sessionState is! SessionStateWaiting) {
+        print("WARNING: Got unexpected ReliablePktHelloIn");
         this._resetReliabilityLayer();
       }
-      this._sessionState = SessionStateConnected(rPkt.id);
+      if (rPkt.foundState == FoundState.New) {
+        this._resetReliabilityLayer();
+      }
+      _connectionTries = 0;
+      this._sessionState = SessionStateConnected(rPkt.sessionIdentifier);
       notifyListeners();
     } else {
       throw UnimplementedError("Unexpected Reliable Pkt $rPkt");
@@ -277,3 +290,5 @@ class SessionStateDisconnected extends SessionState {
 
   SessionStateDisconnected(this.identifier);
 }
+
+class SessionStateOutDated extends SessionState {}

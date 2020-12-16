@@ -1,0 +1,4 @@
+- "beta2"
+- reset state on MsgReset
+- upgrade app message
+- smarter versioning: rename v2 to "new" or alternate?

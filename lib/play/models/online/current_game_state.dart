@@ -18,6 +18,10 @@ class GameStateManager with ChangeNotifier {
 
   CurrentServerInfo? serverInfo;
 
+  bool get connected => _serverConnection.connected;
+
+  bool get outdated => _serverConnection.outdated;
+
   GameStateManager(this._serverConnection) {
     _cgs = IdleState(_sendPlayerMessage);
     _gls = GameLoginLoggedOut(_sendPlayerMessage);

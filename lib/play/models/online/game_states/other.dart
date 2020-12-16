@@ -23,7 +23,7 @@ class WaitingForLobbyInfoState extends GameState {
     } else if (msg is MsgOkay && code != null) {
       return InLobbyReadyState(super.sendPlayerMessage);
     }
-    return null;
+    return super.handleServerMessage(msg);
   }
 
   // @override
@@ -44,7 +44,7 @@ class WaitingForWWOkayState extends GameState {
     if (msg is MsgOkay) {
       return WaitingForWWOpponentState(super.sendPlayerMessage);
     }
-    return null;
+    return super.handleServerMessage(msg);
   }
 
   // @override
@@ -65,7 +65,7 @@ class WaitingForWWOpponentState extends GameState {
     if (msg is MsgOppJoined) {
       return InLobbyReadyState(super.sendPlayerMessage);
     }
-    return null;
+    return super.handleServerMessage(msg);
   }
 
   // @override

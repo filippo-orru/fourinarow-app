@@ -18,7 +18,7 @@ class InLobbyState extends GameState {
     if (msg is MsgOppJoined) {
       return InLobbyReadyState(super.sendPlayerMessage);
     }
-    return null;
+    return super.handleServerMessage(msg);
   }
 
   // @override
@@ -43,7 +43,7 @@ class InLobbyReadyState extends GameState {
         opponentId: msg.opponentId,
       );
     }
-    return null;
+    return super.handleServerMessage(msg);
   }
 
   // @override

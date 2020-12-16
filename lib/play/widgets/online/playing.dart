@@ -47,8 +47,7 @@ class PlayingViewer extends AbstractGameStateViewer {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              OnlineTurnIndicator(
-                  turn == _playingState.me, _playingState.awaitingConfirmation),
+              OnlineTurnIndicator(turn == _playingState.me),
               Expanded(
                 child: Center(
                   child: Board(_playingState.field,
@@ -69,7 +68,7 @@ class PlayingViewer extends AbstractGameStateViewer {
         Positioned(
           bottom: 32,
           right: 32,
-          child: ConnectionIndicator(_playingState.awaitingConfirmation),
+          child: ConnectionIndicator(_playingState.connectionLost),
         ),
         WinnerOverlay(
           winDetails,
@@ -209,13 +208,11 @@ class _OpponentInfoState extends State<OpponentInfoWidget> {
 
 class OnlineTurnIndicator extends StatelessWidget {
   const OnlineTurnIndicator(
-    this.myTurn,
-    this.awaitingConfirmation, {
+    this.myTurn, {
     Key? key,
   }) : super(key: key);
 
   final bool myTurn;
-  final bool awaitingConfirmation;
 
   @override
   Widget build(BuildContext context) {

@@ -13,7 +13,11 @@ abstract class GameState with ChangeNotifier {
   final void Function(PlayerMessage) sendPlayerMessage;
 
   @mustCallSuper
-  GameState? handleServerMessage(ServerMessage msg) {}
+  GameState? handleServerMessage(ServerMessage msg) {
+    if (msg is MsgReset) {
+      return IdleState(sendPlayerMessage);
+    }
+  }
 
   @mustCallSuper
   GameState? handlePlayerMessage(PlayerMessage msg) {

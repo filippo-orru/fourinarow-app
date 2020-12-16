@@ -30,7 +30,7 @@ class PlayingState extends GameState {
 
   bool leaving = false;
 
-  bool awaitingConfirmation = false;
+  bool connectionLost = false;
 
   ToastState? toastState;
   Timer? toastTimer;
@@ -42,8 +42,6 @@ class PlayingState extends GameState {
       if (field is FieldFinished) {
         (field as FieldFinished).waitingToPlayAgain = true;
       }
-    } else if (msg is PlayerMsgPlaceChip) {
-      awaitingConfirmation = true;
     } else if (msg is PlayerMsgLeave) {
       leaving = true;
     }
@@ -61,8 +59,8 @@ class PlayingState extends GameState {
     } else if (msg is MsgGameStart) {
       this._reset(msg.myTurn);
     } else if (msg.isConfirmation) {
-      awaitingConfirmation = false;
-      notifyListeners();
+      //awaitingConfirmation = false;
+      //notifyListeners();
     } else if (msg is MsgOppLeft) {
       opponentInfo.hasLeft = true;
       notifyListeners();

@@ -1,9 +1,8 @@
 // export 'play_locally.dart';
 import 'dart:math';
-import 'package:four_in_a_row/connection/server_connection.dart';
-import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/menu/account/offline.dart';
 import 'package:four_in_a_row/menu/main_menu.dart';
+import 'package:four_in_a_row/menu/outdated.dart';
 import 'package:four_in_a_row/play/models/online/current_game_state.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:provider/provider.dart';
@@ -13,13 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:four_in_a_row/menu/play_selection/common.dart';
 import 'package:four_in_a_row/menu/play_selection/online.dart';
 import 'package:four_in_a_row/play/widgets/local/play_local.dart';
-import 'package:four_in_a_row/play/widgets/online/playing.dart';
 
 import '../common/menu_common.dart';
-
-// abstract class PlaySelection extends StatefulWidget {
-//   PlaySelection({Key key}) : super(key: key);
-// }
 
 class PlaySelection extends StatefulWidget {
   const PlaySelection({Key? key}) : super(key: key);
@@ -52,15 +46,15 @@ class _PlaySelectionState extends State<PlaySelection> {
   }
 
   void playOnline() {
-    // TODO: smart isConnected? logic
-
-    context.read<GameStateManager>().startGame(ORqWorldwide());
-    Navigator.of(context).push(fadeRoute(child: GameStateViewer()));
-    //if (widget._serverConnection.connected) {
-    /*} else {
-      Navigator.of(context)
-          .push(slideUpRoute(OfflineScreen(OfflineCaller.OnlineMatch)));
-    }*/
+    var gsm = context.read<GameStateManager>();
+    if (gsm.outdated) {
+      Navigator.of(context).push(slideUpRoute(OutDatedDialog()));
+    } else if (gsm.connected) {
+      gsm.startGame(ORqWorldwide());
+      Navigator.of(context).push(fadeRoute(child: GameStateViewer()));
+    } else {
+      Navigator.of(context).push(fadeRoute(child: OfflineScreen()));
+    }
   }
 
   @override
