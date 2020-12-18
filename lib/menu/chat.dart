@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/chat.dart';
+import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:provider/provider.dart';
 
 class ChatScreen extends StatelessWidget {
@@ -24,6 +25,7 @@ class _ChatScreenInternal extends StatefulWidget {
 class _ChatScreenInternalState extends State<_ChatScreenInternal> {
   ScrollController _scrollController = new ScrollController();
   bool _scrollToBottomOnNextBuild = false;
+  int _lastBottomInset = 0;
   // ChatState _chatState = context.watch ChatState
 
   void _sendMessage(String msg, void Function(bool) callback) async {
@@ -63,8 +65,18 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal> {
             duration: const Duration(milliseconds: 150), curve: Curves.easeOut);
       });
     }
+    int newBottomInset = MediaQuery.of(context).viewInsets.bottom.toInt();
+    if (newBottomInset > 40 && newBottomInset > _lastBottomInset) {
+      Future.delayed(Duration(milliseconds: 500), () {
+        _scrollController.animateTo(_scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 150), curve: Curves.easeOut);
+      });
+      _lastBottomInset = newBottomInset;
+    }
     return Scaffold(
-      appBar: AppBar(title: Text("Chat")),
+      appBar: CustomAppBar(
+        title: "Chat",
+      ),
       body: Container(
         constraints: BoxConstraints.expand(),
         color: Colors.white,
@@ -110,15 +122,13 @@ class CreateMessageWidget extends StatefulWidget {
 class _CreateMessageWidgetState extends State<CreateMessageWidget> {
   TextEditingController _textEditCtrl = TextEditingController();
   late FocusNode _textFieldFocus;
-  bool _textFieldHadFocus = false; // TODO ???
 
   bool _sendingMessage = false;
 
   bool _errorSending = false;
 
   void sendMessage(bool requestFocus) {
-    if (this._textEditCtrl.text == null ||
-        this._textEditCtrl.text.trim() == "") {
+    if (this._textEditCtrl.text.trim() == "") {
       return;
     }
     setState(() => _sendingMessage = true);
@@ -217,30 +227,87 @@ class _CreateMessageWidgetState extends State<CreateMessageWidget> {
 
 class ChatMessageWidget extends StatelessWidget {
   final ChatMessage message;
+  final Radius borderRadius = Radius.circular(8);
 
-  const ChatMessageWidget(this.message, {Key? key}) : super(key: key);
+  ChatMessageWidget(this.message, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    String senderStr = "Anonymous";
+    if (message.sender is SenderMe) {
+      senderStr = "You";
+    } else if (message.sender is SenderOther &&
+        (message.sender as SenderOther).name != null) {
+      senderStr = "Player \"${(message.sender as SenderOther).name!}\"";
+    }
     return Container(
       // height: 60,
       width: double.infinity,
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: (message.sender is SenderMe)
+            ? Border(bottom: BorderSide(color: Colors.black26))
+            : null,
+        color: (message.sender is SenderMe)
+            ? Colors.grey[100]
+            : Colors.transparent,
+      ),
 
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          message.mine ? Expanded(child: SizedBox()) : SizedBox(),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                "${message.time.hour.toString().padLeft(2, '0')}:${message.time.minute.toString().padLeft(2, '0')}",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.2,
+                  color: Colors.grey[800],
+                ),
+              ),
+              SizedBox(width: 6),
+              Container(
+                decoration: BoxDecoration(
+                    border: (message.sender is SenderMe)
+                        ? Border(bottom: BorderSide(color: Colors.black45))
+                        : null),
+                child: Text(
+                  senderStr,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+
+                    // decoration:  TextDecoration.underline
+                    //     : null,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // message.mine ? Expanded(child: SizedBox()) : SizedBox(),
           Container(
-            padding: EdgeInsets.all(16),
-            margin: EdgeInsets.fromLTRB(16, 8, 16, 12),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              border: Border.all(
-                  style: message.mine ? BorderStyle.solid : BorderStyle.none),
-              borderRadius: BorderRadius.all(Radius.circular(8)),
-            ),
+            margin: EdgeInsets.fromLTRB(8, 6, 8, 12),
+            // decoration: BoxDecoration(
+            //     color: Colors.grey[100],
+
+            /*borderRadius: message.mine
+                    ? BorderRadius.only(
+                        topLeft: borderRadius,
+                        bottomRight: borderRadius,
+                        bottomLeft: borderRadius)
+                    : BorderRadius.only(
+                        topRight: borderRadius,
+                        bottomRight: borderRadius,
+                        bottomLeft: borderRadius)),*/
             child: Text(message.content),
           ),
-          message.mine ? SizedBox() : Expanded(child: SizedBox()),
         ],
       ),
     );

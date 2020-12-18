@@ -2,8 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/menu/account/friends.dart';
+import 'package:four_in_a_row/play/models/online/game_login_state.dart';
+import 'package:provider/provider.dart';
 
-import '../friends.dart';
+import 'package:four_in_a_row/play/models/online/current_game_state.dart';
 import 'login.dart';
 import 'register.dart';
 
@@ -15,15 +18,17 @@ class AccountOnboarding extends StatefulWidget {
 class _AccountOnboardingState extends State<AccountOnboarding> {
   void successfullyLoggedIn(
       BuildContext context, String username, String password) async {
+    var userInfo = context.read<UserInfo>();
+    userInfo.setCredentials(username, password);
+    Future.delayed(Duration(milliseconds: 1500), () {
+      Navigator.of(context)
+        ..pop()
+        ..pushReplacement(MaterialPageRoute(
+            builder: (BuildContext context) => FriendsList()));
+    });
+
     // TODO successfully logged in
 /*    context.read<UserInfos>()
-      userInfo.setCredentials(username, password);
-      Future.delayed(Duration(milliseconds: 1500), () {
-        Navigator.of(context)
-          ..pop()
-          ..pushReplacement(MaterialPageRoute(
-              builder: (BuildContext context) => FriendsList(userInfo)));
-      });
     }
     */
   }

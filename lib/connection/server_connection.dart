@@ -61,6 +61,16 @@ class ServerConnection with ChangeNotifier {
     }
   }
 
+  Future<bool> waitForOkay({Duration? duration}) {
+    var map = serverMsgStream
+        .map<ServerMessage?>((e) => e)
+        .firstWhere((serverMsg) => serverMsg is MsgOkay);
+    if (duration != null) {
+      map = map.timeout(Duration(milliseconds: 750), onTimeout: () => null);
+    }
+    return map.then((maybeOkay) => maybeOkay is MsgOkay);
+  }
+
   void close() {
     _serverMsgStreamCtrl.close();
     _playerMsgStreamCtrl.close();
@@ -74,7 +84,7 @@ class ServerConnection with ChangeNotifier {
       return;
     }
     this._connectionTries += 1;
-    print(">> #TRY# to connect (${this._connectionTries})");
+    print(">> #CONNECT# (${this._connectionTries}. try)");
     // this._serverMsgSub?.cancel();
     this._playerMsgSub?.cancel();
 
@@ -173,8 +183,6 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _resetReliabilityLayer() {
-    this._playerMsgQ.removeRange(0, this._playerMsgQ.length);
-    this._serverMsgQ.removeRange(0, this._serverMsgQ.length);
     this._playerMsgIndex = 0;
     this._serverMsgIndex = 0;
     this._serverMsgStreamCtrl.add(MsgReset());
@@ -203,8 +211,6 @@ class ServerConnection with ChangeNotifier {
         this.retryConnection(force: true);
       }
       // } else
-    } else if (rPkt is ReliablePktHelloInOutDated) {
-      this._sessionState = SessionStateOutDated();
     } else if (rPkt is ReliablePktHelloIn) {
       if (this._sessionState is! SessionStateWaiting) {
         print("WARNING: Got unexpected ReliablePktHelloIn");
@@ -216,6 +222,11 @@ class ServerConnection with ChangeNotifier {
       _connectionTries = 0;
       this._sessionState = SessionStateConnected(rPkt.sessionIdentifier);
       notifyListeners();
+    } else if (rPkt is ReliablePktHelloInOutDated) {
+      this._sessionState = SessionStateOutDated();
+    } else if (rPkt is ReliablePktErrIn) {
+      this._playerMsgQ.clear();
+      this._serverMsgQ.clear();
     } else {
       throw UnimplementedError("Unexpected Reliable Pkt $rPkt");
     }

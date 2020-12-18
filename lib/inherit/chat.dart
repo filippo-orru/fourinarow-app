@@ -6,25 +6,34 @@ import 'package:four_in_a_row/connection/server_connection.dart';
 
 class ChatState with ChangeNotifier {
   final ServerConnection _serverConnection;
-  ChatState(this._serverConnection);
 
-  final List<ChatMessage> messages = List.empty();
+  final List<ChatMessage> messages = [];
+
+  ChatState(this._serverConnection) {
+    _serverConnection.serverMsgStream.listen((msg) {
+      if (msg is MsgChatMessage) {
+        if (msg.isGlobal) {
+          messages.add(ChatMessage(SenderOther(msg.senderName), msg.content));
+          unread += 1;
+        }
+        notifyListeners();
+      }
+    });
+  }
 
   int unread = 0;
 
   // StreamSubscription _serverMsgSub; // TODO cancel
 
   Future<bool> sendMessage(String msg) async {
+    messages.add(ChatMessage(Sender.me, msg));
     _serverConnection.send(PlayerMsgChatMessage(msg));
-    ServerMessage? serverMsg;
-    serverMsg = await _serverConnection.serverMsgStream
-        .map<ServerMessage?>((e) => e)
-        .firstWhere((serverMsg) => serverMsg is MsgOkay)
-        .timeout(Duration(milliseconds: 750), onTimeout: () => null);
-
-    bool success = serverMsg != null && serverMsg is MsgOkay;
+    bool success = await _serverConnection.waitForOkay(
+        duration: Duration(milliseconds: 500));
     if (success) {
-      messages.add(ChatMessage(true, msg));
+      messages.last.state = ConfirmationState.Received;
+    } else {
+      messages.last.state = ConfirmationState.Error;
     }
     return success;
   }
@@ -49,8 +58,26 @@ class ChatState with ChangeNotifier {
 }
 
 class ChatMessage {
-  final bool mine;
+  final TimeOfDay time;
+  final Sender sender;
   final String content;
+  ConfirmationState state = ConfirmationState.Sent;
 
-  ChatMessage(this.mine, this.content);
+  ChatMessage(this.sender, this.content) : time = TimeOfDay.now();
+}
+
+enum ConfirmationState { Sent, Received, Seen, Error }
+
+abstract class Sender {
+  static Sender get me => SenderMe();
+
+  static Sender other([String? name]) => SenderOther(name);
+}
+
+class SenderMe extends Sender {}
+
+class SenderOther extends Sender {
+  final String? name;
+
+  SenderOther(this.name);
 }

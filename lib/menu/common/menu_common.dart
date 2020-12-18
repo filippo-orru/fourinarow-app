@@ -90,3 +90,99 @@ PageRouteBuilder fadeRoute({required Widget child, int millDuration = 300}) {
     },
   );
 }
+
+class CustomAppBar extends AppBar {
+  CustomAppBar({
+    required String title,
+    bool refreshing = false,
+    Key? key,
+  }) : super(
+          key: key,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.red,
+          iconTheme: IconThemeData(color: Colors.black),
+          title: Text(title,
+              style: TextStyle(
+                fontFamily: "RobotoSlab",
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              )),
+          actions: [
+            AnimatedSwitcher(
+              duration: Duration(milliseconds: 200),
+              child: refreshing
+                  ? Transform.scale(
+                      scale: 0.7, child: CircularProgressIndicator())
+                  : SizedBox(),
+            ),
+          ],
+        );
+
+  // final String title;
+  // final bool refreshing;
+
+  /*@override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 64,
+      // margin: EdgeInsets.only(
+      //     bottom: 4, left: 4, right: 4, top: 4),
+      // alignment: Alignment.centerLeft,
+      decoration: BoxDecoration(
+        // color: Colors.purple[300],
+        // color: Colors.grey[300],
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 5,
+            color: Colors.black12,
+          )
+        ],
+        borderRadius: BorderRadius.all(Radius.circular(4)),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: Row(
+            children: <Widget>[
+              IconButton(
+                icon: const BackButtonIcon(),
+                splashColor: Colors.grey[400],
+                color: Colors.black,
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                onPressed: () => Navigator.maybePop(context),
+              ),
+              SizedBox(width: 24),
+              Text(title,
+                  style: TextStyle(
+                    fontFamily: "RobotoSlab",
+                    // color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  )),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: AnimatedSwitcher(
+                    duration: Duration(milliseconds: 200),
+                    child: refreshing
+                        ? Transform.scale(
+                            scale: 0.7, child: CircularProgressIndicator())
+                        // Container(
+                        //     constraints: BoxConstraints.expand(),
+                        //     color: Colors.black26,
+                        //     child: Center(child: C),
+                        //   )
+                        : SizedBox(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }*/
+}

@@ -8,6 +8,8 @@ import 'package:four_in_a_row/menu/account/offline.dart';
 import 'package:four_in_a_row/menu/chat.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/play/models/online/current_game_state.dart';
+import 'package:four_in_a_row/play/models/online/game_login_state.dart';
 import 'common/play_button.dart';
 
 import 'package:provider/provider.dart';
@@ -65,7 +67,14 @@ class _MainMenuState extends State<MainMenu> {
   bool loadingUserInfo = false;
 
   void accountCheck({bool force = false}) async {
-    Navigator.of(context).push(slideUpRoute(FriendsList()));
+    var gsm = context.read<UserInfo>();
+    if (gsm.offline) {
+      Navigator.of(context).push(slideUpRoute(OfflineScreen()));
+    } else if (gsm.loggedIn) {
+      Navigator.of(context).push(slideUpRoute(FriendsList()));
+    } else {
+      Navigator.of(context).push(slideUpRoute(AccountOnboarding()));
+    }
 
     // TODO move this to friendslist (show loading -> okay(list) / notLoggedIn )
     /*if (widget._userInfo.loggedIn ?? false) {
@@ -79,7 +88,6 @@ class _MainMenuState extends State<MainMenu> {
           Duration(milliseconds: 1800), () => accountCheck(force: true));
     } else {
       setState(() => loadingUserInfo = false);
-      Navigator.of(context).push(slideUpRoute(AccountOnboarding()));
     }*/
   }
 

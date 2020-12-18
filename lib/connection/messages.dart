@@ -7,7 +7,16 @@ abstract class ReliablePacketIn {
   static ReliablePacketIn? parse(String str) {
     var parts = str.split("::");
     if (parts.length > 1) {
-      if (parts[0] == "HELLO") {
+      if (parts[0] == "ACK" && parts.length == 2) {
+        var id = int.tryParse(parts[1]);
+        if (id == null) return null;
+        return ReliablePktAckIn(id);
+      } else if (parts[0] == "MSG" && parts.length == 3) {
+        var id = int.tryParse(parts[1]);
+        var msg = ServerMessage.parse(parts[2]);
+        if (id == null || msg == null) return null;
+        return ReliablePktMsgIn(id, msg);
+      } else if (parts[0] == "HELLO") {
         if (parts.length == 2 && parts[1] == "OUTDATED") {
           return ReliablePktHelloInOutDated();
         } else if (parts.length == 3) {
@@ -18,15 +27,8 @@ abstract class ReliablePacketIn {
             return ReliablePktHelloIn(FoundState.Found, id);
           }
         }
-      } else if (parts[0] == "ACK" && parts.length == 2) {
-        var id = int.tryParse(parts[1]);
-        if (id == null) return null;
-        return ReliablePktAckIn(id);
-      } else if (parts[0] == "MSG" && parts.length == 3) {
-        var id = int.tryParse(parts[1]);
-        var msg = ServerMessage.parse(parts[2]);
-        if (id == null || msg == null) return null;
-        return ReliablePktMsgIn(id, msg);
+      } else if (parts[0] == "ERR") {
+        return ReliablePktErrIn();
       }
     }
 
@@ -56,6 +58,8 @@ class ReliablePktHelloIn extends ReliablePacketIn {
 enum FoundState { New, Found }
 
 class ReliablePktHelloInOutDated extends ReliablePacketIn {}
+
+class ReliablePktErrIn extends ReliablePacketIn {}
 
 abstract class ReliablePacketOut implements Serializable {}
 
@@ -173,10 +177,11 @@ abstract class ServerMessage {
       }
     } else if (str.startsWith("CHAT_MSG")) {
       List<String> parts = str.split(":");
-      if (parts.length == 3) {
+      if (parts.length == 4) {
         bool isGlobal = parts[1] == "true";
         String msg = utf8.decode(base64.decode(parts[2]));
-        return MsgChatMessage(isGlobal, msg);
+        String? sender = parts[3].isEmpty ? null : parts[3];
+        return MsgChatMessage(isGlobal, msg, sender);
       }
     }
 
@@ -284,9 +289,10 @@ class MsgCurrentServerInfo extends ServerMessage {
 
 class MsgChatMessage extends ServerMessage {
   final bool isGlobal;
-  final String message;
+  final String content;
+  final String? senderName;
 
-  MsgChatMessage(this.isGlobal, this.message);
+  MsgChatMessage(this.isGlobal, this.content, [this.senderName]);
 }
 
 abstract class PlayerMessage {

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/scheduler.dart';
 import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
+import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/play/models/online/current_game_state.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:four_in_a_row/util/battle_req_popup.dart';
@@ -78,13 +79,21 @@ class _FriendsListState extends State<FriendsList>
   Widget build(BuildContext context) {
     return Consumer<UserInfo>(
       builder: (_, userInfo, __) => Scaffold(
+        appBar: CustomAppBar(
+          title: 'Friends',
+          refreshing: userInfo.refreshing,
+        ),
         resizeToAvoidBottomInset: false,
         body: userInfo.loggedIn
             ? Container(
                 child: Stack(
                   fit: StackFit.loose,
                   children: [
-                    buildFriendsList(userInfo),
+                    Expanded(
+                        child: _FriendsListInner(
+                      userInfo: userInfo,
+                      onBattleRequest: battleRequest,
+                    )),
                     Positioned(
                       right: 24,
                       bottom: BottomSheet.HEIGHT,
@@ -115,25 +124,6 @@ class _FriendsListState extends State<FriendsList>
     );
   }
 
-  SafeArea buildFriendsList(UserInfo userInfo) {
-    return SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomAppBar(
-            title: 'Friends',
-            refreshing: userInfo.refreshing,
-          ),
-          Expanded(
-              child: _FriendsListInner(
-            userInfo: userInfo,
-            onBattleRequest: battleRequest,
-          )),
-        ],
-      ),
-    );
-  }
-
   Center buildErrScreen(UserInfo userInfo) {
     return Center(
       child: Column(
@@ -150,81 +140,6 @@ class _FriendsListState extends State<FriendsList>
               },
               child: Text('Log out'))
         ],
-      ),
-    );
-  }
-}
-
-class CustomAppBar extends StatelessWidget {
-  const CustomAppBar({
-    required this.title,
-    this.refreshing = false,
-    Key? key,
-  }) : super(key: key);
-
-  final String title;
-  final bool refreshing;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 64,
-      // margin: EdgeInsets.only(
-      //     bottom: 4, left: 4, right: 4, top: 4),
-      // alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
-        // color: Colors.purple[300],
-        // color: Colors.grey[300],
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 5,
-            color: Colors.black12,
-          )
-        ],
-        borderRadius: BorderRadius.all(Radius.circular(4)),
-      ),
-      child: Material(
-        type: MaterialType.transparency,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Row(
-            children: <Widget>[
-              IconButton(
-                icon: const BackButtonIcon(),
-                splashColor: Colors.grey[400],
-                color: Colors.black,
-                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                onPressed: () => Navigator.maybePop(context),
-              ),
-              SizedBox(width: 24),
-              Text(title,
-                  style: TextStyle(
-                    fontFamily: "RobotoSlab",
-                    // color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  )),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: AnimatedSwitcher(
-                    duration: Duration(milliseconds: 200),
-                    child: refreshing
-                        ? Transform.scale(
-                            scale: 0.7, child: CircularProgressIndicator())
-                        // Container(
-                        //     constraints: BoxConstraints.expand(),
-                        //     color: Colors.black26,
-                        //     child: Center(child: C),
-                        //   )
-                        : SizedBox(),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -389,6 +304,9 @@ class _BottomSheetState extends State<BottomSheet>
   @override
   void initState() {
     super.initState();
+
+    animCtrl =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 260));
 
     moveUpAnim = Tween<double>(begin: 0, end: HEIGHT)
         .chain(CurveTween(curve: Curves.easeInOutQuart))
