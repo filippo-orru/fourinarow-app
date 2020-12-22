@@ -4,7 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
-import 'package:four_in_a_row/play/models/online/current_game_state.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:four_in_a_row/util/battle_req_popup.dart';
 import 'package:http/http.dart' as http;
@@ -914,7 +914,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
           ));
     });
     return Expanded(
-      child: results == null || results.length == 0
+      child: results.isEmpty
           ? Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(

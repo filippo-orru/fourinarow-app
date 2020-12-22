@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:four_in_a_row/play/models/online/current_game_state.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/util/constants.dart';
 
 abstract class ReliablePacketIn {
@@ -29,6 +29,8 @@ abstract class ReliablePacketIn {
         }
       } else if (parts[0] == "ERR") {
         return ReliablePktErrIn();
+      } else if (parts[0] == "NOT_CONNECTED") {
+        return ReliablePktNotConnectedIn();
       }
     }
 
@@ -47,6 +49,8 @@ class ReliablePktMsgIn extends ReliablePacketIn {
 
   ReliablePktMsgIn(this.id, this.msg);
 }
+
+class ReliablePktNotConnectedIn extends ReliablePacketIn {}
 
 class ReliablePktHelloIn extends ReliablePacketIn {
   final FoundState foundState;
@@ -183,6 +187,12 @@ abstract class ServerMessage {
         String? sender = parts[3].isEmpty ? null : parts[3];
         return MsgChatMessage(isGlobal, msg, sender);
       }
+    } else if (str.startsWith("CHAT_READ")) {
+      List<String> parts = str.split(":");
+      if (parts.length == 2) {
+        bool isGlobal = parts[1] == "true";
+        return MsgChatRead(isGlobal);
+      }
     }
 
     return null;
@@ -295,6 +305,12 @@ class MsgChatMessage extends ServerMessage {
   MsgChatMessage(this.isGlobal, this.content, [this.senderName]);
 }
 
+class MsgChatRead extends ServerMessage {
+  final bool isGlobal;
+
+  MsgChatRead(this.isGlobal);
+}
+
 abstract class PlayerMessage {
   String serialize();
 }
@@ -375,5 +391,12 @@ class PlayerMsgChatMessage extends PlayerMessage {
   @override
   String serialize() {
     return "CHAT_MSG:" + base64.encode(utf8.encode(message));
+  }
+}
+
+class PlayerMsgChatRead extends PlayerMessage {
+  @override
+  String serialize() {
+    return "CHAT_READ";
   }
 }

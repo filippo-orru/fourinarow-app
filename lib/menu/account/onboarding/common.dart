@@ -158,7 +158,7 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
     );
   }
 
-  Align buildSubmitButton() {
+  Widget buildSubmitButton() {
     return Align(
       alignment: Alignment.centerRight,
       child: FlatIconButton(

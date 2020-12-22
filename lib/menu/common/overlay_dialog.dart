@@ -83,13 +83,9 @@ class _OverlayDialogState extends State<OverlayDialog>
           return Future.value(true);
         }
       },
-      child: TweenAnimationBuilder(
-        tween: Tween<Offset>(
-            begin: Offset.zero,
-            end: Offset(0, -MediaQuery.of(context).viewInsets.bottom * 0.37)),
-        duration: Duration(milliseconds: 100),
-        builder: (ctx, Offset value, child) =>
-            Transform.translate(offset: value, child: child),
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 120),
+        margin: MediaQuery.of(context).viewInsets,
         child: AnimatedBuilder(
           animation: animCtrl,
           builder: (ctx, child) =>

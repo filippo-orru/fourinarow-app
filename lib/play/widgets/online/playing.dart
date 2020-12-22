@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
@@ -16,7 +17,11 @@ import 'package:provider/provider.dart';
 class PlayingViewer extends AbstractGameStateViewer {
   final PlayingState _playingState;
 
-  const PlayingViewer(this._playingState, {Key? key}) : super(key: key);
+  PlayingViewer(this._playingState, {Key? key}) : super(key: key) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarIconBrightness: Brightness.dark,
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -282,7 +287,6 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
         AnimationController(vsync: this, duration: Duration(milliseconds: 500));
     colorAnim =
         Tween<Color>(begin: Colors.green, end: Colors.red).animate(turnRed);
-
     breatheCtrl =
         AnimationController(vsync: this, duration: Duration(seconds: 2))
           // brea
@@ -294,7 +298,7 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
               breatheCtrl.forward();
             }
           });
-    breatheAnim = Tween<double>(begin: 0.6, end: 0.9)
+    breatheAnim = Tween<double>(begin: 0.5, end: 0.7)
         .chain(CurveTween(curve: Curves.easeInOutSine))
         .animate(breatheCtrl);
     breatheCtrl.forward();
@@ -343,14 +347,12 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
           ),
           AnimatedBuilder(
             animation: breatheAnim,
-            builder: (_, child) => Opacity(
-              opacity: breatheAnim.value,
-              child: Transform.scale(scale: breatheAnim.value, child: child),
-            ),
+            builder: (_, child) =>
+                Transform.scale(scale: breatheAnim.value, child: child),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(100)),
-                color: Colors.white30,
+                color: Colors.white,
               ),
               width: 24,
               height: 24,

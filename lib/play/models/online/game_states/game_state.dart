@@ -16,6 +16,8 @@ abstract class GameState with ChangeNotifier {
   GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgReset) {
       return IdleState(sendPlayerMessage);
+    } else if (msg is MsgLobbyClosing) {
+      return IdleState(sendPlayerMessage);
     }
   }
 

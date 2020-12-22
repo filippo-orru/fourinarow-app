@@ -9,6 +9,8 @@ import 'game_states/game_state.dart';
 
 class GameStateManager with ChangeNotifier {
   final ServerConnection _serverConnection;
+  LifecycleProviderState? lifecycle;
+  NotificationsProviderState? notifications;
 
   late GameState _cgs; // currentGameState
   GameState get currentGameState => _cgs;
@@ -22,15 +24,20 @@ class GameStateManager with ChangeNotifier {
 
   bool get outdated => _serverConnection.outdated;
 
+  bool showViewer = false;
+
   GameStateManager(this._serverConnection) {
+    _serverConnection.addListener(() {
+      notifyListeners();
+    });
     _cgs = IdleState(_sendPlayerMessage);
     _gls = GameLoginLoggedOut(_sendPlayerMessage);
     _listenToStreams();
   }
 
   Future<bool> startGame(OnlineRequest req) async {
-    if (_cgs is InLobbyState) {
-      throw UnimplementedError("Maybe this should never occur");
+    if (_cgs is! IdleState) {
+      // throw UnimplementedError("Maybe this should never occur");
       _serverConnection.send(PlayerMsgLeave());
       await _serverConnection.playerMsgStream
           .firstWhere((msg) => msg is MsgOkay);
@@ -63,11 +70,6 @@ class GameStateManager with ChangeNotifier {
   void Function(PlayerMessage) get _sendPlayerMessage =>
       this._serverConnection.send;
 
-  void _comeToPlayNotification(
-      NotificationsProviderState notifProv, LifecycleProviderState lifecycle) {
-    // TODO
-  }
-
   void _listenToStreams() {
     this._serverConnection.serverMsgStream.listen((msg) {
       this._handleServerMessage(msg);
@@ -90,6 +92,11 @@ class GameStateManager with ChangeNotifier {
   void _handleServerMessage(ServerMessage msg) {
     if (msg is MsgCurrentServerInfo) {
       this.serverInfo = msg.currentServerInfo;
+    } else if (msg is MsgOppJoined) {
+      showViewer = true;
+      if (lifecycle!.state != AppLifecycleState.resumed) {
+        notifications!.comeToPlay();
+      }
     }
   }
 

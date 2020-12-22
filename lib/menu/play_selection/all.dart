@@ -1,7 +1,11 @@
+import 'package:flutter/services.dart';
+import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/menu/account/offline.dart';
 import 'package:four_in_a_row/menu/main_menu.dart';
 import 'package:four_in_a_row/menu/outdated.dart';
-import 'package:four_in_a_row/play/models/online/current_game_state.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
+import 'package:four_in_a_row/play/models/online/game_states/other.dart';
+import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:four_in_a_row/menu/play_selection/common.dart';
 import 'package:four_in_a_row/menu/play_selection/online.dart';
@@ -51,68 +55,86 @@ class _PlaySelectionState extends State<PlaySelection> {
       Navigator.of(context).push(slideUpRoute(OutDatedDialog()));
     } else if (gsm.connected) {
       gsm.startGame(ORqWorldwide());
-      Navigator.of(context).push(fadeRoute(child: GameStateViewer()));
+      // Navigator.of(context).push(fadeRoute(child: GameStateViewer()));
     } else {
       Navigator.of(context).push(fadeRoute(child: OfflineScreen()));
     }
   }
 
   @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.black26,
+      statusBarIconBrightness: Brightness.light,
+    ));
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: backgroundTapped,
-          child: Material(
-            child: PageView(
-              children: [
-                Container(
-                  constraints: BoxConstraints.expand(),
-                  color: Colors.redAccent,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: Align(
-                      alignment: Alignment.bottomRight,
-                      child: SwitchPageButton(pageCtrl),
-                    ),
+        // GestureDetector(
+        //   behavior: HitTestBehavior.translucent,
+        //   onTap: backgroundTapped,
+        //   child:
+        Material(
+          child: PageView(
+            children: [
+              Container(
+                constraints: BoxConstraints.expand(),
+                color: Colors.redAccent,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: SwitchPageButton(pageCtrl),
                   ),
                 ),
-                Container(
-                  constraints: BoxConstraints.expand(),
-                  color: Colors.blueAccent,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: Align(
-                      alignment: Alignment.bottomLeft,
-                      child: SwitchPageButton(pageCtrl, forward: false),
-                    ),
+              ),
+              Container(
+                constraints: BoxConstraints.expand(),
+                color: Colors.blueAccent,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: SwitchPageButton(pageCtrl, forward: false),
                   ),
                 ),
-                // Container(
-                //   constraints: BoxConstraints.expand(),
-                //   color: Colors.purpleAccent,
-                // ),
-              ],
-              controller: pageCtrl,
-            ),
+              ),
+              // Container(
+              //   constraints: BoxConstraints.expand(),
+              //   color: Colors.purpleAccent,
+              // ),
+            ],
+            controller: pageCtrl,
           ),
+          // ),
         ),
         Waves(MediaQuery.of(context).size.height),
         Stack(
           children: [
-            PlaySelectionScreen(
-              index: 0,
-              title: 'Online',
-              description: 'You against the world!',
-              content: MenuContentPlayOnline(),
-              pushRoute: playOnline,
-              offset: offset,
-              bgColor: Colors.redAccent,
+            Selector<GameStateManager, bool>(
+              selector: (_, gsm) =>
+                  gsm.currentGameState is WaitingForWWOpponentState,
+              builder: (_, isInQueue, __) => PlaySelectionScreen(
+                index: 0,
+                title: 'Online',
+                description: 'You against the world!',
+                loading: isInQueue,
+                showTransition: false,
+                content: MenuContentPlayOnline(),
+                pushRoute: playOnline,
+                offset: offset,
+                bgColor: Colors.redAccent,
+              ),
             ),
             PlaySelectionScreen(
               index: 1,
               title: 'Local',
+              loading: false,
+              showTransition: true,
               description: 'Two players, one device!',
               offset: offset,
               pushRoute: () =>
@@ -208,7 +230,7 @@ class _WavesState extends State<Waves> with SingleTickerProviderStateMixin {
     offsetAnim =
         new AnimationController(duration: Duration(seconds: 12), vsync: this);
     offsetTween = Tween(
-      begin: Offset.fromDirection(pi / 2, viewHeight / 128 + 4),
+      begin: Offset(0, viewHeight / 128 + 4),
       end: Offset(0, -1),
     );
     offsetAnim.repeat();
@@ -221,9 +243,15 @@ class _WavesState extends State<Waves> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return SlideTransition(
-      position: offsetAnim.drive(offsetTween),
-      child: Image.asset("assets/img/wave_bg.png"),
+    return GestureDetector(
+      onTap: () {
+        offsetAnim.animateTo(offsetAnim.value + 0.3,
+            duration: Duration(milliseconds: 200));
+      },
+      child: SlideTransition(
+        position: offsetAnim.drive(offsetTween),
+        child: Image.asset("assets/img/wave_bg.png"),
+      ),
     );
   }
 

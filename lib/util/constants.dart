@@ -1,12 +1,14 @@
 import 'package:flutter/foundation.dart';
 
-const URL = "https://fourinarow.ml";
-
 const bool useLocalServer = true;
 
-const WS_URL = kDebugMode && useLocalServer
-    ? "ws://192.168.178.42:40146/game/"
-    : "wss://fourinarow.ml/v2/game/";
+const HOST =
+    kDebugMode && useLocalServer ? "192.168.178.42:40146" : "fourinarow.ml";
+
+const URL = kDebugMode && useLocalServer ? "http://$HOST" : "https://$HOST";
+
+const WS_URL =
+    kDebugMode && useLocalServer ? "ws://$HOST/game/" : "wss://$HOST/v2/game/";
 
 const String alphabet = "abcdefghijklmnopqrstuvwxyz";
 

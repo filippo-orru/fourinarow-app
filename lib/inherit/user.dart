@@ -123,7 +123,8 @@ class UserInfo with ChangeNotifier {
     if (this.loggedIn && delay) {
       await Future.delayed(Duration(milliseconds: 300));
     }
-    print("set state in userinfo refresh");
+    // print("set state in userinfo refresh");
+    notifyListeners();
     // print("reloaded user info");
     return Future.value(this);
 

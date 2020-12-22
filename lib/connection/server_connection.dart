@@ -165,8 +165,12 @@ class ServerConnection with ChangeNotifier {
 
   void _websocketErr(dynamic? err) {
     if (err is WebSocketChannelException &&
-        err.inner is SocketException &&
-        err.inner.osError.errorCode == 7) {
+        err.inner is WebSocketChannelException &&
+        err.inner.inner is SocketException) {
+      if (err.inner.inner.osError.errorCode == 7 ||
+          err.inner.inner.osError.errorCode == 111) {
+        // Network error (no connection)
+      }
     } else {
       print(">> #ERR# \"${err.toString()}\"");
     }
@@ -227,6 +231,9 @@ class ServerConnection with ChangeNotifier {
     } else if (rPkt is ReliablePktErrIn) {
       this._playerMsgQ.clear();
       this._serverMsgQ.clear();
+    } else if (rPkt is ReliablePktNotConnectedIn) {
+      this._resetReliabilityLayer();
+      this.retryConnection(force: true);
     } else {
       throw UnimplementedError("Unexpected Reliable Pkt $rPkt");
     }
@@ -257,13 +264,17 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _resendQueuedInterval() {
-    Timer.periodic(Duration(milliseconds: QUEUE_CHECK_INTERVAL_MS),
-        (_) => _resendQueued());
+    Timer.periodic(Duration(milliseconds: QUEUE_CHECK_INTERVAL_MS), (_) {
+      if (_sessionState is SessionStateConnected) {
+        _resendQueued();
+      }
+    });
   }
 
   void _resendQueued() {
     DateTime threshold = DateTime.now()
         .subtract(Duration(milliseconds: QUEUE_RESEND_TIMEOUT_MS));
+    int offset = 0;
     [...this._playerMsgQ].asMap().entries.forEach((MapEntry entry) {
       int index = entry.key;
       QueuedMessage<PlayerMessage> queuedMessage = entry.value;
@@ -272,7 +283,8 @@ class ServerConnection with ChangeNotifier {
         this
             ._reliablePktOutStreamCtrl
             .add(ReliablePktMsgOut(queuedMessage.id, queuedMessage.msg));
-        this._playerMsgQ.removeAt(index);
+        this._playerMsgQ.removeAt(index - offset);
+        offset += 1;
       }
     });
   }

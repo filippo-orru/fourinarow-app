@@ -6,8 +6,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
-import 'package:four_in_a_row/play/models/online/current_game_state.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
+import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
+import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:provider/provider.dart';
+import 'package:tuple/tuple.dart';
 
 import 'inherit/chat.dart';
 import 'inherit/user.dart';
@@ -52,13 +55,14 @@ class _MyAppState extends State<MyApp> {
 
   NavigatorState _navigator;
 
+  void _initialization(BuildContext ctx) {
+    var gsm = context.read<GameStateManager>();
+    gsm.lifecycle ??= LifecycleProvider.of(ctx);
+    gsm.notifications ??= NotificationsProvider.of(ctx);
+  }
+
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarBrightness: Brightness.dark,
-      statusBarColor: Colors.black26,
-    ));
-
     return WillPopScope(
       onWillPop: () {
         if (exitConfirm) {
@@ -89,27 +93,21 @@ class _MyAppState extends State<MyApp> {
       },
       child: RouteObserverProvider(
         observer: routeObserver,
-        child: GestureDetector(
-          onTap: () {
-            FocusScopeNode currentFocus = FocusScope.of(context);
-
-            if (!currentFocus.hasPrimaryFocus) {
-              currentFocus.unfocus();
-            }
-          },
-          child: LifecycleProvider(
-            child: NotificationsProvider(
-              child: WidgetsApp(
-                localizationsDelegates: [DefaultMaterialLocalizations.delegate],
-                title: 'Four in a Row',
-                color: Colors.blue,
-                initialRoute: "/",
-                pageRouteBuilder: <T>(RouteSettings settings,
-                    Widget Function(BuildContext) builder) {
-                  return MaterialPageRoute<T>(
-                      builder: builder, settings: settings);
-                },
-                builder: (ctx, child) => Column(
+        child: LifecycleProvider(
+          child: NotificationsProvider(
+            child: WidgetsApp(
+              localizationsDelegates: [DefaultMaterialLocalizations.delegate],
+              title: 'Four in a Row',
+              color: Colors.blueAccent,
+              initialRoute: "/",
+              pageRouteBuilder: <T>(RouteSettings settings,
+                  Widget Function(BuildContext) builder) {
+                return MaterialPageRoute<T>(
+                    builder: builder, settings: settings);
+              },
+              builder: (ctx, child) {
+                _initialization(ctx);
+                return Column(
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     Flexible(
@@ -149,6 +147,34 @@ class _MyAppState extends State<MyApp> {
                             ),
                           ),
                         ),
+                        Positioned(
+                          top: MediaQuery.of(ctx).padding.top,
+                          left: 0,
+                          right: 0,
+                          child: Selector<GameStateManager, Tuple2<bool, bool>>(
+                              selector: (_, gsm) => Tuple2(
+                                  gsm.currentGameState
+                                      is WaitingForWWOpponentState,
+                                  gsm.showViewer),
+                              builder: (_, tuple, __) {
+                                var gsm = ctx.read<GameStateManager>();
+                                if (gsm.showViewer) {
+                                  Navigator.of(ctx)
+                                      .push(slideUpRoute(GameStateViewer()));
+                                  gsm.showViewer = false;
+                                }
+                                return TweenAnimationBuilder(
+                                  tween: Tween<double>(
+                                      begin: 1, end: tuple.item1 ? 0 : 1),
+                                  duration: Duration(milliseconds: 350),
+                                  builder: (_, val, child) =>
+                                      Transform.translate(
+                                          offset: Offset(0, -144 * val),
+                                          child: child),
+                                  child: SearchingGameNotification(),
+                                );
+                              }),
+                        ),
                       ]),
                     ),
                     Platform.isIOS
@@ -170,24 +196,16 @@ class _MyAppState extends State<MyApp> {
                           )
                         : SizedBox(),
                   ],
-                ),
-                // routes: {
-                //   "/": (context) => MainMenu(),
-                // "/playOverview": (_) => PlayOverviewMenu(),
-                // "/local/play": (context) => PlayingLocal(),
-                // "/online/selectRange": (context) => OnlineMenuRange(),
-                // "/online/selectHost": (context) => OnlineMenuHost(),
-                // "/online/play": (context) => PlayingOnline(),
-                // },
-                home: Builder(
-                  builder: (context) {
-                    _navigator = Navigator.of(context);
-                    return MainMenu();
-                  },
-                ),
-                debugShowCheckedModeBanner: false,
-                navigatorObservers: [routeObserver],
+                );
+              },
+              home: Builder(
+                builder: (context) {
+                  _navigator = Navigator.of(context);
+                  return MainMenu();
+                },
               ),
+              debugShowCheckedModeBanner: false,
+              navigatorObservers: [routeObserver],
             ),
           ),
         ),

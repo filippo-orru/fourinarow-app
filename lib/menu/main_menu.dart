@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:four_in_a_row/inherit/chat.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/main.dart';
@@ -8,8 +9,9 @@ import 'package:four_in_a_row/menu/account/offline.dart';
 import 'package:four_in_a_row/menu/chat.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/inherit/user.dart';
-import 'package:four_in_a_row/play/models/online/current_game_state.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_login_state.dart';
+import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'common/play_button.dart';
 
 import 'package:provider/provider.dart';
@@ -62,8 +64,7 @@ PageRouteBuilder slideUpRoute(Widget content) {
   );
 }
 
-class _MainMenuState extends State<MainMenu> {
-  late RouteObserverProvider observerProvider;
+class _MainMenuState extends State<MainMenu> with RouteAware {
   bool loadingUserInfo = false;
 
   void accountCheck({bool force = false}) async {
@@ -91,13 +92,33 @@ class _MainMenuState extends State<MainMenu> {
     }*/
   }
 
-  void showChat(BuildContext context) {
+  void showChat() {
     Navigator.of(context).push(slideUpRoute(ChatScreen()));
   }
 
   @override
-  initState() {
+  void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    RouteObserverProvider.of(context)
+        .observer
+        .subscribe(this, ModalRoute.of(context)!);
+    SystemUiStyle.mainMenu();
+  }
+
+  @override
+  void didPopNext() {
+    SystemUiStyle.mainMenu();
+  }
+
+  @override
+  void dispose() {
+    RouteObserverProvider.of(context).observer.unsubscribe(this);
+    super.dispose();
   }
 
   @override
@@ -169,10 +190,9 @@ class _MainMenuState extends State<MainMenu> {
                     : SizedBox(),
               ]),
               child: SmallColorButton(
-                label: 'donate',
                 icon: Icons.chat,
-                color: Colors.green[300]!,
-                onTap: () => showChat(context),
+                color: Colors.blueAccent,
+                onTap: showChat,
               ),
             ),
             Stack(
@@ -267,10 +287,10 @@ class _SmallColorButtonState extends State<SmallColorButton>
     super.initState();
     animCtrl = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 90),
-      reverseDuration: Duration(milliseconds: 125),
+      duration: Duration(milliseconds: 125),
+      reverseDuration: Duration(milliseconds: 280),
     );
-    animCtrl.drive(CurveTween(curve: Curves.linear));
+    animCtrl.drive(CurveTween(curve: Curves.easeOutQuart));
   }
 
   @override
@@ -306,6 +326,148 @@ class _SmallColorButtonState extends State<SmallColorButton>
             color: widget.color,
             borderRadius: BorderRadius.all(Radius.circular(100)),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class SearchingGameNotification extends StatefulWidget {
+  @override
+  _SearchingGameNotificationState createState() =>
+      _SearchingGameNotificationState();
+}
+
+class _SearchingGameNotificationState extends State<SearchingGameNotification> {
+  bool collapsed = false;
+
+  Widget buildCollapseButton() {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        SizedBox(
+          height: 32,
+          width: 32,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+        InkResponse(
+          // containedInkWell: true,
+          onTap: () {
+            setState(() {
+              collapsed = !collapsed;
+            });
+          },
+          child: Container(
+            padding: EdgeInsets.all(8),
+            child: Icon(
+              collapsed ? Icons.arrow_downward : Icons.arrow_upward,
+              size: 16,
+              color: Colors.white70,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+          accentColor: Colors.white70, colorScheme: ColorScheme.light()),
+      child: Container(
+        margin: EdgeInsets.all(12),
+        child: AnimatedSwitcher(
+          layoutBuilder: (currentChild, previousChildren) => Stack(
+            children: <Widget>[
+              ...previousChildren,
+              if (currentChild != null) currentChild,
+            ],
+            alignment: Alignment.topLeft,
+          ),
+          duration: Duration(milliseconds: 180),
+          child: collapsed
+              ? Padding(
+                  padding: EdgeInsets.only(top: 14, left: 10),
+                  child: Material(
+                    borderRadius: BorderRadius.circular(100),
+                    color: Colors.black.withOpacity(0.8),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          height: 48,
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                          ),
+                        ),
+                        buildCollapseButton(),
+                      ],
+                    ),
+                  ),
+                )
+              : Material(
+                  borderRadius: BorderRadius.circular(10),
+                  clipBehavior: Clip.antiAlias,
+                  color: Colors.black.withOpacity(0.8),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        bottom: 0,
+                        left: 0,
+                        child: Container(
+                          constraints: BoxConstraints.expand(),
+                          decoration: BoxDecoration(),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(18),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: <Widget>[
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: buildCollapseButton(),
+                            ),
+                            Text(
+                                'Searching for opponent\nThis might take a while',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.white)),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Material(
+                                borderRadius: BorderRadius.circular(6),
+                                clipBehavior: Clip.antiAlias,
+                                color: Colors.black87,
+                                child: InkWell(
+                                  onTap: () =>
+                                      context.read<GameStateManager>().leave(),
+                                  splashColor: Colors.white70,
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: 12, horizontal: 8),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: Colors.white60),
+                                    ),
+                                    child: Text(
+                                      'Cancel',
+                                      style: TextStyle(color: Colors.white70),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
         ),
       ),
     );

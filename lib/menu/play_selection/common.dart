@@ -9,6 +9,8 @@ class PlaySelectionScreen extends StatelessWidget {
     required this.title,
     required this.description,
     required this.offset,
+    required this.loading,
+    required this.showTransition,
     this.content,
     this.pushRoute,
     this.bgColor = Colors.white,
@@ -17,6 +19,8 @@ class PlaySelectionScreen extends StatelessWidget {
   final int index;
   final String title;
   final String description;
+  final bool loading;
+  final bool showTransition;
   final Widget? content;
   final double offset;
   final VoidCallback? pushRoute;
@@ -32,6 +36,8 @@ class PlaySelectionScreen extends StatelessWidget {
         title: title,
         description: description,
         pushRoute: pushRoute,
+        loading: loading,
+        showTransition: showTransition,
         content: content,
         bgColor: bgColor,
       ),
@@ -43,15 +49,17 @@ class PlaySelectionContent extends StatelessWidget {
   PlaySelectionContent({
     required this.title,
     required this.description,
+    required this.loading,
+    required this.showTransition,
     this.content,
     this.pushRoute,
-    // this.navigateTo,
     this.bgColor = Colors.white,
-    // this.ctrl,
   }) : assert(content != null || pushRoute != null);
 
   final String title;
   final String description;
+  final bool loading;
+  final bool showTransition;
   final Widget? content;
   final VoidCallback? pushRoute;
   final Color bgColor;
@@ -102,8 +110,13 @@ class PlaySelectionContent extends StatelessWidget {
               child: FittedBox(
                 child: PlayButton(
                   label: 'Go!',
+                  loadingLabel: '• • •',
+                  loading: loading,
+                  showTransition: showTransition,
                   color: Colors.white38,
-                  onTap: () => pushRoute?.call(),
+                  onTap: () {
+                    pushRoute?.call();
+                  },
                 ),
               ),
             ),

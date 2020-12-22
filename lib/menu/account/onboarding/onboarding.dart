@@ -6,7 +6,7 @@ import 'package:four_in_a_row/menu/account/friends.dart';
 import 'package:four_in_a_row/play/models/online/game_login_state.dart';
 import 'package:provider/provider.dart';
 
-import 'package:four_in_a_row/play/models/online/current_game_state.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'login.dart';
 import 'register.dart';
 

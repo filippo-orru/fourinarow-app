@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
-import 'package:four_in_a_row/play/widgets/online/playing.dart';
 import 'package:four_in_a_row/util/vibration.dart';
 import 'package:http/http.dart' as http;
 

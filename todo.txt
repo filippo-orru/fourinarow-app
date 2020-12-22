@@ -1,4 +1,7 @@
-- "beta2"
-- reset state on MsgReset
-- upgrade app message
+x "beta2"
+x reset state on MsgReset
+x server legacy mode: somehow create clientstate from client connection like it used to be using clientconnectionmgr
+x upgrade app message
+
 - smarter versioning: rename v2 to "new" or alternate?
+- dialog explaining the search popup
