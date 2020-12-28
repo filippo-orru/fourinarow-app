@@ -138,7 +138,7 @@ packages:
       name: flutter_keyboard_visibility
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.0.2"
+    version: "4.0.3-beta.0"
   flutter_keyboard_visibility_platform_interface:
     dependency: transitive
     description:
