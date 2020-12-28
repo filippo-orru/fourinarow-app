@@ -71,7 +71,7 @@ class UserInfo with ChangeNotifier {
 
   Future<bool> addFriend(String id, [VoidCallback? callback]) async {
     var response = await _client
-        .post("${constants.URL}/api/users/me/friends?id=$id", body: _body);
+        .post("${constants.HTTP_URL}/api/users/me/friends?id=$id", body: _body);
     if (response.statusCode == 200) {
       if (callback != null) {
         callback();
@@ -97,9 +97,10 @@ class UserInfo with ChangeNotifier {
     if (_password == null) return null;
     // rebuild();
 
-    var req = http.Request("GET", Uri.parse('${constants.URL}/api/users/me'))
-      ..headers['Authorization'] = "Basic " +
-          base64.encode(Utf8Codec().encode(username! + ":" + _password!));
+    var req =
+        http.Request("GET", Uri.parse('${constants.HTTP_URL}/api/users/me'))
+          ..headers['Authorization'] = "Basic " +
+              base64.encode(Utf8Codec().encode(username! + ":" + _password!));
     // ..bodyFields = _body;
 
     try {
@@ -136,11 +137,16 @@ class UserInfo with ChangeNotifier {
   }
 
   Future<PublicUser?> getUserInfo({required String userId}) async {
-    var resp = await _client.get("${constants.URL}/api/users/$userId");
-    if (resp.statusCode == 200) {
-      return PublicUser.fromMap(jsonDecode(resp.body));
-    } else {
-      throw HttpException("Not found");
+    try {
+      var resp = await _client.get("${constants.HTTP_URL}/api/users/$userId");
+      if (resp.statusCode == 200) {
+        return PublicUser.fromMap(jsonDecode(resp.body));
+      } else {
+        throw HttpException("Not found");
+      }
+    } on Exception {
+      print("Error trying to get user info");
+      return null;
     }
   }
 }

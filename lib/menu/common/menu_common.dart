@@ -74,7 +74,7 @@ class _ArmsButtonState extends State<ArmsButton> {
   }
 }
 
-PageRouteBuilder fadeRoute({required Widget child, int millDuration = 300}) {
+PageRouteBuilder fadeRoute(Widget child, {int millDuration = 300}) {
   final opacityTween =
       Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.ease));
   // final sizeTween =

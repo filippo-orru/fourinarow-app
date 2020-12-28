@@ -81,7 +81,7 @@ class _MenuContentPlayOnlineState extends State<MenuContentPlayOnline> {
                           : "Currently online: " +
                               serverInfo.currentlyConnectedPlayers.toString() +
                               (serverInfo.playerWaitingInLobby
-                                  ? ". Players in queue"
+                                  ? ". Player in queue"
                                   : ""))
                       : "No connection",
                   style: TextStyle(color: Colors.white70),
@@ -226,13 +226,14 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
               ),
               SizedBox(height: 12),
               Container(
-                height: (48 * 2 + 16).toDouble(),
+                // height: (48 * 2 + 16).toDouble(),
                 // width: 290,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     buildCreateLobby(),
-                    buildJoinLobby(context),
+                    SizedBox(height: 12),
+                    buildJoinLobby(),
                   ],
                 ),
               ),
@@ -279,7 +280,7 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
         ));
   }
 
-  AnimatedSwitcher buildJoinLobby(BuildContext context) {
+  Widget buildJoinLobby() {
     return AnimatedSwitcher(
       duration: Duration(milliseconds: 200),
       child: expandedLobbyCode
@@ -291,83 +292,95 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
                   child: child,
                 );
               },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  FlatIconButton(
-                    icon: Icons.close,
-                    onPressed: () => setState(() => expandedLobbyCode = false),
-                  ),
-                  SizedBox(width: 12),
-                  Container(
-                    height: 48,
-                    width: 96,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(12)),
-                        border: Border.all(color: Colors.white38, width: 1.5)),
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Transform.translate(
-                      offset: Offset(0, 0),
-                      child: Material(
-                        type: MaterialType.transparency,
-                        child: TextField(
-                          // focusNode: inputFocusNode,
-                          cursorColor: Colors.white,
-                          // cursorRadius: Radius.circular(2),
-                          cursorWidth: 2,
-                          keyboardType: TextInputType.visiblePassword,
-                          style: TextStyle(
-                            color: Colors.white,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white70,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: EdgeInsets.all(12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    FlatIconButton(
+                      icon: Icons.close,
+                      color: Colors.black45,
+                      bgColor: Colors.white,
+                      onPressed: () =>
+                          setState(() => expandedLobbyCode = false),
+                    ),
+                    SizedBox(width: 12),
+                    Container(
+                      height: 48,
+                      width: 96,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          border: Border.all(color: Colors.white, width: 1.5)),
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Transform.translate(
+                        offset: Offset(0, 0),
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: TextField(
+                            // focusNode: inputFocusNode,
+                            cursorColor: Colors.black87,
+                            // cursorRadius: Radius.circular(2),
+                            cursorWidth: 2,
+                            keyboardType: TextInputType.visiblePassword,
+                            style: TextStyle(
+                              color: Colors.black87,
 
-                            letterSpacing: 5,
-                            // decorationStyle: null,
-                            // decorationThickness: 0,
-                            decorationColor: Colors.transparent,
-                          ),
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            errorBorder: InputBorder.none,
-                            disabledBorder: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedErrorBorder: InputBorder.none,
-                            // border: InputBorder.none,
-                            // fillColor: Colors.red,
-                            hintStyle: TextStyle(
-                              color: Colors.white54,
+                              letterSpacing: 5,
+                              // decorationStyle: null,
+                              // decorationThickness: 0,
+                              decorationColor: Colors.transparent,
                             ),
-                            counterStyle: TextStyle(
-                              color: Colors.white54,
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                              // border: InputBorder.none,
+                              // fillColor: Colors.red,
+                              hintStyle: TextStyle(
+                                color: Colors.black54,
+                              ),
+                              counterStyle: TextStyle(
+                                color: Colors.black54,
+                              ),
+                              hintText: "CODE",
+                              counter: SizedBox(),
+                              counterText: null,
+                              contentPadding: EdgeInsets.all(0),
                             ),
-                            hintText: "CODE",
-                            counter: SizedBox(),
-                            counterText: null,
-                            contentPadding: EdgeInsets.all(0),
+                            controller: lobbyCodeController,
+                            autofocus: false,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            maxLength: 4,
+                            textCapitalization: TextCapitalization.characters,
+                            enableInteractiveSelection: false,
+                            onSubmitted: (_) => context
+                                .read<GameStateManager>()
+                                .startGame(
+                                    ORqLobbyJoin(lobbyCodeController.text)),
                           ),
-                          controller: lobbyCodeController,
-                          autofocus: false,
-                          autocorrect: false,
-                          enableSuggestions: false,
-                          maxLength: 4,
-                          textCapitalization: TextCapitalization.characters,
-                          enableInteractiveSelection: false,
-                          onSubmitted: (_) => context
-                              .read<GameStateManager>()
-                              .startGame(
-                                  ORqLobbyJoin(lobbyCodeController.text)),
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(width: 12),
-                  FlatIconButton(
-                    onPressed: () => context
-                        .read<GameStateManager>()
-                        .startGame(ORqLobbyJoin(lobbyCodeController.text)),
-                    icon: Icons.check,
-                  ),
-                ],
+                    SizedBox(width: 12),
+                    FlatIconButton(
+                      icon: Icons.check,
+                      color: Colors.black45,
+                      bgColor: Colors.white,
+                      onPressed: () => context
+                          .read<GameStateManager>()
+                          .startGame(ORqLobbyJoin(lobbyCodeController.text)),
+                    ),
+                  ],
+                ),
               ),
             )
           : Container(
@@ -395,18 +408,20 @@ class FlatIconButton extends StatelessWidget {
     this.enabled = true,
     required this.onPressed,
     this.icon = Icons.check,
+    this.color = Colors.white,
     this.bgColor = Colors.white12,
   }) : super(key: key);
 
   final bool enabled;
   final VoidCallback onPressed;
   final IconData icon;
+  final Color color;
   final Color bgColor;
 
   @override
   Widget build(BuildContext context) {
     final colorRemovalFactor = enabled ? 1 : 0.5;
-    Color color = this
+    Color bgColor = this
         .bgColor
         .withBlue((this.bgColor.blue * colorRemovalFactor).floor())
         .withGreen((this.bgColor.green * colorRemovalFactor).floor())
@@ -418,7 +433,7 @@ class FlatIconButton extends StatelessWidget {
         height: 48,
         child: FlatButton(
           padding: EdgeInsets.all(0),
-          color: color,
+          color: bgColor,
           splashColor: Colors.white70,
           focusColor: Colors.white,
           hoverColor: Colors.transparent,
@@ -426,7 +441,7 @@ class FlatIconButton extends StatelessWidget {
           onPressed: () {
             if (enabled) onPressed();
           },
-          child: Opacity(opacity: 0.88, child: Icon(icon, color: Colors.white)),
+          child: Opacity(opacity: 0.88, child: Icon(icon, color: color)),
         ),
       ),
     );

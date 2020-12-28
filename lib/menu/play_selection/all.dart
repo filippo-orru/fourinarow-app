@@ -11,6 +11,7 @@ import 'package:four_in_a_row/menu/play_selection/common.dart';
 import 'package:four_in_a_row/menu/play_selection/online.dart';
 import 'package:four_in_a_row/play/widgets/local/play_local.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
+import 'package:four_in_a_row/util/system_ui_style.dart';
 
 import 'dart:math';
 // ignore: import_of_legacy_library_into_null_safe
@@ -25,11 +26,11 @@ class PlaySelection extends StatefulWidget {
   createState() => _PlaySelectionState();
 
   static PageRouteBuilder route() {
-    return fadeRoute(child: PlaySelection());
+    return fadeRoute(PlaySelection());
   }
 }
 
-class _PlaySelectionState extends State<PlaySelection> {
+class _PlaySelectionState extends State<PlaySelection> with RouteAware {
   final PageController pageCtrl = PageController(
     initialPage: 0,
   );
@@ -49,25 +50,29 @@ class _PlaySelectionState extends State<PlaySelection> {
     // TODO speed up waves?
   }
 
-  void playOnline() {
+  void playOnline() async {
     var gsm = context.read<GameStateManager>();
     if (gsm.outdated) {
       Navigator.of(context).push(slideUpRoute(OutDatedDialog()));
     } else if (gsm.connected) {
-      gsm.startGame(ORqWorldwide());
-      // Navigator.of(context).push(fadeRoute(child: GameStateViewer()));
+      if (!await gsm.startGame(ORqWorldwide())) {
+        Navigator.of(context).push(slideUpRoute(OfflineScreen()));
+      }
+      // Navigator.of(context).push(fadeRoute(GameStateViewer()));
     } else {
-      Navigator.of(context).push(fadeRoute(child: OfflineScreen()));
+      Navigator.of(context).push(slideUpRoute(OfflineScreen()));
     }
   }
 
   @override
-  void initState() {
-    super.initState();
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.black26,
-      statusBarIconBrightness: Brightness.light,
-    ));
+  void didPopNext() {
+    SystemUiStyle.playSelection();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    SystemUiStyle.playSelection();
   }
 
   @override
@@ -138,7 +143,7 @@ class _PlaySelectionState extends State<PlaySelection> {
               description: 'Two players, one device!',
               offset: offset,
               pushRoute: () =>
-                  Navigator.of(context).push(fadeRoute(child: PlayingLocal())),
+                  Navigator.of(context).push(fadeRoute(PlayingLocal())),
               bgColor: Colors.blueAccent,
             ),
             // PlaySelectionScreen(

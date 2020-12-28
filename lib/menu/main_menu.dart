@@ -333,6 +333,10 @@ class _SmallColorButtonState extends State<SmallColorButton>
 }
 
 class SearchingGameNotification extends StatefulWidget {
+  final bool connected;
+
+  const SearchingGameNotification(this.connected, {Key? key}) : super(key: key);
+
   @override
   _SearchingGameNotificationState createState() =>
       _SearchingGameNotificationState();
@@ -376,6 +380,7 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
       data: Theme.of(context).copyWith(
           accentColor: Colors.white70, colorScheme: ColorScheme.light()),
       child: Container(
+        // width: double.infinity,
         margin: EdgeInsets.all(12),
         child: AnimatedSwitcher(
           layoutBuilder: (currentChild, previousChildren) => Stack(
@@ -386,84 +391,113 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
             alignment: Alignment.topLeft,
           ),
           duration: Duration(milliseconds: 180),
-          child: collapsed
-              ? Padding(
-                  padding: EdgeInsets.only(top: 14, left: 10),
-                  child: Material(
-                    borderRadius: BorderRadius.circular(100),
-                    color: Colors.black.withOpacity(0.8),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          height: 48,
-                          child: AspectRatio(
-                            aspectRatio: 1,
-                          ),
-                        ),
-                        buildCollapseButton(),
-                      ],
-                    ),
-                  ),
-                )
-              : Material(
-                  borderRadius: BorderRadius.circular(10),
-                  clipBehavior: Clip.antiAlias,
-                  color: Colors.black.withOpacity(0.8),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: <Widget>[
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        bottom: 0,
-                        left: 0,
-                        child: Container(
-                          constraints: BoxConstraints.expand(),
-                          decoration: BoxDecoration(),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(18),
+          child: widget.connected
+              ? collapsed
+                  ? Padding(
+                      padding: EdgeInsets.only(top: 14, left: 10),
+                      child: Material(
+                        borderRadius: BorderRadius.circular(100),
+                        color: Colors.black.withOpacity(0.8),
+                        clipBehavior: Clip.antiAlias,
                         child: Stack(
                           alignment: Alignment.center,
-                          children: <Widget>[
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: buildCollapseButton(),
-                            ),
-                            Text(
-                                'Searching for opponent\nThis might take a while',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.white)),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Material(
-                                borderRadius: BorderRadius.circular(6),
-                                clipBehavior: Clip.antiAlias,
-                                color: Colors.black87,
-                                child: InkWell(
-                                  onTap: () =>
-                                      context.read<GameStateManager>().leave(),
-                                  splashColor: Colors.white70,
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: 12, horizontal: 8),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: Colors.white60),
-                                    ),
-                                    child: Text(
-                                      'Cancel',
-                                      style: TextStyle(color: Colors.white70),
-                                    ),
-                                  ),
-                                ),
+                          children: [
+                            Container(
+                              height: 48,
+                              child: AspectRatio(
+                                aspectRatio: 1,
                               ),
-                            )
+                            ),
+                            buildCollapseButton(),
                           ],
                         ),
+                      ),
+                    )
+                  : Material(
+                      borderRadius: BorderRadius.circular(10),
+                      clipBehavior: Clip.antiAlias,
+                      color: Colors.black.withOpacity(0.8),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: <Widget>[
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            bottom: 0,
+                            left: 0,
+                            child: Container(
+                              constraints: BoxConstraints.expand(),
+                              decoration: BoxDecoration(),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(18),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: <Widget>[
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: buildCollapseButton(),
+                                ),
+                                Text(
+                                    'Searching for opponent\nThis might take a while',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Colors.white)),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(6),
+                                    clipBehavior: Clip.antiAlias,
+                                    color: Colors.black87,
+                                    child: InkWell(
+                                      onTap: () => context
+                                          .read<GameStateManager>()
+                                          .leave(),
+                                      splashColor: Colors.white70,
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                            vertical: 12, horizontal: 8),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                          border:
+                                              Border.all(color: Colors.white60),
+                                        ),
+                                        child: Text(
+                                          'Cancel',
+                                          style:
+                                              TextStyle(color: Colors.white70),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+              : Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 32,
+                        width: 32,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      SizedBox(width: 12),
+                      Text(
+                        'No Connection! Waiting to reconnect.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white),
                       ),
                     ],
                   ),

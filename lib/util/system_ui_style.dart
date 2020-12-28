@@ -8,6 +8,13 @@ class SystemUiStyle {
       statusBarIconBrightness: Brightness.dark,
     ).apply();
   }
+
+  static void playSelection() {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.black26,
+      statusBarIconBrightness: Brightness.light,
+    ));
+  }
 }
 
 extension MySystemUiOverlayStyleExtension on SystemUiOverlayStyle {

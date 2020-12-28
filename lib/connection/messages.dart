@@ -6,7 +6,7 @@ import 'package:four_in_a_row/util/constants.dart';
 abstract class ReliablePacketIn {
   static ReliablePacketIn? parse(String str) {
     var parts = str.split("::");
-    if (parts.length > 1) {
+    if (parts.length >= 1) {
       if (parts[0] == "ACK" && parts.length == 2) {
         var id = int.tryParse(parts[1]);
         if (id == null) return null;

@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:four_in_a_row/connection/messages.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/idle.dart';
+import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
 
 export 'idle.dart';
 export 'in_lobby.dart';
@@ -8,23 +10,25 @@ export 'other.dart';
 export 'playing.dart';
 
 abstract class GameState with ChangeNotifier {
-  GameState(this.sendPlayerMessage);
+  GameState(this.gsm);
 
-  final void Function(PlayerMessage) sendPlayerMessage;
+  final GameStateManager gsm;
 
   @mustCallSuper
   GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgReset) {
-      return IdleState(sendPlayerMessage);
-    } else if (msg is MsgLobbyClosing) {
-      return IdleState(sendPlayerMessage);
+      return IdleState(gsm);
+    } else if (msg is MsgLobbyClosing && this is! PlayingState) {
+      gsm.hideViewer = true;
+
+      return IdleState(gsm);
     }
   }
 
   @mustCallSuper
   GameState? handlePlayerMessage(PlayerMessage msg) {
     if (msg is PlayerMsgLeave) {
-      return IdleState(sendPlayerMessage);
+      return IdleState(gsm);
     }
   }
 }

@@ -28,10 +28,8 @@ class LifecycleProvider extends StatefulWidget {
 }
 
 class LifecycleProviderState extends State<LifecycleProvider>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, ChangeNotifier {
   AppLifecycleState state = AppLifecycleState.resumed;
-  VoidCallback? onReady;
-  VoidCallback? onHide;
 
   @override
   void initState() {
@@ -50,12 +48,8 @@ class LifecycleProviderState extends State<LifecycleProvider>
     setState(() {
       this.state = state;
       print("Appstate: $state");
-      if (state == AppLifecycleState.resumed) {
-        onReady?.call();
-      } else if (state == AppLifecycleState.paused) {
-        onHide?.call();
-      }
     });
+    notifyListeners();
   }
 
   @override

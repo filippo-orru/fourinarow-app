@@ -737,8 +737,13 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
     setState(() {
       searching = true;
     });
-    String url = "${constants.URL}/api/users?search=$searchText";
-    var response = await http.get(url);
+    String url = "${constants.HTTP_URL}/api/users?search=$searchText";
+    late final response;
+    try {
+      response = await http.get(url).timeout(Duration(milliseconds: 4000));
+    } on Exception {
+      return;
+    }
 
     if (response.statusCode == 200) {
       searchResults = (jsonDecode(response.body) as List<dynamic>)
@@ -749,8 +754,8 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
         return MapEntry(i, user);
       }).filterNotNull();
 
-      searchResults!.removeWhere((index, publicUser) =>
-          publicUser == null || publicUser.id == widget.myId);
+      searchResults!
+          .removeWhere((index, publicUser) => publicUser.id == widget.myId);
 
       searchResults!.forEach((index, publicUser) {
         if (widget.userInfo.user?.friends.any((f) => f.id == publicUser.id) ==

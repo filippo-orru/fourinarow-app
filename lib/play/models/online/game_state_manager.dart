@@ -9,7 +9,17 @@ import 'game_states/game_state.dart';
 
 class GameStateManager with ChangeNotifier {
   final ServerConnection _serverConnection;
-  LifecycleProviderState? lifecycle;
+  LifecycleProviderState? _lifecycle;
+  LifecycleProviderState? get lifecycle => _lifecycle;
+  set lifecycle(l) {
+    _lifecycle = l;
+    lifecycle!.addListener(() {
+      if (lifecycle!.state == AppLifecycleState.detached) {
+        leave();
+      }
+    });
+  }
+
   NotificationsProviderState? notifications;
 
   late GameState _cgs; // currentGameState
@@ -18,29 +28,64 @@ class GameStateManager with ChangeNotifier {
   late GameLoginState _gls;
   GameLoginState get gameLoginState => _gls;
 
-  CurrentServerInfo? serverInfo;
-
-  bool get connected => _serverConnection.connected;
-
-  bool get outdated => _serverConnection.outdated;
-
-  bool showViewer = false;
+  CurrentServerInfo? _serverInfo;
+  CurrentServerInfo? get serverInfo => _serverInfo;
+  set serverInfo(CurrentServerInfo? s) {
+    _serverInfo = s;
+    if (s?.playerWaitingInLobby == true &&
+        this._cgs is WaitingForWWOpponentState) {
+      _serverInfo!.playerWaitingInLobby = false;
+    }
+  }
 
   GameStateManager(this._serverConnection) {
     _serverConnection.addListener(() {
       notifyListeners();
     });
-    _cgs = IdleState(_sendPlayerMessage);
-    _gls = GameLoginLoggedOut(_sendPlayerMessage);
+    _cgs = IdleState(this);
+    _gls = GameLoginLoggedOut(this);
     _listenToStreams();
+  }
+
+  bool get connected => _serverConnection.connected;
+
+  bool get outdated => _serverConnection.outdated;
+
+  bool _showViewer = false;
+  bool get showViewer => _showViewer;
+  set showViewer(s) {
+    _showViewer = s;
+    if (s) notifyListeners();
+  }
+
+  bool _hideViewer = false;
+  bool get hideViewer => _hideViewer;
+  set hideViewer(s) {
+    if (isViewing) {
+      _hideViewer = s;
+      if (s) notifyListeners();
+    }
+  }
+
+  bool isViewing = false;
+  void showingViewer() {
+    isViewing = true;
+    _showViewer = false;
+    _hideViewer = false;
+  }
+
+  void closingViewer() {
+    isViewing = false;
+    _showViewer = false;
+    _hideViewer = false;
+    Future.delayed(Duration(milliseconds: 350), () => leave());
   }
 
   Future<bool> startGame(OnlineRequest req) async {
     if (_cgs is! IdleState) {
       // throw UnimplementedError("Maybe this should never occur");
       _serverConnection.send(PlayerMsgLeave());
-      await _serverConnection.playerMsgStream
-          .firstWhere((msg) => msg is MsgOkay);
+      _serverConnection.waitForOkay(duration: Duration(milliseconds: 400));
     }
 
     // TODO fix login
@@ -50,24 +95,19 @@ class GameStateManager with ChangeNotifier {
     }*/
 
     this._serverConnection.send(req.playerMsg);
-
-    return Future.value(true); // TODO return when game found / cancel
-    // like this:
-    // var msg = await serverConn.incoming.stream
-    //     .skip(1) // skip confirmation msg
-    //     .first
-    //     .timeout(BattleRequestDialog.TIMEOUT, onTimeout: () => null);
-  }
-
-  void closingViewer() {
-    Future.delayed(Duration(milliseconds: 350), () => leave());
+    if (req is! ORqWorldwide) {
+      showViewer = true;
+    }
+    return this
+        ._serverConnection
+        .waitForOkay(duration: Duration(milliseconds: 400));
   }
 
   void leave() {
     this._serverConnection.send(PlayerMsgLeave());
   }
 
-  void Function(PlayerMessage) get _sendPlayerMessage =>
+  void Function(PlayerMessage) get sendPlayerMessage =>
       this._serverConnection.send;
 
   void _listenToStreams() {
@@ -93,7 +133,10 @@ class GameStateManager with ChangeNotifier {
     if (msg is MsgCurrentServerInfo) {
       this.serverInfo = msg.currentServerInfo;
     } else if (msg is MsgOppJoined) {
-      showViewer = true;
+      if (this._cgs is WaitingForWWOpponentState) {
+        showViewer = true;
+      }
+      notifyListeners();
       if (lifecycle!.state != AppLifecycleState.resumed) {
         notifications!.comeToPlay();
       }
@@ -104,6 +147,11 @@ class GameStateManager with ChangeNotifier {
     // if (msg is PlayerMsgLeave) {
     //   _cgs = IdleState(_sendPlayerMessage);
     // }
+  }
+
+  @override
+  String toString() {
+    return "GameStateManger(cgs=$currentGameState, gls=$gameLoginState, connected=$connected)";
   }
 }
 

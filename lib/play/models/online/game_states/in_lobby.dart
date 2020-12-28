@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/inherit/lifecycle.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/widgets/online/in_lobby.dart';
 
 class InLobbyState extends GameState {
   final String? code;
 
-  InLobbyState(void Function(PlayerMessage) sendPlayerMessage, this.code)
-      : super(sendPlayerMessage);
+  InLobbyState(GameStateManager gsm, this.code) : super(gsm);
 
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
@@ -18,7 +18,7 @@ class InLobbyState extends GameState {
   @override
   GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgOppJoined) {
-      return InLobbyReadyState(super.sendPlayerMessage);
+      return InLobbyReadyState(super.gsm);
     }
     return super.handleServerMessage(msg);
   }
@@ -28,8 +28,7 @@ class InLobbyState extends GameState {
 }
 
 class InLobbyReadyState extends GameState {
-  InLobbyReadyState(void Function(PlayerMessage) sendPlayerMessage)
-      : super(sendPlayerMessage);
+  InLobbyReadyState(GameStateManager gsm) : super(gsm);
 
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
@@ -40,7 +39,7 @@ class InLobbyReadyState extends GameState {
   GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgGameStart) {
       return PlayingState(
-        super.sendPlayerMessage,
+        super.gsm,
         myTurnToStart: msg.myTurn,
         opponentId: msg.opponentId,
       );

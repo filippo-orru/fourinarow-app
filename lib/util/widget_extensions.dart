@@ -4,13 +4,13 @@ class MyScrollConfiguration extends ScrollConfiguration {
   final Widget child;
 
   MyScrollConfiguration({required this.child, required Color color})
-      : super(child: child, behavior: _MyScrollBehavior(color));
+      : super(child: child, behavior: MyScrollBehavior(color: color));
 }
 
-class _MyScrollBehavior extends ScrollBehavior {
+class MyScrollBehavior extends ScrollBehavior {
   final Color color;
 
-  _MyScrollBehavior(this.color);
+  MyScrollBehavior({required this.color});
 
   @override
   Widget buildViewportChrome(
@@ -35,18 +35,8 @@ class _MyScrollBehavior extends ScrollBehavior {
 }
 
 class MyColorTween extends Tween<Color> {
-  /// Creates a [Color] tween.
-  ///
-  /// The [begin] and [end] properties may be null; the null value
-  /// is treated as transparent.
-  ///
-  /// We recommend that you do not pass [Colors.transparent] as [begin]
-  /// or [end] if you want the effect of fading in or out of transparent.
-  /// Instead prefer null. [Colors.transparent] refers to black transparent and
-  /// thus will fade out of or into black which is likely unwanted.
   MyColorTween({Color? begin, Color? end}) : super(begin: begin, end: end);
 
-  /// Returns the value this variable has at the given animation clock value.
   @override
   Color lerp(double t) => Color.lerp(begin, end, t)!;
 }

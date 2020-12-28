@@ -26,7 +26,7 @@ class _RegisterPageState extends State<RegisterPage> {
         "password": widget.pwCtrl.text,
       };
       registerFuture = http.post(
-        '${constant.URL}/api/users/register',
+        '${constant.HTTP_URL}/api/users/register',
         body: body,
       )..then((response) {
           if (response.statusCode == 200 && context != null) {

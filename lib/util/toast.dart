@@ -15,7 +15,7 @@ class ToastState {
     this.angery = false,
     this.onComplete,
   }) {
-    Future.delayed(duration, () => onComplete?.call());
+    Future.delayed(duration * 0.6, () => onComplete?.call());
   }
 }
 

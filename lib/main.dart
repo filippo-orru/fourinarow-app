@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
@@ -151,28 +152,59 @@ class _MyAppState extends State<MyApp> {
                           top: MediaQuery.of(ctx).padding.top,
                           left: 0,
                           right: 0,
-                          child: Selector<GameStateManager, Tuple2<bool, bool>>(
-                              selector: (_, gsm) => Tuple2(
-                                  gsm.currentGameState
-                                      is WaitingForWWOpponentState,
-                                  gsm.showViewer),
+                          child: Selector<GameStateManager, List<dynamic>>(
+                              //
+                              shouldRebuild: (list1, list2) {
+                                // var x = !listEquals(list1, list2);
+                                //   var x = gsm1.showViewer != gsm2.showViewer ||
+                                //       gsm1.hideViewer != gsm2.hideViewer ||
+                                //       gsm1.currentGameState
+                                //               is WaitingForWWOpponentState !=
+                                //           gsm2.currentGameState
+                                //               is WaitingForWWOpponentState ||
+                                //       gsm1.connected != gsm2.connected;
+                                // print(
+                                //     "shouldRebuild=$x (prev: $list1, next: $list2");
+                                return !listEquals(list1, list2);
+                              },
+                              selector: (_, gsm) => [
+                                    gsm.showViewer,
+                                    gsm.hideViewer,
+                                    gsm.connected,
+                                    gsm.currentGameState
+                                        is WaitingForWWOpponentState
+                                  ],
                               builder: (_, tuple, __) {
+                                // print("building popup");
                                 var gsm = ctx.read<GameStateManager>();
                                 if (gsm.showViewer) {
-                                  Navigator.of(ctx)
-                                      .push(slideUpRoute(GameStateViewer()));
-                                  gsm.showViewer = false;
+                                  Future.delayed(Duration.zero, () {
+                                    _navigator
+                                        .push(slideUpRoute(GameStateViewer()));
+                                  });
+                                  // gsm.showViewer = false;
+                                }
+
+                                if (gsm.hideViewer) {
+                                  Future.delayed(Duration.zero, () {
+                                    _navigator.pop();
+                                  });
+                                  // gsm.hideViewer = false;
                                 }
                                 return TweenAnimationBuilder(
-                                  tween: Tween<double>(
-                                      begin: 1, end: tuple.item1 ? 0 : 1),
-                                  duration: Duration(milliseconds: 350),
-                                  builder: (_, val, child) =>
-                                      Transform.translate(
-                                          offset: Offset(0, -144 * val),
-                                          child: child),
-                                  child: SearchingGameNotification(),
-                                );
+                                    tween: Tween<double>(
+                                        begin: 1,
+                                        end: gsm.currentGameState
+                                                is WaitingForWWOpponentState
+                                            ? 0
+                                            : 1),
+                                    duration: Duration(milliseconds: 350),
+                                    builder: (_, val, child) =>
+                                        Transform.translate(
+                                            offset: Offset(0, -144 * val),
+                                            child: child),
+                                    child: SearchingGameNotification(
+                                        gsm.connected));
                               }),
                         ),
                       ]),

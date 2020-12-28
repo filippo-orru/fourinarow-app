@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/connection/messages.dart';
@@ -45,9 +46,9 @@ class ChatState with ChangeNotifier {
     messages.add(ChatMessage(Sender.me, msg));
     await Future.delayed(Duration(milliseconds: 85));
     _serverConnection.send(PlayerMsgChatMessage(msg));
-    Future.delayed(Duration(milliseconds: 200), () {});
-    bool success = await _serverConnection.waitForOkay(
-        duration: Duration(milliseconds: 500));
+
+    bool success = await _serverConnection.waitForOkay();
+
     if (success) {
       messages.last.state = ConfirmationState.Received;
     } else {
@@ -55,6 +56,20 @@ class ChatState with ChangeNotifier {
     }
     notifyListeners();
     return success;
+  }
+
+  void resendMessage(ChatMessage msg) {
+    if (msg.sender is! SenderMe) {
+      return;
+    }
+
+    try {
+      messages.remove(messages.singleWhere((m) => m.uid == msg.uid));
+    } on StateError {
+      print("err");
+    }
+
+    sendMessage(msg.content + Random().nextInt(100).toString());
   }
 
   void startViewing() {
@@ -81,12 +96,15 @@ class ChatState with ChangeNotifier {
 }
 
 class ChatMessage {
+  final int uid; // random unique id
   final TimeOfDay time;
   final Sender sender;
   final String content;
   ConfirmationState state = ConfirmationState.Sent;
 
-  ChatMessage(this.sender, this.content) : time = TimeOfDay.now();
+  ChatMessage(this.sender, this.content)
+      : uid = Random().nextInt(1 << 32),
+        time = TimeOfDay.now();
 }
 
 enum ConfirmationState { Sent, Received, Seen, Error }

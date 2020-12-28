@@ -39,11 +39,10 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal>
   bool _retrying = false;
   // ChatState _chatState = context.watch ChatState
 
-  void _sendMessage(String msg, void Function(bool) callback) async {
+  void _sendMessage(String msg) {
     _scrollToBottom();
     msg = msg.trim();
-    bool success = await widget.chatState.sendMessage(msg);
-    callback(success);
+    widget.chatState.sendMessage(msg);
   }
 
   void _scrollToBottom() {
@@ -60,9 +59,14 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal>
     await Future.delayed(
       Duration(milliseconds: 2800),
     );
-    setState(() {
-      _retrying = false;
-    });
+    if (mounted)
+      setState(() {
+        _retrying = false;
+      });
+  }
+
+  void _resendMessage(ChatMessage msg) {
+    widget.chatState.resendMessage(msg);
   }
 
   @override
@@ -149,8 +153,10 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal>
                                     fontStyle: FontStyle.italic,
                                   ))),
                         )
-                      : MyScrollConfiguration(
-                          color: Colors.black54,
+                      : ScrollConfiguration(
+                          behavior: MyScrollBehavior(
+                            color: Colors.blueAccent.withOpacity(0.1),
+                          ),
                           child: ListView(
                               reverse: true,
                               controller: _scrollController,
@@ -174,7 +180,9 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal>
                                   ] +
                                   widget.chatState.messages.reversed
                                       .map<Widget>((message) =>
-                                          ChatMessageWidget(message))
+                                          ChatMessageWidget(message,
+                                              resendMessage: () =>
+                                                  _resendMessage(message)))
                                       .toList()),
                         ),
                 ),
@@ -280,7 +288,7 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal>
 enum WidgetChangeApplyCycle { IDLE, REQUESTED, BUILT }
 
 class CreateMessageWidget extends StatefulWidget {
-  final void Function(String, void Function(bool)) onMessageSent;
+  final void Function(String) onMessageSent;
   final bool connected;
 
   const CreateMessageWidget(
@@ -294,19 +302,21 @@ class CreateMessageWidget extends StatefulWidget {
 class _CreateMessageWidgetState extends State<CreateMessageWidget> {
   TextEditingController _textEditCtrl = TextEditingController();
 
-  bool _errorSending = false;
-
   bool get enabled => widget.connected && _textEditCtrl.text.trim().isNotEmpty;
 
   void sendMessage(bool requestFocus) {
     if (this._textEditCtrl.text.trim() == "") {
       return;
     }
-    widget.onMessageSent(this._textEditCtrl.text, (success) {
-      _errorSending = !success;
-      _textEditCtrl.clear();
-    });
+    widget.onMessageSent(this._textEditCtrl.text);
+    _textEditCtrl.clear();
   }
+
+  Widget? buildCounter(BuildContext context,
+          {required int currentLength,
+          required int? maxLength,
+          required bool isFocused}) =>
+      null;
 
   @override
   void initState() {
@@ -350,20 +360,20 @@ class _CreateMessageWidgetState extends State<CreateMessageWidget> {
             //   child:
             Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
-              child: AnimatedContainer(
-                // constraints: BoxConstraints.expand(width: 48),
-                duration: Duration(milliseconds: 90),
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(100),
-                  color: enabled
-                      ? Colors.blueAccent.withOpacity(0.9)
-                      : Colors.grey[300],
-                ),
-                child: GestureDetector(
-                  onTap: () {
-                    sendMessage(false);
-                  },
+              child: GestureDetector(
+                onTap: () {
+                  sendMessage(false);
+                },
+                child: AnimatedContainer(
+                  // constraints: BoxConstraints.expand(width: 48),
+                  duration: Duration(milliseconds: 90),
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(100),
+                    color: enabled
+                        ? Colors.blueAccent.withOpacity(0.9)
+                        : Colors.grey[300],
+                  ),
                   child: Transform.translate(
                     offset: Offset(1.5, 0),
                     child: TweenAnimationBuilder<Color>(
@@ -405,6 +415,8 @@ class _CreateMessageWidgetState extends State<CreateMessageWidget> {
                     textCapitalization: TextCapitalization.sentences,
                     onEditingComplete: () => sendMessage(true),
                     enabled: widget.connected,
+                    maxLength: 1000,
+                    buildCounter: buildCounter,
                     decoration: InputDecoration(
                       hintStyle: TextStyle(
                         fontSize: 15,
@@ -415,7 +427,6 @@ class _CreateMessageWidgetState extends State<CreateMessageWidget> {
                       hintText: 'Chat with other players…',
                       border: InputBorder.none,
                       counterText: null,
-                      counter: null,
                       counterStyle: null,
                     ),
                     // style: TextStyle(
@@ -425,12 +436,6 @@ class _CreateMessageWidgetState extends State<CreateMessageWidget> {
                   ),
                 ),
               ),
-              // SizedBox(width: 8),
-              this._errorSending
-                  ? Container(
-                      child: Icon(Icons.error_outline, color: Colors.red[600]),
-                    )
-                  : SizedBox(),
               TweenAnimationBuilder(
                   tween: Tween<double>(
                       begin: 0,
@@ -455,8 +460,10 @@ class _CreateMessageWidgetState extends State<CreateMessageWidget> {
 class ChatMessageWidget extends StatelessWidget {
   final ChatMessage message;
   final Radius borderRadius = Radius.circular(8);
+  final VoidCallback resendMessage;
 
-  ChatMessageWidget(this.message, {Key? key}) : super(key: key);
+  ChatMessageWidget(this.message, {required this.resendMessage, Key? key})
+      : super(key: key);
 
   Widget buildMessageStateIndicator() {
     switch (message.state) {
@@ -528,6 +535,11 @@ class ChatMessageWidget extends StatelessWidget {
           highlightShape: BoxShape.rectangle,
           splashColor: Colors.blueAccent.withOpacity(0.35),
           highlightColor: Colors.blueAccent.withOpacity(0.35),
+          onTap: () {
+            if (message.state == ConfirmationState.Error) {
+              resendMessage();
+            }
+          },
           onLongPress: () {
             Clipboard.setData(new ClipboardData(text: message.content));
           },

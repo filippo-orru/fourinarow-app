@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/widgets.dart';
-import 'package:four_in_a_row/play/models/common/field.dart';
-import 'package:four_in_a_row/util/vibration.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:four_in_a_row/play/models/common/field.dart';
+import 'package:four_in_a_row/util/vibration.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/util/constants.dart' as constants;
 import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/inherit/user.dart';
@@ -14,10 +14,10 @@ import 'game_state.dart';
 
 class PlayingState extends GameState {
   PlayingState(
-    void Function(PlayerMessage msg) sendPlayerMessage, {
+    GameStateManager gsm, {
     required bool myTurnToStart,
     String? opponentId,
-  }) : super(sendPlayerMessage) {
+  }) : super(gsm) {
     FieldPlaying _field = FieldPlaying();
     _field.turn = myTurnToStart ? me : me.other;
     this.field = _field;
@@ -49,6 +49,7 @@ class PlayingState extends GameState {
 
   @override
   GameState? handleServerMessage(ServerMessage msg) {
+    bool callSuper = true;
     if (msg is MsgPlaceChip) {
       var _field = field;
       if (_field is FieldPlaying) {
@@ -65,9 +66,9 @@ class PlayingState extends GameState {
       notifyListeners();
       if (field is FieldPlaying) {
         this.leaving = true;
+        callSuper = false;
+
         showPopup("Opponent left", angery: true);
-        //Future.delayed(this.toastState.duration * 0.6, () => this.pop());
-        // TODO ^ pop viewer / show [ dialog: okay ]
       } else {
         showPopup("Opponent left");
       }
@@ -75,7 +76,7 @@ class PlayingState extends GameState {
     } else if (msg is MsgLobbyClosing &&
         !this.leaving &&
         !this.opponentInfo.hasLeft) {
-      return IdleState(sendPlayerMessage);
+      return IdleState(gsm);
       // TODO: do I need this?
 
       // return ErrorState(
@@ -90,7 +91,8 @@ class PlayingState extends GameState {
       // widget.changeState(Error(
       //     LobbyClosed(), widget.pMsgCtrl, widget.sMsgCtrl, widget.changeState));
     }
-    return super.handleServerMessage(msg);
+    if (callSuper) return super.handleServerMessage(msg);
+    return null;
   }
 
   // @override
@@ -105,8 +107,14 @@ class PlayingState extends GameState {
       }
     }
 
-    http.Response response =
-        await http.get("${constants.URL}/api/users/$opponentId");
+    late final response;
+    try {
+      response = await http
+          .get("${constants.HTTP_URL}/api/users/$opponentId")
+          .timeout(Duration(milliseconds: 4000));
+    } on Exception {
+      return;
+    }
     if (response.statusCode == 200) {
       this.opponentInfo.user = PublicUser.fromMap(jsonDecode(response.body));
       // TODO vvv
@@ -131,7 +139,7 @@ class PlayingState extends GameState {
     if (_field is FieldPlaying && _field.turn == me) {
       dropChipNamed(column, me);
 
-      super.sendPlayerMessage(PlayerMsgPlaceChip(column));
+      super.gsm.sendPlayerMessage(PlayerMsgPlaceChip(column));
     }
   }
 
@@ -153,14 +161,12 @@ class PlayingState extends GameState {
   }
 
   void playAgain() {
-    super.sendPlayerMessage(PlayerMsgPlayAgain());
+    super.gsm.sendPlayerMessage(PlayerMsgPlayAgain());
   }
 
   void showPopup(String s, {bool angery = false}) {
     toastState = ToastState("Opponent left", angery: angery, onComplete: () {
-      // TODO: how do i change state here?
-      // possible solution: pass class with sendPlayerMsg() and changeState() to
-      // GameState and call thaht here
+      super.gsm.hideViewer = true;
     });
     notifyListeners();
   }

@@ -1,22 +1,22 @@
 import 'package:four_in_a_row/connection/messages.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/widgets/online/idle.dart';
 
 import 'game_state.dart';
 
 class IdleState extends GameState {
-  IdleState(void Function(PlayerMessage) sendPlayerMessage)
-      : super(sendPlayerMessage);
+  IdleState(GameStateManager gsm) : super(gsm);
 
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
     if (msg is PlayerMsgLobbyJoin) {
-      return WaitingForLobbyInfoState(super.sendPlayerMessage, code: msg.code);
+      return WaitingForLobbyInfoState(super.gsm, code: msg.code);
     } else if (msg is PlayerMsgLobbyRequest) {
-      return WaitingForLobbyInfoState(super.sendPlayerMessage);
+      return WaitingForLobbyInfoState(super.gsm);
     } else if (msg is PlayerMsgWorldwideRequest) {
-      return WaitingForWWOkayState(super.sendPlayerMessage);
+      return WaitingForWWOkayState(super.gsm);
     } else if (msg is PlayerMsgBattleRequest) {
-      return InLobbyState(super.sendPlayerMessage, null);
+      return InLobbyState(super.gsm, null);
     }
 
     return super.handlePlayerMessage(msg);
@@ -25,7 +25,7 @@ class IdleState extends GameState {
   @override
   GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgLobbyResponse) {
-      return InLobbyState(super.sendPlayerMessage, msg.code);
+      return InLobbyState(super.gsm, msg.code);
     }
     return super.handleServerMessage(msg);
   }

@@ -1,5 +1,5 @@
 import 'package:four_in_a_row/connection/messages.dart';
-import 'package:four_in_a_row/play/widgets/online/other.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 
 import 'game_state.dart';
 
@@ -7,9 +7,9 @@ class WaitingForLobbyInfoState extends GameState {
   final String? code;
 
   WaitingForLobbyInfoState(
-    void Function(PlayerMessage) sendPlayerMessage, {
+    GameStateManager gsm, {
     this.code,
-  }) : super(sendPlayerMessage);
+  }) : super(gsm);
 
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
@@ -19,9 +19,9 @@ class WaitingForLobbyInfoState extends GameState {
   @override
   GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgLobbyResponse) {
-      return InLobbyState(super.sendPlayerMessage, msg.code);
+      return InLobbyState(super.gsm, msg.code);
     } else if (msg is MsgOkay && code != null) {
-      return InLobbyReadyState(super.sendPlayerMessage);
+      return InLobbyReadyState(super.gsm);
     }
     return super.handleServerMessage(msg);
   }
@@ -31,8 +31,7 @@ class WaitingForLobbyInfoState extends GameState {
 }
 
 class WaitingForWWOkayState extends GameState {
-  WaitingForWWOkayState(void Function(PlayerMessage) sendPlayerMessage)
-      : super(sendPlayerMessage);
+  WaitingForWWOkayState(GameStateManager gsm) : super(gsm);
 
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
@@ -42,7 +41,7 @@ class WaitingForWWOkayState extends GameState {
   @override
   GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgOkay) {
-      return WaitingForWWOpponentState(super.sendPlayerMessage);
+      return WaitingForWWOpponentState(super.gsm);
     }
     return super.handleServerMessage(msg);
   }
@@ -52,8 +51,7 @@ class WaitingForWWOkayState extends GameState {
 }
 
 class WaitingForWWOpponentState extends GameState {
-  WaitingForWWOpponentState(void Function(PlayerMessage) sendPlayerMessage)
-      : super(sendPlayerMessage);
+  WaitingForWWOpponentState(GameStateManager gsm) : super(gsm);
 
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
@@ -63,7 +61,7 @@ class WaitingForWWOpponentState extends GameState {
   @override
   GameState? handleServerMessage(ServerMessage msg) {
     if (msg is MsgOppJoined) {
-      return InLobbyReadyState(super.sendPlayerMessage);
+      return InLobbyReadyState(super.gsm);
     }
     return super.handleServerMessage(msg);
   }

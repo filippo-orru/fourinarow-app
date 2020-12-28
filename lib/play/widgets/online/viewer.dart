@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
@@ -33,45 +35,83 @@ class GameStateViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<ServerConnection, GameStateManager>(
-      builder: (_, serverConnection, gameStateManager, __) => WillPopScope(
-        onWillPop: () {
-          gameStateManager.closingViewer();
-          return Future.value(true);
-        },
-        child: Scaffold(
-          body: Stack(children: [
-            getViewer(gameStateManager.currentGameState),
-            serverConnection.connected
-                ? SizedBox()
-                : IgnorePointer(
-                    // ignoring: !serverConnection.connected,
-                    child: Container(
-                      constraints: BoxConstraints.expand(),
-                      color: Colors.black54,
-                      child: Center(
-                        child: Container(
-                          // width: 230,
-                          // height: 120,
-                          padding: EdgeInsets.symmetric(
-                              vertical: 24, horizontal: 48),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CircularProgressIndicator(),
-                              SizedBox(height: 24),
-                              Text('Trying to reconnect')
-                            ],
-                          ),
-                        ),
+    return Consumer<GameStateManager>(
+      builder: (_, gameStateManager, __) {
+        gameStateManager.showingViewer();
+        return WillPopScope(
+          onWillPop: () {
+            gameStateManager.closingViewer();
+            return Future.value(true);
+          },
+          child: Scaffold(
+            body: Stack(children: [
+              AnimatedSwitcher(
+                duration: Duration(milliseconds: 100),
+                child: getViewer(gameStateManager.currentGameState),
+              ),
+              AnimatedSwitcher(
+                duration: Duration(milliseconds: 120),
+                child: gameStateManager.connected
+                    ? SizedBox()
+                    : AbsorbPointer(
+                        // ignoring: !serverConnection.connected,
+                        child: Reconnecting(),
                       ),
-                    ),
-                  ),
-          ]),
+              ),
+            ]),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class Reconnecting extends StatefulWidget {
+  @override
+  _ReconnectingState createState() => _ReconnectingState();
+}
+
+class _ReconnectingState extends State<Reconnecting> {
+  late final Timer timer;
+  int s = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(Duration(seconds: 1), (_) {
+      s++;
+    });
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints.expand(),
+      color: Colors.black54,
+      child: Center(
+        child: Container(
+          // width: 230,
+          // height: 120,
+          padding: EdgeInsets.symmetric(vertical: 24, horizontal: 48),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [BoxShadow(blurRadius: 8, color: Colors.black38)],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 24),
+              Text('Trying to reconnect ${s}s'),
+            ],
+          ),
         ),
       ),
     );

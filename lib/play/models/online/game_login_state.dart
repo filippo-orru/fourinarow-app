@@ -1,16 +1,16 @@
 import 'package:four_in_a_row/connection/messages.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 
 abstract class GameLoginState {
-  final void Function(PlayerMessage) sendPlayerMessage;
+  final GameStateManager gsm;
 
-  GameLoginState(this.sendPlayerMessage);
+  GameLoginState(this.gsm);
 
   GameLoginState? handleServerMessage(ServerMessage msg);
 }
 
 class GameLoginLoggedOut extends GameLoginState {
-  GameLoginLoggedOut(void Function(PlayerMessage) sendPlayerMessage)
-      : super(sendPlayerMessage);
+  GameLoginLoggedOut(GameStateManager gsm) : super(gsm);
 
   @override
   GameLoginState? handleServerMessage(ServerMessage msg) {
@@ -19,8 +19,7 @@ class GameLoginLoggedOut extends GameLoginState {
 }
 
 class GameLoginLoggedIn extends GameLoginState {
-  GameLoginLoggedIn(void Function(PlayerMessage) sendPlayerMessage)
-      : super(sendPlayerMessage);
+  GameLoginLoggedIn(GameStateManager gsm) : super(gsm);
 
   @override
   GameLoginState? handleServerMessage(ServerMessage msg) {

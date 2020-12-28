@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
         "password": widget.pwCtrl.text,
       };
       loginFuture = http.post(
-        '${constants.URL}/api/users/login',
+        '${constants.HTTP_URL}/api/users/login',
         body: body,
       )..then((response) {
           if (response.statusCode == 200 && context != null) {
