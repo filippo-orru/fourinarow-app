@@ -12,6 +12,7 @@ import 'package:four_in_a_row/menu/play_selection/online.dart';
 import 'package:four_in_a_row/play/widgets/local/play_local.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
+import 'package:four_in_a_row/util/toast.dart';
 
 import 'dart:math';
 // ignore: import_of_legacy_library_into_null_safe
@@ -31,9 +32,11 @@ class PlaySelection extends StatefulWidget {
 }
 
 class _PlaySelectionState extends State<PlaySelection> with RouteAware {
+  late final SharedPreferences _sharedPrefs;
   final PageController pageCtrl = PageController(
     initialPage: 0,
   );
+
   _PlaySelectionState() {
     pageCtrl.addListener(() {
       setState(() {
@@ -46,8 +49,69 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
   double offset = 0;
   double page = 0;
 
+  ToastState? toast;
+
   void backgroundTapped() {
     // TODO speed up waves?
+  }
+  void tappedPlayOnline() async {
+    var shownDialogCount = 0;
+    if (_sharedPrefs.containsKey("shownOnlineDialogCount")) {
+      shownDialogCount = _sharedPrefs.getInt("shownOnlineDialogCount");
+    }
+    if (shownDialogCount <= 2) {
+      await showDialog(
+          context: context,
+          builder: (ctx) => onlineInfoDialog(ctx, 2 - shownDialogCount));
+      _sharedPrefs.setInt("shownOnlineDialogCount", shownDialogCount + 1);
+    }
+    playOnline();
+  }
+
+  Widget onlineInfoDialog(BuildContext dialogCtx, int howManyMoreTimes) {
+    return Center(
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(blurRadius: 8, color: Colors.black26)],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Read before playing online',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              '''
+▻ Finding another player could take a while, please be patient\n
+▻ Chat or play locally while waiting\n
+▻ Keep the app open and you will get a notification once a game is found
+
+Dialog will show ${howManyMoreTimes == 0 ? "no" : howManyMoreTimes} more time${howManyMoreTimes == 1 ? "" : "s"}.''',
+              style: TextStyle(color: Colors.black, fontSize: 16, height: 1.3),
+            ),
+            SizedBox(height: 12),
+            Center(
+                child: RaisedButton(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+              },
+              child: Text('Okay'),
+            ))
+          ],
+        ),
+      ),
+    );
   }
 
   void playOnline() async {
@@ -62,6 +126,14 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
     } else {
       Navigator.of(context).push(slideUpRoute(OfflineScreen()));
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((s) {
+      _sharedPrefs = s;
+    });
   }
 
   @override
@@ -130,7 +202,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
                 loading: isInQueue,
                 showTransition: false,
                 content: MenuContentPlayOnline(),
-                pushRoute: playOnline,
+                pushRoute: tappedPlayOnline,
                 offset: offset,
                 bgColor: Colors.redAccent,
               ),

@@ -12,10 +12,14 @@ import 'package:flutter/material.dart';
 import 'package:four_in_a_row/util/constants.dart';
 import 'messages.dart';
 
+const int CONNECTION_WAS_LOST_TIMEOUT_S = 30;
+
 class ServerConnection with ChangeNotifier {
   WebSocket? _connection;
 
   Timer? _reconnectionTimer;
+
+  Timer? _connectionWasLostTimer; // fires after 30s (server closed connection)
 
   StreamController<ServerMessage> _serverMsgStreamCtrl =
       StreamController<ServerMessage>.broadcast();
@@ -98,6 +102,7 @@ class ServerConnection with ChangeNotifier {
     print("   #CONNECT# (${this._connectionTries}. try)");
 
     _reconnectionTimer?.cancel();
+    _connectionWasLostTimer?.cancel();
     _connection?.close();
     try {
       HttpClient client = HttpClient();
@@ -272,8 +277,12 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _websocketDone() {
-    int timeoutMs =
-        min((500.0 + pow(_connectionTries.toDouble(), 1.5)).toInt(), 24000);
+    int timeoutMs = (min(
+              24.0,
+              0.5 + pow(_connectionTries.toDouble(), 1.5),
+            ) *
+            1000)
+        .toInt();
     print(
         "   #DONE# (retry in ${(timeoutMs.toDouble() / 1000.0).toStringAsFixed(2)})");
     var sessionState = this._sessionState;
@@ -297,9 +306,14 @@ class ServerConnection with ChangeNotifier {
                 result == ConnectivityResult.mobile)
             .timeout(timeout, onTimeout: () => null);
         if (result != null) {
+          print("   #FORCE CNNCT# (${result.toString().split(".")[1]})");
           _connect();
         }
       }
+    });
+    _connectionWasLostTimer =
+        Timer(Duration(seconds: CONNECTION_WAS_LOST_TIMEOUT_S), () {
+      _serverMsgStreamCtrl.add(MsgReset());
     });
     _reconnectionTimer = Timer(timeout, () {
       if (!connected) _connect();

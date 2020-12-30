@@ -132,8 +132,8 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal>
         title: "Chat",
       ),
       body: AnimatedContainer(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeOutExpo,
+        duration: Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
         margin: mediaQuery.viewInsets,
         constraints: BoxConstraints.expand(),
         color: Colors.white,

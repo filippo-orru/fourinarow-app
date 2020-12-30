@@ -38,15 +38,22 @@ class FieldPlaying extends Field {
     this.reset();
   }
 
+  void reset() {
+    _array = List.generate(
+        Field.size, (_) => List.filled(Field.size, null, growable: false),
+        growable: false);
+    turn = Player.One;
+  }
+
   void vibrate() {
     Vibrations.turnChange();
   }
 
-  dropChip(int column) {
+  void dropChip(int column) {
     dropChipNamed(column, turn);
   }
 
-  dropChipNamed(int column, Player p) {
+  void dropChipNamed(int column, Player p) {
     if (column < Field.size &&
         column >= 0 &&
         _array[column].any((c) => c == null)) {
@@ -78,13 +85,6 @@ class FieldPlaying extends Field {
 
   // Player get turn => _turn;
 
-  reset() {
-    _array = List.generate(
-        Field.size, (_) => List.filled(Field.size, null, growable: false),
-        growable: false);
-    turn = Player.One;
-  }
-
   void undo() {
     if (lastChips.isNotEmpty) {
       int lastChip = lastChips.removeLast();
@@ -97,12 +97,6 @@ class FieldPlaying extends Field {
     }
   }
 
-  // TODO: there is a bug somewhere. You can win by placing here
-  // _________________  top of the board
-  // |   x           | only three
-  // |   x           | in a row here
-  // |   x           |
-  // |   o           | rest probably doesnt matter. or does it?
   WinDetails? checkWin() {
     const int range = Field.size - 4;
     for (int r = -range; r <= range; r++) {
@@ -124,8 +118,11 @@ class FieldPlaying extends Field {
         combo += 1;
         if (combo >= 4) {
           // print("won in first block");
-          return WinDetails(lastPlayer,
-              Point(i + r - (combo - 1), i - (combo - 1)), Point(1, 1));
+          return WinDetailsWinner(
+            lastPlayer,
+            Point(i + r - (combo - 1), i - (combo - 1)),
+            Point(1, 1),
+          );
           // return WinDetails(
           //     lastPlayer, Point(i + r - range, i - range), Point(i + r, i));
         }
@@ -151,7 +148,7 @@ class FieldPlaying extends Field {
         combo += 1;
         if (combo >= 4) {
           // print("won in second block");
-          return WinDetails(
+          return WinDetailsWinner(
               lastPlayer,
               Point(i + r + (combo - 1), realY - (combo - 1)),
               Point(-1, 1)); //- (combo - 1)
@@ -163,10 +160,10 @@ class FieldPlaying extends Field {
 
     final List<int> xCombo = List.filled(Field.size, 0);
     final List<Player?> xPlayer = List.filled(Field.size, null);
-    Player? lastPlayer;
-    int combo = 0;
     // List.generate(Field.size, (_) => List(), growable: false);
     for (int x = 0; x < Field.size; x++) {
+      Player? lastPlayer;
+      int combo = 0;
       for (int y = 0; y < Field.size; y++) {
         Player? cell = _array[x][y];
         if (cell == null) {
@@ -182,7 +179,7 @@ class FieldPlaying extends Field {
         lastPlayer = cell;
         if (combo >= 4) {
           // print("won in y block");
-          return WinDetails(
+          return WinDetailsWinner(
               lastPlayer, Point(x, max(0, y - combo + 1)), Point(0, 1));
         }
 
@@ -193,27 +190,41 @@ class FieldPlaying extends Field {
         xPlayer[y] = lastPlayer;
         if (xCombo[y] >= 4) {
           // print("won in x block");
-          return WinDetails(
+          return WinDetailsWinner(
               lastPlayer, Point(max(0, x - xCombo[y] + 1), y), Point(1, 0));
         }
       }
+    }
+
+    if (_array.every((column) => column.every((cell) => cell != null))) {
+      // Field completely full but no winner -> draw
+      return WinDetailsDraw();
     }
 
     return null;
   }
 }
 
-class WinDetails {
+abstract class WinDetails {}
+
+class WinDetailsWinner extends WinDetails {
   final bool me;
   final Player winner;
   final Point<int> start;
   final Point<int> delta;
 
-  WinDetails(this.winner, this.start, this.delta)
+  WinDetailsWinner(this.winner, this.start, this.delta)
       : this.me = winner == Player.One;
 
   @override
   String toString() {
     return "WinDetails: $winner (${me ? "Me" : "Opp."}). Start: $start, delta: $delta";
+  }
+}
+
+class WinDetailsDraw extends WinDetails {
+  @override
+  String toString() {
+    return "WinDetails: draw";
   }
 }

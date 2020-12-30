@@ -28,19 +28,21 @@ class Board extends StatelessWidget {
     List<Point> winning = [];
 
     if (details != null) {
-      Point<int> pointer = details.start;
-      for (int i = 0; i < Field.size; i++) {
-        if (pointer.x < 0 ||
-            pointer.x >= Field.size ||
-            pointer.y < 0 ||
-            pointer.y >= Field.size) {
-          break;
-        }
-        if (field.array[pointer.x][pointer.y] == details.winner) {
-          winning.add(pointer);
-          pointer += details.delta;
-        } else {
-          break;
+      if (details is WinDetailsWinner) {
+        Point<int> pointer = details.start;
+        for (int i = 0; i < Field.size; i++) {
+          if (pointer.x < 0 ||
+              pointer.x >= Field.size ||
+              pointer.y < 0 ||
+              pointer.y >= Field.size) {
+            break;
+          }
+          if (field.array[pointer.x][pointer.y] == details.winner) {
+            winning.add(pointer);
+            pointer += details.delta;
+          } else {
+            break;
+          }
         }
       }
     }

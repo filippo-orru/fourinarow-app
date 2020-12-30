@@ -78,13 +78,15 @@ class _MenuContentPlayOnlineState extends State<MenuContentPlayOnline> {
                   isConnected
                       ? (serverInfo == null
                           ? "..."
-                          : "Currently online: " +
-                              serverInfo.currentlyConnectedPlayers.toString() +
+                          : serverInfo.currentlyConnectedPlayers
+                                  .toNumberWord()
+                                  .capitalize() +
+                              " other player${serverInfo.currentlyConnectedPlayers == 1 ? "" : "s"} online" +
                               (serverInfo.playerWaitingInLobby
-                                  ? ". Player in queue"
+                                  ? ". Player is waiting for game"
                                   : ""))
                       : "No connection",
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(color: Colors.white.withOpacity(0.8)),
                 ),
               ),
             ),
@@ -92,6 +94,29 @@ class _MenuContentPlayOnlineState extends State<MenuContentPlayOnline> {
         ),
       ],
     );
+  }
+}
+
+extension NumberStrings on int {
+  String toNumberWord() {
+    switch (this) {
+      case 0:
+        return "zero";
+      case 1:
+        return "one";
+      case 2:
+        return "two";
+      case 3:
+        return "three";
+      default:
+        return this.toString();
+    }
+  }
+}
+
+extension StringTransform on String {
+  String capitalize() {
+    return this[0].toUpperCase() + this.substring(1);
   }
 }
 

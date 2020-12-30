@@ -3,6 +3,7 @@ import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/inherit/lifecycle.dart';
 import 'package:four_in_a_row/inherit/notifications.dart';
+import 'package:four_in_a_row/inherit/user.dart';
 
 import 'game_login_state.dart';
 import 'game_states/game_state.dart';
@@ -22,6 +23,8 @@ class GameStateManager with ChangeNotifier {
 
   NotificationsProviderState? notifications;
 
+  UserInfo? userInfo;
+
   late GameState _cgs; // currentGameState
   GameState get currentGameState => _cgs;
 
@@ -32,6 +35,7 @@ class GameStateManager with ChangeNotifier {
   CurrentServerInfo? get serverInfo => _serverInfo;
   set serverInfo(CurrentServerInfo? s) {
     _serverInfo = s;
+    _serverInfo!.currentlyConnectedPlayers--;
     if (s?.playerWaitingInLobby == true &&
         this._cgs is WaitingForWWOpponentState) {
       _serverInfo!.playerWaitingInLobby = false;
@@ -88,11 +92,15 @@ class GameStateManager with ChangeNotifier {
       _serverConnection.waitForOkay(duration: Duration(milliseconds: 400));
     }
 
-    // TODO fix login
-    /*if (this._gls is! GameLoginLoggedIn) {
-      this.outgoing.add(
-          PlayerMsgLogin(widget._userInfo.username, widget._userInfo.password));
-    }*/
+    var userInfo = this.userInfo;
+    if (userInfo != null &&
+        userInfo.username != null &&
+        userInfo.password != null) {
+      if (this._gls is! GameLoginLoggedIn) {
+        this.sendPlayerMessage(
+            PlayerMsgLogin(userInfo.username!, userInfo.password!));
+      }
+    }
 
     this._serverConnection.send(req.playerMsg);
     if (req is! ORqWorldwide) {

@@ -89,11 +89,10 @@ class _FriendsListState extends State<FriendsList>
                 child: Stack(
                   fit: StackFit.loose,
                   children: [
-                    Expanded(
-                        child: _FriendsListInner(
+                    _FriendsListInner(
                       userInfo: userInfo,
                       onBattleRequest: battleRequest,
-                    )),
+                    ),
                     Positioned(
                       right: 24,
                       bottom: BottomSheet.HEIGHT,
@@ -726,7 +725,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
   Map<int, PublicUser>? searchResults;
   bool searching = false;
   int? addingFriend;
-  String? searchText;
+  String searchText = "";
   List<int> successfullyAdded = new List.empty();
 
   void setSearchText(String text) {

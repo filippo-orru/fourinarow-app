@@ -87,11 +87,8 @@ class _PlayingLocalState extends State<PlayingLocal> {
                           await Future.delayed(
                             Duration(milliseconds: 300),
                             () {
-                              if (mounted)
-                                setState(
-                                  () => field
-                                      .dropChip(Random().nextInt(Field.size)),
-                                );
+                              field.dropChip(Random().nextInt(Field.size));
+                              if (mounted) setState(() {});
                             },
                           );
                         }

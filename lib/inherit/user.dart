@@ -19,11 +19,11 @@ class UserInfo with ChangeNotifier {
   // bool loadedInfo = false;
 
   String? username;
-  String? _password;
+  String? password;
 
   User? user;
 
-  bool get loggedIn => username != null && _password != null && user != null;
+  bool get loggedIn => username != null && password != null && user != null;
 
   UserInfo() {
     _prefs.then((_) {
@@ -41,7 +41,7 @@ class UserInfo with ChangeNotifier {
   void logOut() async {
     // this._ok = false;
     this.username = null;
-    this._password = null;
+    this.password = null;
     this.user = null;
 
     var prefs = await _prefs;
@@ -65,13 +65,20 @@ class UserInfo with ChangeNotifier {
     prefs.setString('password', password);
 
     this.username = username;
-    this._password = password;
+    this.password = password;
     _loadInfo();
   }
 
   Future<bool> addFriend(String id, [VoidCallback? callback]) async {
-    var response = await _client
-        .post("${constants.HTTP_URL}/api/users/me/friends?id=$id", body: _body);
+    var u = this.username;
+    var pw = this.password;
+    if (u == null || pw == null) {
+      return false;
+    }
+
+    var response = await _client.post(
+        "${constants.HTTP_URL}/api/users/me/friends?id=$id",
+        body: _body(u, pw));
     if (response.statusCode == 200) {
       if (callback != null) {
         callback();
@@ -94,13 +101,13 @@ class UserInfo with ChangeNotifier {
     }
 
     if (username == null) return null;
-    if (_password == null) return null;
+    if (password == null) return null;
     // rebuild();
 
     var req =
         http.Request("GET", Uri.parse('${constants.HTTP_URL}/api/users/me'))
           ..headers['Authorization'] = "Basic " +
-              base64.encode(Utf8Codec().encode(username! + ":" + _password!));
+              base64.encode(Utf8Codec().encode(username! + ":" + password!));
     // ..bodyFields = _body;
 
     try {

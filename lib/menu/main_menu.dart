@@ -345,34 +345,31 @@ class SearchingGameNotification extends StatefulWidget {
 class _SearchingGameNotificationState extends State<SearchingGameNotification> {
   bool collapsed = false;
 
-  Widget buildCollapseButton() {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        SizedBox(
-          height: 32,
-          width: 32,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        InkResponse(
-          // containedInkWell: true,
-          onTap: () {
-            setState(() {
-              collapsed = !collapsed;
-            });
-          },
-          child: Container(
-            padding: EdgeInsets.all(8),
-            child: Icon(
-              collapsed ? Icons.arrow_downward : Icons.arrow_upward,
-              size: 16,
-              color: Colors.white70,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  // Widget buildCollapseButton() {
+  //   return Stack(
+  //     alignment: Alignment.center,
+  //     children: [
+  //       SizedBox(
+  //         height: 32,
+  //         width: 32,
+  //         child: CircularProgressIndicator(strokeWidth: 2),
+  //       ),
+  //       // InkResponse(
+  //         // containedInkWell: true,
+
+  //         // child:
+  //         Container(
+  //           padding: EdgeInsets.all(8),
+  //           child: Icon(
+  //             collapsed ? Icons.arrow_downward : Icons.arrow_upward,
+  //             size: 16,
+  //             color: Colors.white70,
+  //           ),
+  //         ),
+  //       // ),
+  //     ],
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -392,92 +389,140 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
           ),
           duration: Duration(milliseconds: 180),
           child: widget.connected
-              ? collapsed
-                  ? Padding(
-                      padding: EdgeInsets.only(top: 14, left: 10),
-                      child: Material(
-                        borderRadius: BorderRadius.circular(100),
-                        color: Colors.black.withOpacity(0.8),
-                        clipBehavior: Clip.antiAlias,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              height: 48,
-                              child: AspectRatio(
-                                aspectRatio: 1,
-                              ),
-                            ),
-                            buildCollapseButton(),
-                          ],
-                        ),
-                      ),
-                    )
-                  : Material(
-                      borderRadius: BorderRadius.circular(10),
-                      clipBehavior: Clip.antiAlias,
-                      color: Colors.black.withOpacity(0.8),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: <Widget>[
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            bottom: 0,
-                            left: 0,
-                            child: Container(
-                              constraints: BoxConstraints.expand(),
-                              decoration: BoxDecoration(),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.all(18),
+              ? GestureDetector(
+                  key: ValueKey(collapsed),
+                  onTap: () {
+                    setState(() {
+                      collapsed = !collapsed;
+                    });
+                  },
+                  child: collapsed
+                      ? Padding(
+                          padding: EdgeInsets.only(top: 14, left: 10),
+                          child: Material(
+                            borderRadius: BorderRadius.circular(100),
+                            color: Colors.black.withOpacity(0.8),
+                            clipBehavior: Clip.antiAlias,
                             child: Stack(
                               alignment: Alignment.center,
-                              children: <Widget>[
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: buildCollapseButton(),
+                              children: [
+                                Container(
+                                  height: 48,
+                                  child: AspectRatio(
+                                    aspectRatio: 1,
+                                  ),
                                 ),
-                                Text(
-                                    'Searching for opponent\nThis might take a while',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.white)),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: Material(
-                                    borderRadius: BorderRadius.circular(6),
-                                    clipBehavior: Clip.antiAlias,
-                                    color: Colors.black87,
-                                    child: InkWell(
-                                      onTap: () => context
-                                          .read<GameStateManager>()
-                                          .leave(),
-                                      splashColor: Colors.white70,
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                            vertical: 12, horizontal: 8),
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(6),
-                                          border:
-                                              Border.all(color: Colors.white60),
-                                        ),
-                                        child: Text(
-                                          'Cancel',
-                                          style:
-                                              TextStyle(color: Colors.white70),
-                                        ),
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    SizedBox(
+                                      height: 32,
+                                      width: 32,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    ),
+                                    Container(
+                                      padding: EdgeInsets.all(8),
+                                      child: Icon(
+                                        collapsed
+                                            ? Icons.arrow_downward
+                                            : Icons.arrow_upward,
+                                        size: 16,
+                                        color: Colors.white70,
                                       ),
                                     ),
-                                  ),
-                                )
+                                  ],
+                                ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
-                    )
+                        )
+                      : Material(
+                          borderRadius: BorderRadius.circular(10),
+                          clipBehavior: Clip.antiAlias,
+                          color: Colors.black.withOpacity(0.8),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: <Widget>[
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                bottom: 0,
+                                left: 0,
+                                child: Container(
+                                  constraints: BoxConstraints.expand(),
+                                  decoration: BoxDecoration(),
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.all(18),
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: <Widget>[
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          SizedBox(
+                                            height: 32,
+                                            width: 32,
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
+                                          ),
+                                          Container(
+                                            padding: EdgeInsets.all(8),
+                                            child: Icon(
+                                              collapsed
+                                                  ? Icons.arrow_downward
+                                                  : Icons.arrow_upward,
+                                              size: 16,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text(
+                                        'Searching for opponent\nThis might take a while\nTap to minimize',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.white)),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: Material(
+                                        borderRadius: BorderRadius.circular(6),
+                                        clipBehavior: Clip.antiAlias,
+                                        color: Colors.black87,
+                                        child: InkWell(
+                                          onTap: () => context
+                                              .read<GameStateManager>()
+                                              .leave(),
+                                          splashColor: Colors.white70,
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 12, horizontal: 8),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              border: Border.all(
+                                                  color: Colors.white60),
+                                            ),
+                                            child: Text(
+                                              'Cancel',
+                                              style: TextStyle(
+                                                  color: Colors.white70),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                )
               : Container(
                   width: double.infinity,
                   padding: EdgeInsets.all(18),

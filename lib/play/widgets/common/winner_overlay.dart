@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
+import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:four_in_a_row/util/vibration.dart';
 
 import 'board.dart';
 
-class WinnerOverlay extends StatelessWidget {
+class WinnerOverlay extends StatefulWidget {
   const WinnerOverlay(
     this.winDetails, {
     this.useColorNames = true,
@@ -24,8 +26,24 @@ class WinnerOverlay extends StatelessWidget {
   final bool ranked;
 
   @override
+  _WinnerOverlayState createState() => _WinnerOverlayState();
+}
+
+class _WinnerOverlayState extends State<WinnerOverlay> {
+  @override
+  void didUpdateWidget(WinnerOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.winDetails == null && widget.winDetails != null) {
+      SystemUiStyle.playSelection();
+    } else if (oldWidget.winDetails != null && widget.winDetails == null) {
+      SystemUiStyle.mainMenu();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // print("checkwin: $winner");
+    var winDetails = this.widget.winDetails;
+
     return AnimatedSwitcher(
       duration: Duration(milliseconds: 280),
       reverseDuration: Duration(milliseconds: 350),
@@ -71,10 +89,12 @@ class WinnerOverlay extends StatelessWidget {
       child: winDetails == null
           ? SizedBox()
           : GestureDetector(
-              onTap: onTap,
+              onTap: widget.onTap,
               child: Container(
                 decoration: BoxDecoration(
-                  color: winDetails!.winner.color(),
+                  color: winDetails is WinDetailsWinner
+                      ? winDetails.winner.color()
+                      : Color.lerp(Colors.grey[700], Colors.blueAccent, 0.5),
                   // borderRadius: BorderRadius.all(Radius.circular(8)),
                   // boxShadow: [
                   //   BoxShadow(
@@ -96,54 +116,70 @@ class WinnerOverlay extends StatelessWidget {
                       constraints: BoxConstraints.expand(
                           height: MediaQuery.of(context).size.height * 0.2),
                       child: FittedBox(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Winner',
-                              style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white
-                                  // .withOpacity(0.9),
-                                  ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              (useColorNames
-                                      ? winDetails!.winner.colorWord
-                                      : winDetails!.winner.playerWord)
-                                  .toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 98,
-                                fontWeight: FontWeight.w900,
-                                fontStyle: FontStyle.italic,
-                                color: Colors.white,
-                              ),
-                            ),
-                            ranked
-                                ? TweenAnimationBuilder(
-                                    tween: IntTween(begin: 1, end: 25),
-                                    curve: Curves.easeInOutQuart,
-                                    duration: Duration(milliseconds: 1800),
-                                    builder: (ctx, int value, child) {
-                                      if (value % 3 == 0) Vibrations.tiny();
-                                      return Text(
-                                        (winDetails!.me ? "+" : "-") +
-                                            value.toString() +
-                                            " SR",
+                        child: (winDetails is WinDetailsDraw)
+                            ? Text(
+                                "DRAW",
+                                style: TextStyle(
+                                  fontSize: 98,
+                                  fontWeight: FontWeight.w900,
+                                  fontStyle: FontStyle.italic,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : winDetails is WinDetailsWinner
+                                ? Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Winner',
                                         style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w700,
-                                          // fontStyle: FontStyle.italic,
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white
+                                            // .withOpacity(0.9),
+                                            ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        (widget.useColorNames
+                                                ? winDetails.winner.colorWord
+                                                : winDetails.winner.playerWord)
+                                            .toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 98,
+                                          fontWeight: FontWeight.w900,
+                                          fontStyle: FontStyle.italic,
                                           color: Colors.white,
                                         ),
-                                      );
-                                    },
+                                      ),
+                                      widget.ranked
+                                          ? TweenAnimationBuilder(
+                                              tween:
+                                                  IntTween(begin: 1, end: 25),
+                                              curve: Curves.easeInOutQuart,
+                                              duration:
+                                                  Duration(milliseconds: 1800),
+                                              builder: (ctx, int value, child) {
+                                                if (value % 3 == 0)
+                                                  Vibrations.tiny();
+                                                return Text(
+                                                  (winDetails.me ? "+" : "-") +
+                                                      value.toString() +
+                                                      " SR",
+                                                  style: TextStyle(
+                                                    fontSize: 24,
+                                                    fontWeight: FontWeight.w700,
+                                                    // fontStyle: FontStyle.italic,
+                                                    color: Colors.white,
+                                                  ),
+                                                );
+                                              },
+                                            )
+                                          : SizedBox()
+                                    ],
                                   )
-                                : SizedBox()
-                          ],
-                        ),
+                                : throw UnimplementedError(
+                                    "Another WinDetails class?"),
                       ),
                     ),
                     // Expanded(child: Container()),
@@ -157,13 +193,13 @@ class WinnerOverlay extends StatelessWidget {
                             borderRadius: BorderRadius.all(Radius.circular(6)),
                             color: Colors.white,
                           ),
-                          child: IgnorePointer(child: board),
+                          child: IgnorePointer(child: widget.board),
                         ),
                       ),
                     ),
                     // SizedBox(height: 64),
                     Text(
-                      bottomText ?? "",
+                      widget.bottomText ?? "Tap to continue",
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.9),
                         fontWeight: FontWeight.w600,

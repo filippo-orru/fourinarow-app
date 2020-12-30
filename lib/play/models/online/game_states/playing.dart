@@ -151,9 +151,13 @@ class PlayingState extends GameState {
       if (winDetails != null) {
         field = FieldFinished(winDetails, field.array);
         notifyListeners();
-        if (winDetails.winner == this.me) {
-          Vibrations.win();
-        } else if (winDetails.winner == this.me.other) {
+        if (winDetails is WinDetailsWinner) {
+          if (winDetails.winner == this.me) {
+            Vibrations.win();
+          } else if (winDetails.winner == this.me.other) {
+            Vibrations.loose();
+          }
+        } else {
           Vibrations.loose();
         }
       }

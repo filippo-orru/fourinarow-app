@@ -60,6 +60,7 @@ class _MyAppState extends State<MyApp> {
     var gsm = context.read<GameStateManager>();
     gsm.lifecycle ??= LifecycleProvider.of(ctx);
     gsm.notifications ??= NotificationsProvider.of(ctx);
+    gsm.userInfo ??= context.read<UserInfo>();
   }
 
   @override

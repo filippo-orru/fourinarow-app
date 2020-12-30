@@ -26,11 +26,6 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
         ..pushReplacement(MaterialPageRoute(
             builder: (BuildContext context) => FriendsList()));
     });
-
-    // TODO successfully logged in
-/*    context.read<UserInfos>()
-    }
-    */
   }
 
   @override
