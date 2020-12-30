@@ -64,12 +64,15 @@ class Board extends StatelessWidget {
                 .map((x, column) {
                   return MapEntry(
                     x,
-                    _CreateRow(
-                      x,
-                      dropChip: _dropChip,
-                      winning: winning,
-                      column: column,
-                    ),
+                    _CreateRow(x,
+                        dropChip: _dropChip,
+                        winning: winning,
+                        column: column,
+                        lastPlacedChipY: _field is FieldPlaying
+                            ? _field.lastPlacedChip?.x == x
+                                ? _field.lastPlacedChip!.y
+                                : null
+                            : null),
                   );
                 })
                 .values
@@ -88,6 +91,7 @@ class _CreateRow extends StatelessWidget {
     required this.column,
     required Function(int) dropChip,
     required this.winning,
+    required this.lastPlacedChipY,
   })   : _dropChip = dropChip,
         super(key: key);
 
@@ -95,6 +99,7 @@ class _CreateRow extends StatelessWidget {
   final List<Player?> column;
   final Function(int) _dropChip;
   final List<Point> winning;
+  final int? lastPlacedChipY;
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +119,7 @@ class _CreateRow extends StatelessWidget {
                       Point<int>(x, y),
                       cell: cell,
                       winning: winning.contains(Point<int>(x, y)),
+                      wasLastPlaced: lastPlacedChipY == y,
                     ),
                   );
                 })
@@ -131,6 +137,7 @@ class _CreateCell extends StatelessWidget {
     this.point, {
     required this.cell,
     required this.winning,
+    required this.wasLastPlaced,
     Key? key,
   }) : super(key: key);
 
@@ -138,6 +145,7 @@ class _CreateCell extends StatelessWidget {
   final Player? cell;
   // final WinDetails details;
   final bool winning;
+  final bool wasLastPlaced;
 
   @override
   Widget build(BuildContext context) {
@@ -150,20 +158,14 @@ class _CreateCell extends StatelessWidget {
       }
     }
 
-    // if (details != null) {
-    // if (details.player == cell) {
-    //   Point<int> pointDelta = point - details.start;
-    //   for (int i = -4; i < 4; i++) {
-    //     if (pointDelta + details.delta * i == details.delta * 3) {
-    //       break;
-    //     }
-    //   }
-    // }
-    // }
     return Expanded(
       child: Stack(children: [
         GameChipStatic(Color(0xFFDEDEDE)),
         chip,
+        wasLastPlaced
+            ? Transform.scale(
+                scale: 0.16, child: GameChip(Colors.white.withOpacity(0.6)))
+            : SizedBox(),
       ]),
     );
   }

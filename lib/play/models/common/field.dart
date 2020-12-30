@@ -33,6 +33,7 @@ class FieldPlaying extends Field {
   // int _chips = 0;
   Player turn = Player.One;
   List<int> lastChips = [];
+  Point<int>? lastPlacedChip;
 
   FieldPlaying() {
     this.reset();
@@ -62,6 +63,7 @@ class FieldPlaying extends Field {
       for (var i = 0; i <= len; i++) {
         if (i == len || _array[column][i] != null) {
           _array[column][i - 1] = turn;
+          lastPlacedChip = Point(column, i - 1);
           break;
         }
       }
