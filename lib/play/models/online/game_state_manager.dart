@@ -148,6 +148,8 @@ class GameStateManager with ChangeNotifier {
       if (lifecycle!.state != AppLifecycleState.resumed) {
         notifications!.comeToPlay();
       }
+    } else if (msg is MsgReset) {
+      hideViewer = true;
     }
   }
 

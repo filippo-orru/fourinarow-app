@@ -118,33 +118,29 @@ class _MyAppState extends State<MyApp> {
                         Positioned(
                           top: MediaQuery.of(ctx).padding.top,
                           right: 0,
-                          child: Opacity(
-                            opacity: 1,
-                            // opacity: 0.4,
-                            child: Container(
-                              margin: EdgeInsets.all(16), //top: 32, right:
-                              decoration: BoxDecoration(
-                                color: Colors.white54,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(4)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    blurRadius: 4,
-                                    color: Colors.black12,
-                                    offset: Offset(0, 0),
-                                  ),
-                                ],
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 4),
-                              child: Text(
-                                'BETA2',
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontFamily: 'Roboto',
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                          child: Container(
+                            margin: EdgeInsets.all(16), //top: 32, right:
+                            decoration: BoxDecoration(
+                              color: Colors.white54,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(4)),
+                              boxShadow: [
+                                BoxShadow(
+                                  blurRadius: 4,
+                                  color: Colors.black12,
+                                  offset: Offset(0, 0),
                                 ),
+                              ],
+                            ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 4),
+                            child: Text(
+                              'BETA2',
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontFamily: 'Roboto',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -154,18 +150,7 @@ class _MyAppState extends State<MyApp> {
                           left: 0,
                           right: 0,
                           child: Selector<GameStateManager, List<dynamic>>(
-                              //
                               shouldRebuild: (list1, list2) {
-                                // var x = !listEquals(list1, list2);
-                                //   var x = gsm1.showViewer != gsm2.showViewer ||
-                                //       gsm1.hideViewer != gsm2.hideViewer ||
-                                //       gsm1.currentGameState
-                                //               is WaitingForWWOpponentState !=
-                                //           gsm2.currentGameState
-                                //               is WaitingForWWOpponentState ||
-                                //       gsm1.connected != gsm2.connected;
-                                // print(
-                                //     "shouldRebuild=$x (prev: $list1, next: $list2");
                                 return !listEquals(list1, list2);
                               },
                               selector: (_, gsm) => [
@@ -187,19 +172,20 @@ class _MyAppState extends State<MyApp> {
                                 }
 
                                 if (gsm.hideViewer) {
+                                  // gsm.closingViewer();
                                   Future.delayed(Duration.zero, () {
                                     _navigator.pop();
                                   });
-                                  // gsm.hideViewer = false;
                                 }
                                 return TweenAnimationBuilder(
+                                    curve: Curves.easeOutQuad,
                                     tween: Tween<double>(
                                         begin: 1,
                                         end: gsm.currentGameState
                                                 is WaitingForWWOpponentState
                                             ? 0
                                             : 1),
-                                    duration: Duration(milliseconds: 350),
+                                    duration: Duration(milliseconds: 250),
                                     builder: (_, val, child) =>
                                         Transform.translate(
                                             offset: Offset(0, -144 * val),

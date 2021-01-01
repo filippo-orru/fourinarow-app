@@ -166,52 +166,24 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
 
   @override
   Widget build(BuildContext context) {
-    var elements = widget.userInfo.user?.friends
-        .asMap()
-        .map((i, PublicUser f) {
-          var tile = FriendListDisplay(f, widget.onBattleRequest);
-          if (i != widget.userInfo.user!.friends.length - 1) {
-            return MapEntry(
-              i,
-              Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  tile,
-                  Container(
-                    // indent: 12,
-                    // endIndent: 12,
-                    margin: EdgeInsets.symmetric(horizontal: 12),
-                    constraints: BoxConstraints.expand(height: 2),
-                    color: Colors.black.withOpacity(0.1),
-                  ),
-                ],
-              ),
-            );
-          } else {
-            return MapEntry(i, tile);
-          }
-        })
-        .values
-        .toList();
     return RefreshIndicator(
       onRefresh: () => widget.userInfo.refresh().then((_) => setState(() {})),
-      // () {
-      // refreshKey.currentState?.show(atTop: false);
-      //   return userInfo.refresh();
-      // },
       key: widget.refreshKey,
-      child: ListView(
-        padding: EdgeInsets.only(bottom: 0), // BottomSheet.HEIGHT + 128
-        children: elements == null || elements.isEmpty
-            ? [
-                Container(
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.only(top: 24),
-                  child: Text("No friends yet. Add some to get started!"),
-                )
-              ]
-            : elements + [SizedBox(height: 192)],
-      ),
+      child: widget.userInfo.user?.friends.isNotEmpty == true
+          ? ListView.builder(
+              itemCount: widget.userInfo.user?.friends.length ?? 0,
+              itemBuilder: (_, index) {
+                bool isLast = index != widget.userInfo.user!.friends.length - 1;
+                return FriendsListTile(widget.userInfo.user!.friends[index],
+                    widget.onBattleRequest, isLast);
+              },
+              padding: EdgeInsets.only(bottom: 164),
+            )
+          : Container(
+              alignment: Alignment.center,
+              padding: EdgeInsets.only(top: 24),
+              child: Text("No friends yet. Add some to get started!"),
+            ),
     );
   }
 }
@@ -557,16 +529,17 @@ class _BottomSheetState extends State<BottomSheet>
   }
 }
 
-class FriendListDisplay extends StatelessWidget {
-  FriendListDisplay(this.friend, this.battleRequest, {Key? key})
-      : super(key: key);
-
+class FriendsListTile extends StatelessWidget {
   final PublicUser friend;
   final void Function(String) battleRequest;
+  final bool isLast;
+
+  FriendsListTile(this.friend, this.battleRequest, this.isLast, {Key? key})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    var tile = ListTile(
       enabled: true,
       title: Text(
         friend.name,
@@ -591,10 +564,25 @@ class FriendListDisplay extends StatelessWidget {
               ),
             )
           : SizedBox(),
-      // ],
-      // ),
-      // ),
     );
+    if (isLast) {
+      return Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 2),
+            child: tile,
+          ),
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 12),
+            constraints: BoxConstraints.expand(height: 2),
+            color: Colors.black.withOpacity(0.1),
+          ),
+        ],
+      );
+    } else {
+      return tile;
+    }
   }
 }
 
@@ -698,6 +686,8 @@ class _BattleRequestDialogState extends State<BattleRequestDialog> {
 }
 
 class AddFriendDialog extends StatefulWidget {
+  static const int MIN_SEARCH_LEN = 3;
+
   AddFriendDialog({
     Key? key,
     // @required this.searchResults,
@@ -722,7 +712,7 @@ class AddFriendDialog extends StatefulWidget {
 }
 
 class _AddFriendDialogState extends State<AddFriendDialog> {
-  Map<int, PublicUser>? searchResults;
+  List<PublicUser>? searchResults;
   bool searching = false;
   int? addingFriend;
   String searchText = "";
@@ -733,9 +723,17 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
   }
 
   void search() async {
+    if (searchText.length < AddFriendDialog.MIN_SEARCH_LEN) {
+      return;
+    }
+
     setState(() {
       searching = true;
     });
+    if (searchText == "####") {
+      searchText = "";
+    }
+
     String url = "${constants.HTTP_URL}/api/users?search=$searchText";
     late final response;
     try {
@@ -745,18 +743,18 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
     }
 
     if (response.statusCode == 200) {
-      searchResults = (jsonDecode(response.body) as List<dynamic>)
+      Map<int, PublicUser> temp = (jsonDecode(response.body) as List<dynamic>)
           .asMap()
           .map<int, PublicUser?>((i, dyn) {
         PublicUser? user = PublicUser.fromMap(dyn as Map<String, dynamic>);
         if (user == null) return MapEntry(i, null);
         return MapEntry(i, user);
       }).filterNotNull();
+      searchResults = temp.values.toList();
 
-      searchResults!
-          .removeWhere((index, publicUser) => publicUser.id == widget.myId);
+      searchResults!.removeWhere((publicUser) => publicUser.id == widget.myId);
 
-      searchResults!.forEach((index, publicUser) {
+      searchResults!.forEach((publicUser) {
         if (widget.userInfo.user?.friends.any((f) => f.id == publicUser.id) ==
             true) {
           publicUser.isFriend = true;
@@ -777,7 +775,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
     setState(() => addingFriend = index);
     // if (
     await widget.userInfo.addFriend(id);
-    searchResults?.forEach((index, publicUser) {
+    searchResults?.forEach((publicUser) {
       if (widget.userInfo.user?.friends.any((f) => f.id == publicUser.id) ==
           true) {
         publicUser.isFriend = true;
@@ -802,6 +800,8 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
 
   @override
   Widget build(BuildContext context) {
+    var mediaQuery = MediaQuery.of(context);
+
     return OverlayDialog(
       widget.visible,
       hide: () {
@@ -809,8 +809,12 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
         widget.hide();
       },
       child: Container(
-        height: 170.0 + (searchResults != null ? 200 : 0),
-        width: min(450, MediaQuery.of(context).size.width * 0.85),
+        height: 170.0 +
+            (searchResults == null
+                ? 0
+                : (mediaQuery.viewInsets.bottom > 20 ? double.infinity : 350)),
+        margin: EdgeInsets.symmetric(vertical: 20),
+        width: max(200, min(450, mediaQuery.size.width * 0.85)),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(12)),
           color: Colors.white,
@@ -896,29 +900,9 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
     );
   }
 
-  Widget buildSearchresults(Map<int, PublicUser> searchResults) {
-    Map<int, Widget> results = searchResults.map((index, publicUser) {
-      return MapEntry(
-          index,
-          ListTile(
-            title: Text(publicUser.name),
-            subtitle: Text("SR: ${publicUser.gameInfo.skillRating}"),
-            trailing: IconButton(
-              splashColor: Colors.red[700]!.withOpacity(0.5),
-              highlightColor: Colors.red[700]!.withOpacity(0.5),
-              icon: publicUser.isFriend
-                  ? Icon(Icons.check)
-                  : addingFriend == index
-                      ? CircularProgressIndicator()
-                      : Icon(Icons.person_add),
-              onPressed: publicUser.isFriend
-                  ? () {}
-                  : () => addFriend(publicUser.id, index),
-            ),
-          ));
-    });
+  Widget buildSearchresults(List<PublicUser> searchResults) {
     return Expanded(
-      child: results.isEmpty
+      child: searchResults.isEmpty
           ? Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
@@ -929,12 +913,48 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
                       ))),
             )
           : Scrollbar(
-              child: ListView(
+              child: ListView.builder(
+                itemCount: searchResults.length,
+                itemBuilder: (_, index) {
+                  PublicUser? publicUser = searchResults[index];
+                  return FriendSearchResult(
+                      publicUser, addingFriend, index, addFriend);
+                },
                 padding: EdgeInsets.zero,
                 shrinkWrap: true,
-                children: results.values.toList(),
               ),
             ),
+    );
+  }
+}
+
+class FriendSearchResult extends StatelessWidget {
+  const FriendSearchResult(
+      this.publicUser, this.addingFriend, this.index, this.addFriend,
+      {Key? key})
+      : super(key: key);
+
+  final int? addingFriend;
+  final PublicUser publicUser;
+  final int index;
+  final void Function(String, int) addFriend;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(publicUser.name),
+      subtitle: Text("SR: ${publicUser.gameInfo.skillRating}"),
+      trailing: IconButton(
+        splashColor: Colors.red[700]!.withOpacity(0.5),
+        highlightColor: Colors.red[700]!.withOpacity(0.5),
+        icon: publicUser.isFriend
+            ? Icon(Icons.check)
+            : addingFriend == index
+                ? CircularProgressIndicator()
+                : Icon(Icons.person_add),
+        onPressed:
+            publicUser.isFriend ? () {} : () => addFriend(publicUser.id, index),
+      ),
     );
   }
 }

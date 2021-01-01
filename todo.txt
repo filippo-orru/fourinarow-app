@@ -4,4 +4,5 @@ x server legacy mode: somehow create clientstate from client connection like it 
 x upgrade app message
 
 - smarter versioning: rename v2 to "new" or alternate?
-- dialog explaining the search popup
+x dialog explaining the search popup
+x "i'm 13 or older" dialog to access chat

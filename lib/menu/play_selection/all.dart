@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
+import 'package:four_in_a_row/main.dart';
 import 'package:four_in_a_row/menu/account/offline.dart';
 import 'package:four_in_a_row/menu/main_menu.dart';
 import 'package:four_in_a_row/menu/outdated.dart';
@@ -95,9 +96,9 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
               '''
 ▻ Finding another player could take a while, please be patient\n
 ▻ Chat or play locally while waiting\n
-▻ Keep the app open and you will get a notification once a game is found
+▻ Don't close the app so you will get a notification once a game is found
 
-Dialog will show ${howManyMoreTimes == 0 ? "no" : howManyMoreTimes} more time${howManyMoreTimes == 1 ? "" : "s"}.''',
+Dialog will show ${howManyMoreTimes == 0 ? "no" : howManyMoreTimes.toNumberWord()} more time${howManyMoreTimes == 1 ? "" : "s"}.''',
               style: TextStyle(color: Colors.black, fontSize: 16, height: 1.3),
             ),
             SizedBox(height: 12),
@@ -136,14 +137,29 @@ Dialog will show ${howManyMoreTimes == 0 ? "no" : howManyMoreTimes} more time${h
     });
   }
 
-  @override
-  void didPopNext() {
-    SystemUiStyle.playSelection();
-  }
+  late RouteObserver _routeObserver;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _routeObserver = RouteObserverProvider.of(context).observer
+      ..subscribe(this, ModalRoute.of(context)!);
+    SystemUiStyle.playSelection();
+  }
+
+  @override
+  void dispose() {
+    _routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPush() {
+    SystemUiStyle.playSelection();
+  }
+
+  @override
+  void didPopNext() {
     SystemUiStyle.playSelection();
   }
 
@@ -542,7 +558,7 @@ class _SwipeDialogState extends State<SwipeDialog>
                                   BorderRadius.all(Radius.circular(6)),
                               color: Colors.white.withOpacity(0.82),
                             ),
-                            child: Text('Try swyping from side to side!',
+                            child: Text('Try swiping from side to side!',
                                 style: TextStyle(
                                     fontSize: 16, color: Colors.black87)),
                           ),

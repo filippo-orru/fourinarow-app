@@ -57,7 +57,6 @@ class ServerConnection with ChangeNotifier {
   ServerConnection() {
     _connect();
     _resendQueuedInterval();
-    _checkConnectionInterval();
     _sendPingsInterval();
   }
 
@@ -102,7 +101,6 @@ class ServerConnection with ChangeNotifier {
     print("   #CONNECT# (${this._connectionTries}. try)");
 
     _reconnectionTimer?.cancel();
-    _connectionWasLostTimer?.cancel();
     _connection?.close();
     try {
       HttpClient client = HttpClient();
@@ -164,6 +162,7 @@ class ServerConnection with ChangeNotifier {
 
     await Future.delayed(Duration(milliseconds: 100));
 
+    _connectionWasLostTimer?.cancel();
     this._wsInSub?.cancel();
     _wsInSub = _handleWsIn(_connection!);
     this._reliablePktOutSub?.cancel();
@@ -244,12 +243,17 @@ class ServerConnection with ChangeNotifier {
   }
 
   StreamSubscription _handlePlayerMsg() {
-    return this._playerMsgStreamCtrl.stream.listen((msg) {
-      this._playerMsgIndex += 1;
-      this
-          ._reliablePktOutStreamCtrl
-          .add(ReliablePktMsgOut(this._playerMsgIndex, msg));
-    });
+    return this._playerMsgStreamCtrl.stream.listen(
+      (msg) {
+        this._playerMsgIndex += 1;
+        this
+            ._reliablePktOutStreamCtrl
+            .add(ReliablePktMsgOut(this._playerMsgIndex, msg));
+      },
+      onError: this._websocketErr,
+      cancelOnError: true,
+      onDone: this._connect,
+    );
   }
 
   void _receivedWsMsg(dynamic msg) {
@@ -311,10 +315,12 @@ class ServerConnection with ChangeNotifier {
         }
       }
     });
-    _connectionWasLostTimer =
-        Timer(Duration(seconds: CONNECTION_WAS_LOST_TIMEOUT_S), () {
-      _serverMsgStreamCtrl.add(MsgReset());
-    });
+    if (_connectionWasLostTimer?.isActive != true) {
+      _connectionWasLostTimer =
+          Timer(Duration(seconds: CONNECTION_WAS_LOST_TIMEOUT_S), () {
+        _serverMsgStreamCtrl.add(MsgReset());
+      });
+    }
     _reconnectionTimer = Timer(timeout, () {
       if (!connected) _connect();
     });
@@ -415,28 +421,6 @@ class ServerConnection with ChangeNotifier {
         }
       });
     } while (added);
-  }
-
-  void _checkConnectionInterval() {
-    // Timer.periodic(Duration(milliseconds: CHECK_CONN_INTERVAL_MS), (_) {
-    //   if (_connection?.closeCode != null ||
-    //       _sessionState is! SessionStateConnected) {
-    //     print("call from _checkConnectionInterval");
-    //     this._connect();
-    //   }
-    // });
-  }
-  void _listenToConnectivity() {
-    var lastResult = ConnectivityResult.none;
-    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-      if (result == ConnectivityResult.wifi ||
-          result == ConnectivityResult.mobile) {
-        if (lastResult == ConnectivityResult.none && !connected) {
-          _connect();
-        }
-      }
-      lastResult = result;
-    });
   }
 
   void _resendQueuedInterval() {

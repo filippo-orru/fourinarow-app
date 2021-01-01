@@ -2,9 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:four_in_a_row/main.dart';
 
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
+import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:four_in_a_row/util/vibration.dart';
 
 import '../common/common.dart';
@@ -18,7 +20,7 @@ class PlayingLocal extends StatefulWidget {
   _PlayingLocalState createState() => _PlayingLocalState();
 }
 
-class _PlayingLocalState extends State<PlayingLocal> {
+class _PlayingLocalState extends State<PlayingLocal> with RouteAware {
   FieldPlaying field = FieldPlaying();
 
   _dropChip(int column) {
@@ -33,6 +35,27 @@ class _PlayingLocalState extends State<PlayingLocal> {
 
   _fieldReset() {
     setState(() => field.reset());
+  }
+
+  late RouteObserver _routeObserver;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _routeObserver = RouteObserverProvider.of(context).observer
+      ..subscribe(this, ModalRoute.of(context)!);
+    SystemUiStyle.mainMenu();
+  }
+
+  @override
+  void dispose() {
+    _routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPush() {
+    SystemUiStyle.mainMenu();
   }
 
   @override

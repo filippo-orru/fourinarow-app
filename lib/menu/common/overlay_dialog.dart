@@ -74,19 +74,10 @@ class _OverlayDialogState extends State<OverlayDialog>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () {
-        if (widget.show) {
-          _hide(true);
-          return Future.value(false);
-        } else {
-          return Future.value(true);
-        }
-      },
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 120),
-        margin: MediaQuery.of(context).viewInsets,
-        child: AnimatedBuilder(
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        AnimatedBuilder(
           animation: animCtrl,
           builder: (ctx, child) =>
               Opacity(opacity: opacityAnim.value, child: child),
@@ -97,7 +88,29 @@ class _OverlayDialogState extends State<OverlayDialog>
                     constraints: BoxConstraints.expand(),
                     color: Colors.black26,
                     alignment: Alignment.center,
-                    child: GestureDetector(
+                    child: SizedBox(),
+                  ),
+                )
+              : SizedBox(),
+        ),
+        WillPopScope(
+          onWillPop: () {
+            if (widget.show) {
+              _hide(true);
+              return Future.value(false);
+            } else {
+              return Future.value(true);
+            }
+          },
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 80),
+            margin: MediaQuery.of(context).viewInsets,
+            child: AnimatedBuilder(
+              animation: animCtrl,
+              builder: (ctx, child) =>
+                  Opacity(opacity: opacityAnim.value, child: child),
+              child: this.show
+                  ? GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () {},
                       child: AnimatedBuilder(
@@ -108,12 +121,12 @@ class _OverlayDialogState extends State<OverlayDialog>
                         ),
                         child: widget.child,
                       ),
-                    ),
-                  ),
-                )
-              : SizedBox(),
+                    )
+                  : SizedBox(),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

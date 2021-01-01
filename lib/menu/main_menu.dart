@@ -12,6 +12,7 @@ import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_login_state.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'common/play_button.dart';
 
 import 'package:provider/provider.dart';
@@ -66,6 +67,7 @@ PageRouteBuilder slideUpRoute(Widget content) {
 
 class _MainMenuState extends State<MainMenu> with RouteAware {
   bool loadingUserInfo = false;
+  late final SharedPreferences sharedPrefs;
 
   void accountCheck({bool force = false}) async {
     var gsm = context.read<UserInfo>();
@@ -92,21 +94,42 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
     }*/
   }
 
-  void showChat() {
-    Navigator.of(context).push(slideUpRoute(ChatScreen()));
+  void showChat() async {
+    bool hasAcceptedChat = false;
+    if (sharedPrefs.containsKey("hasAcceptedChat")) {
+      hasAcceptedChat = sharedPrefs.getBool("hasAcceptedChat");
+    }
+    if (hasAcceptedChat) {
+      Navigator.of(context).push(slideUpRoute(ChatScreen()));
+    } else {
+      bool? accepted = await showDialog(
+          context: context,
+          builder: (_) {
+            return ChatAcceptDialog();
+          });
+      if (accepted == true) {
+        sharedPrefs.setBool("hasAcceptedChat", true);
+        Navigator.of(context).push(slideUpRoute(ChatScreen()));
+      }
+    }
   }
 
   @override
   void initState() {
     super.initState();
+
+    SharedPreferences.getInstance().then((prefs) {
+      this.sharedPrefs = prefs;
+    });
   }
+
+  late RouteObserver _routeObserver;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    RouteObserverProvider.of(context)
-        .observer
-        .subscribe(this, ModalRoute.of(context)!);
+    _routeObserver = RouteObserverProvider.of(context).observer
+      ..subscribe(this, ModalRoute.of(context)!);
     SystemUiStyle.mainMenu();
   }
 
@@ -117,7 +140,7 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
 
   @override
   void dispose() {
-    RouteObserverProvider.of(context).observer.unsubscribe(this);
+    _routeObserver.unsubscribe(this);
     super.dispose();
   }
 
@@ -345,40 +368,13 @@ class SearchingGameNotification extends StatefulWidget {
 class _SearchingGameNotificationState extends State<SearchingGameNotification> {
   bool collapsed = false;
 
-  // Widget buildCollapseButton() {
-  //   return Stack(
-  //     alignment: Alignment.center,
-  //     children: [
-  //       SizedBox(
-  //         height: 32,
-  //         width: 32,
-  //         child: CircularProgressIndicator(strokeWidth: 2),
-  //       ),
-  //       // InkResponse(
-  //         // containedInkWell: true,
-
-  //         // child:
-  //         Container(
-  //           padding: EdgeInsets.all(8),
-  //           child: Icon(
-  //             collapsed ? Icons.arrow_downward : Icons.arrow_upward,
-  //             size: 16,
-  //             color: Colors.white70,
-  //           ),
-  //         ),
-  //       // ),
-  //     ],
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Theme(
       data: Theme.of(context).copyWith(
           accentColor: Colors.white70, colorScheme: ColorScheme.light()),
       child: Container(
-        // width: double.infinity,
-        margin: EdgeInsets.all(12),
+        margin: EdgeInsets.all(12).copyWith(top: 24),
         child: AnimatedSwitcher(
           layoutBuilder: (currentChild, previousChildren) => Stack(
             children: <Widget>[
@@ -388,6 +384,8 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
             alignment: Alignment.topLeft,
           ),
           duration: Duration(milliseconds: 180),
+          switchInCurve: Curves.easeOutQuad,
+          switchOutCurve: Curves.easeInQuad,
           child: widget.connected
               ? GestureDetector(
                   key: ValueKey(collapsed),
@@ -549,6 +547,78 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
                 ),
         ),
       ),
+    );
+  }
+}
+
+class ChatAcceptDialog extends StatefulWidget {
+  @override
+  _ChatAcceptDialogState createState() => _ChatAcceptDialogState();
+}
+
+class _ChatAcceptDialogState extends State<ChatAcceptDialog> {
+  bool oldEnough = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      title: Text(
+        'Access Chat',
+        style: TextStyle(
+          fontFamily: 'RobotoSlab',
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      contentPadding: EdgeInsets.all(16),
+      children: [
+        Text(
+          'The chat allows anonymous posting of short messages that can be read by anyone currently online and will be deleted once you close the app',
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Checkbox(
+              focusColor: Colors.blueAccent.withOpacity(0.9),
+              value: oldEnough,
+              onChanged: (v) {
+                if (v == null) return;
+                setState(() => oldEnough = v);
+              },
+            ),
+            GestureDetector(
+              onTap: () {
+                setState(() => oldEnough = !oldEnough);
+              },
+              child: Text(
+                "I'm more than 13 years old",
+                style: TextStyle(),
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FlatButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Cancel'.toUpperCase()),
+            ),
+            SizedBox(width: 12),
+            FlatButton(
+              color: Colors.blueAccent.withOpacity(1),
+              disabledColor: Colors.grey[300],
+              onPressed:
+                  !oldEnough ? null : () => Navigator.of(context).pop(true),
+              child: Text(
+                'ACCEPT',
+                style:
+                    TextStyle(color: oldEnough ? Colors.white : Colors.black45),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
