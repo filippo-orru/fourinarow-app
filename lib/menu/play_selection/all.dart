@@ -56,6 +56,8 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
     // TODO speed up waves?
   }
   void tappedPlayOnline() async {
+    if (!mounted) return;
+
     var shownDialogCount = 0;
     if (_sharedPrefs.containsKey("shownOnlineDialogCount")) {
       shownDialogCount = _sharedPrefs.getInt("shownOnlineDialogCount");
