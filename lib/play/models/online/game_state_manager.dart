@@ -65,10 +65,7 @@ class GameStateManager with ChangeNotifier {
   bool _hideViewer = false;
   bool get hideViewer => _hideViewer;
   set hideViewer(s) {
-    if (isViewing) {
-      _hideViewer = s;
-      if (s) notifyListeners();
-    }
+    _hideViewer = s;
   }
 
   bool isViewing = false;
