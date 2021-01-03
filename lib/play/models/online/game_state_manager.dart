@@ -18,6 +18,10 @@ class GameStateManager with ChangeNotifier {
       if (lifecycle!.state == AppLifecycleState.detached) {
         leave();
       }
+      if (!connected && lifecycle!.state == AppLifecycleState.resumed) {
+        print("   #FORCE CNNCT# (app resumed)");
+        _serverConnection.retryConnection();
+      }
     });
   }
 
