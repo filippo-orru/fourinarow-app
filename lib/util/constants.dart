@@ -6,11 +6,13 @@ const HOST = useLocalServer ? "192.168.178.42" : "fourinarow.ml";
 const PORT = useLocalServer ? 40146 : 80;
 const HOST_PORT = useLocalServer ? "$HOST:$PORT" : HOST;
 
-const HTTP_URL = (useLocalServer ? "http" : "https") + "://$HOST_PORT";
+const HTTP_PREFIX = "http" + (useLocalServer ? "" : "s");
+const WS_PREFIX = "ws" + (useLocalServer ? "" : "s");
+const HTTP_URL = HTTP_PREFIX + "://$HOST_PORT";
 
 const WS_PATH = "$HOST_PORT/game/";
 
-const WS_URL = (useLocalServer ? "http" : "https") + "://$WS_PATH";
+// const WS_URL = (useLocalServer ? "http" : "https") + "://$WS_PATH";
 
 const String alphabet = "abcdefghijklmnopqrstuvwxyz";
 

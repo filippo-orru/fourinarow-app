@@ -196,7 +196,7 @@ class _MyAppState extends State<MyApp> {
                         ),
                       ]),
                     ),
-                    Platform.isIOS
+                    !kIsWeb && Platform.isIOS
                         ? GestureDetector(
                             onTap: () => _navigator?.maybePop(),
                             child: Container(

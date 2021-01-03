@@ -5,6 +5,7 @@ import 'dart:typed_data';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/foundation.dart';
+import 'package:stream_channel/stream_channel.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -15,7 +16,7 @@ import 'messages.dart';
 const int CONNECTION_WAS_LOST_TIMEOUT_S = 30;
 
 class ServerConnection with ChangeNotifier {
-  WebSocket? _connection;
+  WebSocketChannel? _connection;
 
   Timer? _reconnectionTimer;
 
@@ -84,14 +85,10 @@ class ServerConnection with ChangeNotifier {
     _wsInStreamCtrl.close();
     _reliablePktOutStreamCtrl.close();
 
-    _connection?.close();
+    _connection?.sink.close();
   }
 
   void _connect({bool force = false, bool reset = false}) async {
-    if (kIsWeb) {
-      throw UnimplementedError();
-    }
-
     if ((_sessionState is SessionStateOutDated ||
             _sessionState is SessionStateConnected) &&
         !force) {
@@ -101,72 +98,21 @@ class ServerConnection with ChangeNotifier {
     print("   #CONNECT# (${this._connectionTries}. try)");
 
     _reconnectionTimer?.cancel();
-    _connection?.close();
-    try {
-      HttpClient client = HttpClient();
-      HttpClientRequest? request = await client
-          .getUrl(Uri.parse(WS_URL))
-          .timeout(Duration(seconds: 7))
-          .then<HttpClientRequest?>((r) => r)
-          .catchError((_, __) {
-        client.close(force: true);
-        return null;
-      });
-      if (request == null) {
-        _websocketDone();
-        return;
-      }
-      Random random = new Random();
-      // Generate 16 random bytes.
-      Uint8List nonceData = new Uint8List(16);
-      for (int i = 0; i < 16; i++) {
-        nonceData[i] = random.nextInt(256);
-      }
-      request.headers
-        ..set(HttpHeaders.connectionHeader, "Upgrade")
-        ..set(HttpHeaders.upgradeHeader, "websocket")
-        ..set("Sec-WebSocket-Key", nonceData.join())
-        ..set("Cache-Control", "no-cache")
-        ..set("Sec-WebSocket-Version", "13");
+    _connection?.sink.close();
 
-      this._connection = await request
-          .close()
-          .timeout(Duration(seconds: 3))
-          .then((response) async => WebSocket.fromUpgradedSocket(
-                await response.detachSocket(),
-                serverSide: false,
-              ))
-          .catchError((_, __) {
-        request.abort();
-        return null;
-      });
-      if (_connection == null) {
-        _websocketDone();
-        return;
-      }
-      this._connection!.pingInterval = Duration(seconds: 1);
-    } on SocketException catch (e) {
-      var errCode = 0;
-      if (e.osError?.errorCode != null) errCode = e.osError!.errorCode;
-      if (![7, 101, 103].contains(errCode)) {
-        print("Unknown connection err: $e");
-      } else {
-        // Network is unreachable / network err
-      }
-      _websocketDone();
-      return;
-    } on Exception {
-      _websocketDone();
-      return;
+    if (kIsWeb) {
+      _connectWeb();
+    } else {
+      _connectDevice();
     }
 
     await Future.delayed(Duration(milliseconds: 100));
 
     _connectionWasLostTimer?.cancel();
     this._wsInSub?.cancel();
-    _wsInSub = _handleWsIn(_connection!);
+    _wsInSub = _handleWsIn(_connection!.stream);
     this._reliablePktOutSub?.cancel();
-    _reliablePktOutSub = _handleReliablePktOut(_connection!);
+    _reliablePktOutSub = _handleReliablePktOut(_connection!.sink);
     this._playerMsgSub?.cancel();
     _playerMsgSub = _handlePlayerMsg();
 
@@ -200,6 +146,74 @@ class ServerConnection with ChangeNotifier {
     });
 
     notifyListeners();
+  }
+
+  void _connectWeb() async {
+    _connection =
+        WebSocketChannel.connect(Uri.parse(WS_PREFIX + "://$WS_PATH"));
+  }
+
+  void _connectDevice() async {
+    try {
+      HttpClient client = HttpClient();
+      HttpClientRequest? request = await client
+          .getUrl(Uri.parse(HTTP_PREFIX + "://$WS_PATH"))
+          .timeout(Duration(seconds: 7))
+          .then<HttpClientRequest?>((r) => r)
+          .catchError((_, __) {
+        client.close(force: true);
+        return null;
+      });
+      if (request == null) {
+        _websocketDone();
+        return;
+      }
+      Random random = new Random();
+      // Generate 16 random bytes.
+      Uint8List nonceData = new Uint8List(16);
+      for (int i = 0; i < 16; i++) {
+        nonceData[i] = random.nextInt(256);
+      }
+      request.headers
+        ..set(HttpHeaders.connectionHeader, "Upgrade")
+        ..set(HttpHeaders.upgradeHeader, "websocket")
+        ..set("Sec-WebSocket-Key", nonceData.join())
+        ..set("Cache-Control", "no-cache")
+        ..set("Sec-WebSocket-Version", "13");
+
+      this._connection = await request
+          .close()
+          .timeout(Duration(seconds: 3))
+          .then((response) async {
+        // ignore: close_sinks
+        var socket = await response.detachSocket();
+        return WebSocketChannel(
+          StreamChannel(socket, socket),
+          serverSide: false,
+          pingInterval: Duration(seconds: 1),
+        );
+      }).catchError((_, __) {
+        request.abort();
+        return null;
+      });
+      if (_connection == null) {
+        _websocketDone();
+        return;
+      }
+    } on SocketException catch (e) {
+      var errCode = 0;
+      if (e.osError?.errorCode != null) errCode = e.osError!.errorCode;
+      if (![7, 101, 103].contains(errCode)) {
+        print("Unknown connection err: $e");
+      } else {
+        // Network is unreachable / network err
+      }
+      _websocketDone();
+      return;
+    } on Exception {
+      _websocketDone();
+      return;
+    }
   }
 
   StreamSubscription? _handleWsIn(Stream<dynamic> wsStream) {
