@@ -1,5 +1,7 @@
 # Four in a Row - App
 
+![Screenshot of main screen](screenshots/1.png)
+
 An **online** version of the popular game **four in a row**, written in Flutter + Dart on the client and Rust on the server side.
 
 ***Download here: https://play.google.com/store/apps/details?id=ml.fourinarow***
@@ -28,3 +30,6 @@ Or play online (beta): https://play.fourinarow.ml/
 - automatic reconnection
 - message delivery guarantee
 - message reordering on client and server side
+
+![Screenshot of play selection](screenshots/2.png)
+![Screenshot of play](screenshots/3.png)
