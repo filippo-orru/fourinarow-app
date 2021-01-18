@@ -98,10 +98,10 @@ class _MenuContentPlayOnlineState extends State<MenuContentPlayOnline> {
 }
 
 extension NumberStrings on int {
-  String toNumberWord() {
+  String toNumberWord({useZero = false}) {
     switch (this) {
       case 0:
-        return "zero";
+        return useZero ? "zero" : "no";
       case 1:
         return "one";
       case 2:

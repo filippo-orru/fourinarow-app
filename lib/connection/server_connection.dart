@@ -101,9 +101,13 @@ class ServerConnection with ChangeNotifier {
     _connection?.sink.close();
 
     if (kIsWeb) {
-      _connectWeb();
+      this._connection = _connectWeb();
     } else {
-      _connectDevice();
+      this._connection = await _connectDevice();
+      if (_connection == null) {
+        _websocketDone();
+        return;
+      }
     }
 
     await Future.delayed(Duration(milliseconds: 100));
@@ -148,12 +152,11 @@ class ServerConnection with ChangeNotifier {
     notifyListeners();
   }
 
-  void _connectWeb() async {
-    _connection =
-        WebSocketChannel.connect(Uri.parse(WS_PREFIX + "://$WS_PATH"));
+  WebSocketChannel _connectWeb() {
+    return WebSocketChannel.connect(Uri.parse(WS_PREFIX + "://$WS_PATH"));
   }
 
-  void _connectDevice() async {
+  Future<WebSocketChannel?> _connectDevice() async {
     try {
       HttpClient client = HttpClient();
       HttpClientRequest? request = await client
@@ -165,8 +168,7 @@ class ServerConnection with ChangeNotifier {
         return null;
       });
       if (request == null) {
-        _websocketDone();
-        return;
+        return null;
       }
       Random random = new Random();
       // Generate 16 random bytes.
@@ -181,7 +183,7 @@ class ServerConnection with ChangeNotifier {
         ..set("Cache-Control", "no-cache")
         ..set("Sec-WebSocket-Version", "13");
 
-      this._connection = await request
+      return await request
           .close()
           .timeout(Duration(seconds: 3))
           .then((response) async {
@@ -196,10 +198,11 @@ class ServerConnection with ChangeNotifier {
         request.abort();
         return null;
       });
-      if (_connection == null) {
-        _websocketDone();
-        return;
-      }
+      // TODO vvv
+      // if (_connection == null) {
+      //   _websocketDone();
+      //   return null;
+      // }
     } on SocketException catch (e) {
       var errCode = 0;
       if (e.osError?.errorCode != null) errCode = e.osError!.errorCode;
@@ -208,11 +211,9 @@ class ServerConnection with ChangeNotifier {
       } else {
         // Network is unreachable / network err
       }
-      _websocketDone();
-      return;
+      return null;
     } on Exception {
-      _websocketDone();
-      return;
+      return null;
     }
   }
 

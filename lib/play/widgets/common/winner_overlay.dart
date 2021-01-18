@@ -10,7 +10,7 @@ import 'board.dart';
 class WinnerOverlay extends StatefulWidget {
   const WinnerOverlay(
     this.winDetails, {
-    this.useColorNames = true,
+    this.playerNames = defaultPlayerNames,
     required this.onTap,
     required this.board,
     this.bottomText,
@@ -19,11 +19,13 @@ class WinnerOverlay extends StatefulWidget {
   }) : super(key: key);
 
   final WinDetails? winDetails;
-  final bool useColorNames;
+  final String Function(Player) playerNames;
   final Function() onTap;
   final Board board;
   final String? bottomText;
   final bool ranked;
+
+  static String defaultPlayerNames(Player p) => p.colorWord;
 
   @override
   _WinnerOverlayState createState() => _WinnerOverlayState();
@@ -141,9 +143,8 @@ class _WinnerOverlayState extends State<WinnerOverlay> {
                                       ),
                                       SizedBox(height: 8),
                                       Text(
-                                        (widget.useColorNames
-                                                ? winDetails.winner.colorWord
-                                                : winDetails.winner.playerWord)
+                                        widget
+                                            .playerNames(winDetails.winner)
                                             .toUpperCase(),
                                         style: TextStyle(
                                           fontSize: 98,

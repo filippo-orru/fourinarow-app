@@ -9,8 +9,8 @@ abstract class Field {
 
   late List<List<Player?>> _array;
 
-  Field({List<List<Player?>>? field}) {
-    this._array = field ??
+  Field({List<List<Player?>>? array}) {
+    this._array = array ??
         List.generate(
             Field.size, (_) => List.filled(Field.size, null, growable: false),
             growable: false);
@@ -19,14 +19,23 @@ abstract class Field {
   List<List<Player?>> get array {
     return _array;
   }
+
+  List<List<Player?>> clone() {
+    return array
+        .map((col) => col
+            .map((p) =>
+                p == null ? null : (p == Player.One ? Player.One : Player.Two))
+            .toList())
+        .toList();
+  }
 }
 
 class FieldFinished extends Field {
   final WinDetails winDetails;
   bool waitingToPlayAgain = false;
 
-  FieldFinished(this.winDetails, List<List<Player?>> field)
-      : super(field: field);
+  FieldFinished(this.winDetails, List<List<Player?>> array)
+      : super(array: array);
 }
 
 class FieldPlaying extends Field {
@@ -39,11 +48,14 @@ class FieldPlaying extends Field {
     this.reset();
   }
 
+  FieldPlaying.from(List<List<Player?>>? array) : super(array: array);
+
   void reset() {
     _array = List.generate(
         Field.size, (_) => List.filled(Field.size, null, growable: false),
         growable: false);
     turn = Player.One;
+    lastPlacedChip = null;
   }
 
   void vibrate() {
@@ -54,11 +66,11 @@ class FieldPlaying extends Field {
     dropChipNamed(column, turn);
   }
 
-  void dropChipNamed(int column, Player p) {
+  void dropChipNamed(int column, Player p, {bool vibrate = true}) {
     if (column < Field.size &&
         column >= 0 &&
         _array[column].any((c) => c == null)) {
-      vibrate();
+      if (vibrate) this.vibrate();
       int len = _array[column].length;
       for (var i = 0; i <= len; i++) {
         if (i == len || _array[column][i] != null) {

@@ -77,7 +77,7 @@ class PlayingViewer extends AbstractGameStateViewer {
         ),
         WinnerOverlay(
           winDetails,
-          useColorNames: false,
+          playerNames: (p) => p.playerWord,
           onTap: () {
             if (_playingState.opponentInfo.hasLeft) {
               Navigator.of(context).pop();

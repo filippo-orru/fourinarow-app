@@ -1,32 +1,11 @@
+- smarter versioning: rename v2 to "new" or alternate?
+- draw robot icon
+- add robot (different for each cpu level)
+- rotating "think" cog when cpu is waiting
+
 x "beta2"
 x reset state on MsgReset
 x server legacy mode: somehow create clientstate from client connection like it used to be using clientconnectionmgr
 x upgrade app message
-
-- smarter versioning: rename v2 to "new" or alternate?
 x dialog explaining the search popup
 x "i'm 13 or older" dialog to access chat
-- flutter issue for this:
-E/flutter (16394): [ERROR:flutter/lib/ui/ui_dart_state.cc(177)] Unhandled Exception: SocketException: Reading from a closed socket
-E/flutter (16394): #0      _RawSecureSocket.read (dart:io/secure_socket.dart:683:7)
-E/flutter (16394): #1      _Socket._onData (dart:io-patch/socket_patch.dart:2017:28)
-E/flutter (16394): #2      _rootRunUnary (dart:async/zone.dart:1194:47)
-E/flutter (16394): #3      _CustomZone.runUnary (dart:async/zone.dart:1097:19)
-E/flutter (16394): #4      _CustomZone.runUnaryGuarded (dart:async/zone.dart:1002:7)
-E/flutter (16394): #5      _BufferingStreamSubscription._sendData (dart:async/stream_impl.dart:357:11)
-E/flutter (16394): #6      _BufferingStreamSubscription._add (dart:async/stream_impl.dart:285:7)
-E/flutter (16394): #7      _SyncStreamControllerDispatch._sendData (dart:async/stream_controller.dart:807:19)
-E/flutter (16394): #8      _StreamController._add (dart:async/stream_controller.dart:681:7)
-E/flutter (16394): #9      _StreamController.add (dart:async/stream_controller.dart:624:5)
-E/flutter (16394): #10     _RawSecureSocket._sendReadEvent (dart:io/secure_socket.dart:1011:19)
-E/flutter (16394): #11     _rootRun (dart:async/zone.dart:1178:47)
-E/flutter (16394): #12     _CustomZone.run (dart:async/zone.dart:1090:19)
-E/flutter (16394): #13     _CustomZone.runGuarded (dart:async/zone.dart:994:7)
-E/flutter (16394): #14     _CustomZone.bindCallbackGuarded.<anonymous closure> (dart:async/zone.dart:1034:23)
-E/flutter (16394): #15     _rootRun (dart:async/zone.dart:1186:13)
-E/flutter (16394): #16     _CustomZone.run (dart:async/zone.dart:1090:19)
-E/flutter (16394): #17     _CustomZone.bindCallback.<anonymous closure> (dart:async/zone.dart:1018:23)
-E/flutter (16394): #18     Timer._createTimer.<anonymous closure> (dart:async-patch/timer_patch.dart:18:15)
-E/flutter (16394): #19     _Timer._runTimers (dart:isolate-patch/timer_impl.dart:395:19)
-E/flutter (16394): #20     _Timer._handleMessage (dart:isolate-patch/timer_impl.dart:426:5)
-E/flutter (16394): #21     _RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:184:12)

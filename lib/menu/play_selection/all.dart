@@ -4,9 +4,11 @@ import 'package:four_in_a_row/main.dart';
 import 'package:four_in_a_row/menu/account/offline.dart';
 import 'package:four_in_a_row/menu/main_menu.dart';
 import 'package:four_in_a_row/menu/outdated.dart';
+import 'package:four_in_a_row/play/models/cpu/cpu.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/other.dart';
 import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
+import 'package:four_in_a_row/play/widgets/cpu/play_cpu.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:four_in_a_row/menu/play_selection/common.dart';
 import 'package:four_in_a_row/menu/play_selection/online.dart';
@@ -52,9 +54,12 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
 
   ToastState? toast;
 
+  CpuDifficulty _selectedDificulty = CpuDifficulty.MEDIUM;
+
   void backgroundTapped() {
     // TODO speed up waves?
   }
+
   void tappedPlayOnline() async {
     if (!mounted) return;
 
@@ -65,56 +70,11 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
     if (shownDialogCount <= 2) {
       await showDialog(
           context: context,
-          builder: (ctx) => onlineInfoDialog(ctx, 2 - shownDialogCount));
+          builder: (ctx) => OnlineInfoDialog(
+              dialogCtx: ctx, howManyMoreTimes: 2 - shownDialogCount));
       _sharedPrefs.setInt("shownOnlineDialogCount", shownDialogCount + 1);
     }
     playOnline();
-  }
-
-  Widget onlineInfoDialog(BuildContext dialogCtx, int howManyMoreTimes) {
-    return Center(
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 16),
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [BoxShadow(blurRadius: 8, color: Colors.black26)],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Read before playing online',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              '''
-▻ Finding another player could take a while, please be patient\n
-▻ Chat or play locally while waiting\n
-▻ Don't close the app so you will get a notification once a game is found
-
-Dialog will show ${howManyMoreTimes == 0 ? "no" : howManyMoreTimes.toNumberWord()} more time${howManyMoreTimes == 1 ? "" : "s"}.''',
-              style: TextStyle(color: Colors.black, fontSize: 16, height: 1.3),
-            ),
-            SizedBox(height: 12),
-            Center(
-                child: RaisedButton(
-              onPressed: () {
-                Navigator.pop(dialogCtx);
-              },
-              child: Text('Okay'),
-            ))
-          ],
-        ),
-      ),
-    );
   }
 
   void playOnline() async {
@@ -192,20 +152,32 @@ Dialog will show ${howManyMoreTimes == 0 ? "no" : howManyMoreTimes.toNumberWord(
                 color: Colors.blueAccent,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Stack(children: [
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: SwitchPageButton(pageCtrl, forward: false),
+                    ),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: SwitchPageButton(pageCtrl, forward: true),
+                    ),
+                  ]),
+                ),
+              ),
+              Container(
+                constraints: BoxConstraints.expand(),
+                color: Colors.deepPurple,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Align(
                     alignment: Alignment.bottomLeft,
                     child: SwitchPageButton(pageCtrl, forward: false),
                   ),
                 ),
               ),
-              // Container(
-              //   constraints: BoxConstraints.expand(),
-              //   color: Colors.purpleAccent,
-              // ),
             ],
             controller: pageCtrl,
           ),
-          // ),
         ),
         Waves(MediaQuery.of(context).size.height),
         Stack(
@@ -236,22 +208,80 @@ Dialog will show ${howManyMoreTimes == 0 ? "no" : howManyMoreTimes.toNumberWord(
                   Navigator.of(context).push(fadeRoute(PlayingLocal())),
               bgColor: Colors.blueAccent,
             ),
-            // PlaySelectionScreen(
-            //   index: 2,
-            //   title: 'Online (WW)',
-            //   description: 'You against the world!',
-            //   route: fadeRoute(
-            //       child: PlayingOnline(
-            //     req: ORqWorldwide(),
-            //   )),
-            //   bgColor: Colors.purpleAccent,
-            //   offset: offset,
-            // ),
+            PlaySelectionScreen(
+              index: 2,
+              title: 'CPU',
+              loading: false,
+              showTransition: true,
+              description: 'You against the machine!',
+              offset: offset,
+              pushRoute: () => Navigator.of(context)
+                  .push(fadeRoute(PlayingCPU(difficulty: _selectedDificulty))),
+              bgColor: Colors.blueAccent,
+            ),
           ],
         ),
-        PageIndicator(page, 2),
+        PageIndicator(page, 3),
         SwipeDialog(),
       ],
+    );
+  }
+}
+
+class OnlineInfoDialog extends StatelessWidget {
+  const OnlineInfoDialog({
+    Key? key,
+    required this.dialogCtx,
+    required this.howManyMoreTimes,
+  }) : super(key: key);
+
+  final BuildContext dialogCtx;
+  final int howManyMoreTimes;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(blurRadius: 8, color: Colors.black26)],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Read before playing online',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              '''
+▻ Finding another player could take a while, please be patient\n
+▻ Chat or play locally while waiting\n
+▻ Don't close the app so you will get a notification once a game is found
+
+Dialog will show ${howManyMoreTimes.toNumberWord()} more time${howManyMoreTimes == 1 ? "" : "s"}.''',
+              style: TextStyle(color: Colors.black, fontSize: 16, height: 1.3),
+            ),
+            SizedBox(height: 12),
+            Center(
+                child: RaisedButton(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+              },
+              child: Text('Okay'),
+            ))
+          ],
+        ),
+      ),
     );
   }
 }

@@ -116,7 +116,6 @@ class _CreateRow extends StatelessWidget {
                   return MapEntry(
                     y,
                     _CreateCell(
-                      Point<int>(x, y),
                       cell: cell,
                       winning: winning.contains(Point<int>(x, y)),
                       wasLastPlaced: lastPlacedChipY == y,
@@ -133,15 +132,13 @@ class _CreateRow extends StatelessWidget {
 }
 
 class _CreateCell extends StatelessWidget {
-  _CreateCell(
-    this.point, {
+  _CreateCell({
     required this.cell,
     required this.winning,
     required this.wasLastPlaced,
     Key? key,
   }) : super(key: key);
 
-  final Point<int> point;
   final Player? cell;
   // final WinDetails details;
   final bool winning;

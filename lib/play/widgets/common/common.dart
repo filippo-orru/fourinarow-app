@@ -55,9 +55,13 @@ class TurnIndicator extends StatelessWidget {
   const TurnIndicator({
     Key? key,
     required this.turn,
+    this.playerNames = defaultPlayerName,
   }) : super(key: key);
 
   final Player turn;
+  final String Function(Player) playerNames;
+
+  static String defaultPlayerName(Player p) => p.colorWord;
 
   @override
   Widget build(BuildContext context) {
