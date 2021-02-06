@@ -63,15 +63,23 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
   void tappedPlayOnline() async {
     if (!mounted) return;
 
+    if (await context.read<ServerConnection>().serverIsDown) {
+      await showDialog(
+        context: context,
+        builder: (ctx) => ServerIsDownDialog(),
+      );
+    }
+
     var shownDialogCount = 0;
     if (_sharedPrefs.containsKey("shownOnlineDialogCount")) {
       shownDialogCount = _sharedPrefs.getInt("shownOnlineDialogCount");
     }
     if (shownDialogCount <= 2) {
       await showDialog(
-          context: context,
-          builder: (ctx) => OnlineInfoDialog(
-              dialogCtx: ctx, howManyMoreTimes: 2 - shownDialogCount));
+        context: context,
+        builder: (ctx) =>
+            OnlineInfoDialog(howManyMoreTimes: 2 - shownDialogCount),
+      );
       _sharedPrefs.setInt("shownOnlineDialogCount", shownDialogCount + 1);
     }
     playOnline();
@@ -228,60 +236,69 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
   }
 }
 
+class FiarSimpleDialog extends StatelessWidget {
+  final String title;
+  final String content;
+
+  const FiarSimpleDialog({
+    Key? key,
+    required this.title,
+    required this.content,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      title: Text(
+        title,
+        style: TextStyle(
+          fontFamily: 'RobotoSlab',
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      contentPadding: EdgeInsets.all(16),
+      children: [
+        Text(
+          content,
+          style: TextStyle(color: Colors.black, fontSize: 16, height: 1.3),
+        ),
+      ],
+    );
+  }
+}
+
 class OnlineInfoDialog extends StatelessWidget {
   const OnlineInfoDialog({
     Key? key,
-    required this.dialogCtx,
     required this.howManyMoreTimes,
   }) : super(key: key);
 
-  final BuildContext dialogCtx;
   final int howManyMoreTimes;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 16),
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [BoxShadow(blurRadius: 8, color: Colors.black26)],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Read before playing online',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              '''
+    return FiarSimpleDialog(
+      title: 'Read before playing online',
+      content: '''
 ▻ Finding another player could take a while, please be patient\n
 ▻ Chat or play locally while waiting\n
 ▻ Don't close the app so you will get a notification once a game is found
 
 Dialog will show ${howManyMoreTimes.toNumberWord()} more time${howManyMoreTimes == 1 ? "" : "s"}.''',
-              style: TextStyle(color: Colors.black, fontSize: 16, height: 1.3),
-            ),
-            SizedBox(height: 12),
-            Center(
-                child: RaisedButton(
-              onPressed: () {
-                Navigator.pop(dialogCtx);
-              },
-              child: Text('Okay'),
-            ))
-          ],
-        ),
-      ),
+    );
+  }
+}
+
+class ServerIsDownDialog extends StatelessWidget {
+  const ServerIsDownDialog({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return FiarSimpleDialog(
+      title: 'Server is down!',
+      content:
+          'Sorry, the server is currently down for maintenance.\nPlease wait 10 minutes and try again',
     );
   }
 }
@@ -630,8 +647,10 @@ class _SlideIndicatorState extends State<SlideIndicator>
           ..addStatusListener((status) {
             if (status == AnimationStatus.completed) {
               Future.delayed(Duration(milliseconds: 500), () {
-                animCtrl.reset();
-                animCtrl.forward();
+                if (mounted) {
+                  animCtrl.reset();
+                  animCtrl.forward();
+                }
               });
             }
           });

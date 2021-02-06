@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:stream_channel/stream_channel.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/util/constants.dart';
@@ -50,6 +51,9 @@ class ServerConnection with ChangeNotifier {
   bool get connected => _sessionState is SessionStateConnected;
 
   bool get outdated => _sessionState is SessionStateOutDated;
+
+  ServerIsDownState _serverIsDownState = ServerIsDownState();
+  Future<bool> get serverIsDown => _serverIsDownState.isDown;
 
   int _connectionTries = 0;
   Timer? _missingMsgSince;
@@ -94,6 +98,14 @@ class ServerConnection with ChangeNotifier {
         !force) {
       return;
     }
+
+    if ((_sessionState is SessionStateDisconnected ||
+            _sessionState is SessionStateServerIsDown) &&
+        await serverIsDown) {
+      _sessionState = SessionStateServerIsDown();
+      return;
+    }
+
     this._connectionTries += 1;
     print("   #CONNECT# (${this._connectionTries}. try)");
 
@@ -186,7 +198,7 @@ class ServerConnection with ChangeNotifier {
       return await request
           .close()
           .timeout(Duration(seconds: 3))
-          .then((response) async {
+          .then<WebSocketChannel?>((response) async {
         // ignore: close_sinks
         var socket = await response.detachSocket();
         return WebSocketChannel(
@@ -501,3 +513,19 @@ class SessionStateDisconnected extends SessionState {
 }
 
 class SessionStateOutDated extends SessionState {}
+
+class SessionStateServerIsDown extends SessionState {}
+
+class ServerIsDownState {
+  bool _serverIsDown = false;
+  DateTime _serverIsDownCheckDate = DateTime.fromMillisecondsSinceEpoch(0);
+
+  Future<bool> get isDown async {
+    if (_serverIsDownCheckDate.difference(DateTime.now()) >
+        Duration(minutes: 1)) {
+      // Check if server is down
+      _serverIsDown = (await http.get(HTTP_URL + '/status')).body == "NOT_OK";
+    }
+    return _serverIsDown;
+  }
+}

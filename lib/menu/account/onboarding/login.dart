@@ -32,12 +32,14 @@ class _LoginPageState extends State<LoginPage> {
         '${constants.HTTP_URL}/api/users/login',
         body: body,
       )..then((response) {
-          if (response.statusCode == 200 && context != null) {
+          if (response.statusCode == 200) {
             widget.callback(
                 context, widget.usernameCtrl.text, widget.pwCtrl.text);
           } else {
             print(response);
           }
+        }, onError: (_) {
+          print("Error logging in!");
         });
     });
   }
