@@ -10,6 +10,7 @@ import 'package:four_in_a_row/play/models/common/player.dart';
 import 'package:four_in_a_row/play/models/cpu/cpu.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:four_in_a_row/util/vibration.dart';
+import 'package:rive/rive.dart';
 
 import '../common/common.dart';
 import '../common/board.dart';
@@ -29,6 +30,7 @@ class PlayingCPU extends StatefulWidget {
 class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
   FieldPlaying field = FieldPlaying();
   bool waitingForCpu = false;
+  final Random _random = Random(DateTime.now().millisecond);
 
   _dropChip(int column) {
     if (field.turn == Player.One) {
@@ -46,8 +48,10 @@ class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
 
   void _cpuTurn() async {
     waitingForCpu = true;
+    _startThinkingAnimation();
     int column = await widget.cpuPlayer.chooseCol(field);
     waitingForCpu = false;
+    _stopThinkingAnimation();
     setState(() {
       field.dropChipNamed(column, Player.Two);
     });
@@ -57,7 +61,90 @@ class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
     setState(() => field.reset());
   }
 
+  String playerNames(Player p) => p == Player.One ? "You" : "CPU";
+
   late RouteObserver _routeObserver;
+
+  Artboard? _riveArtboard;
+  late final RiveAnimationController _rotatingChipsController;
+  late final RiveAnimationController _chipsFadeInController;
+  late final RiveAnimationController _chipsFadeOutController;
+  late final RiveAnimationController _moveBodyController;
+  late final RiveAnimationController _blinkController;
+  late final RiveAnimationController _moveEyesController;
+  // late final RiveAnimationController _tapped1Ctrl;
+  late final RiveAnimationController _tapped2Ctrl;
+
+  void _startAnimations() {
+    // _moveBodyController.isActive = false;
+    // _blinkController.isActive = false;
+    // _moveEyesController.isActive = false;
+    _moveBodyController.isActive = true;
+    _blinkController.isActive = true;
+    _moveEyesController.isActive = true;
+
+    _rotatingChipsController.isActive = true;
+    _chipsFadeInController.isActive = false;
+    _chipsFadeOutController.isActive = false;
+    // _tapped1Ctrl.isActive = false;
+    _tapped2Ctrl.isActive = false;
+  }
+
+  void _startThinkingAnimation() {
+    setState(() => _chipsFadeInController.isActive = true);
+    // setState(() => _rotatingChipsController.isActive = true);
+  }
+
+  void _stopThinkingAnimation() {
+    setState(() => _chipsFadeOutController.isActive = true);
+    // Future.delayed(Duration(milliseconds: 500),
+    //     () => setState(() => _rotatingChipsController.isActive = false));
+  }
+
+  bool get _tappedAnimPlaying =>
+      _tapped2Ctrl.isActive; // _tapped1Ctrl.isActive ||
+
+  void _tappedRobot() {
+    if (!_tappedAnimPlaying) {
+      // RiveAnimationController tappedCtrl;
+      // tappedCtrl = _random.nextBool() ? _tapped1Ctrl : _tapped2Ctrl;
+      setState(() => _tapped2Ctrl.isActive = true);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    rootBundle.load('assets/animations/robots/robot_medium.riv').then(
+      (data) async {
+        final file = RiveFile();
+
+        // Load the RiveFile from the binary data.
+        if (file.import(data)) {
+          final artboard = file.mainArtboard;
+          // Add a controller to play back a known animation on the main/default
+          // artboard. We store a reference to it so we can toggle playback.
+          artboard
+            ..addController(
+                _rotatingChipsController = SimpleAnimation('Rotating Chips'))
+            ..addController(
+                _chipsFadeInController = SimpleAnimation('chips fade in'))
+            ..addController(
+                _chipsFadeOutController = SimpleAnimation('chips fade out'))
+            ..addController(_moveBodyController = SimpleAnimation('move body'))
+            ..addController(_blinkController = SimpleAnimation('eyes blink'))
+            ..addController(
+                _moveEyesController = SimpleAnimation('eyes movement'))
+            // ..addController(_tapped1Ctrl = SimpleAnimation('tapped_1'))
+            ..addController(_tapped2Ctrl = SimpleAnimation('tapped_2'));
+
+          setState(() => _riveArtboard = artboard);
+
+          _startAnimations();
+        }
+      },
+    );
+  }
 
   @override
   void didChangeDependencies() {
@@ -102,6 +189,19 @@ class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
                     child: Board(field, dropChip: _dropChip),
                   ),
                 ),
+                Container(
+                  height: 130,
+                  width: double.infinity,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: _riveArtboard == null
+                        ? null
+                        : GestureDetector(
+                            onTap: _tappedRobot,
+                            child: Rive(artboard: _riveArtboard),
+                          ),
+                  ),
+                )
               ],
             ),
           ),

@@ -36,6 +36,7 @@ dependencies:
   android_intent: '>=0.3.7+7 <2.0.0'
   connectivity: ^2.0.2
   stream_channel: ^2.1.0-nullsafety.3
+  rive: ^0.6.6+1
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +65,7 @@ flutter:
 
   assets:
     - assets/img/
+    - assets/animations/robots/
 
   fonts:
     - family: Arvo
