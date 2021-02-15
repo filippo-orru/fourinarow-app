@@ -22,3 +22,9 @@ extension MapExtension<K, V> on Map<K, V?> {
     return this as Map<K, V>;
   }
 }
+
+extension RangeExtension on int {
+  /// Excluding max
+  List<int> to(int maxInclusive) =>
+      [for (int i = this; i <= maxInclusive; i++) i];
+}

@@ -82,6 +82,14 @@ class _FriendsListState extends State<FriendsList>
         appBar: CustomAppBar(
           title: 'Friends',
           refreshing: userInfo.refreshing,
+          threeDots: [
+            CustomThreeDot(
+              'Feedback',
+              onTap: () {
+                showFeedbackDialog(context);
+              },
+            ),
+          ],
         ),
         resizeToAvoidBottomInset: false,
         body: userInfo.loggedIn

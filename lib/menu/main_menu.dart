@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/chat.dart';
 import 'package:four_in_a_row/inherit/route.dart';
+import 'package:four_in_a_row/main.dart';
 import 'package:four_in_a_row/menu/account/friends.dart';
 import 'package:four_in_a_row/menu/account/onboarding/onboarding.dart';
 import 'package:four_in_a_row/menu/account/offline.dart';
 import 'package:four_in_a_row/menu/chat.dart';
+import 'package:four_in_a_row/menu/common/rate_dialog.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
@@ -167,7 +169,6 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
               height: 150,
               child: buildPlayButton(context),
             ),
-            // ),
             SizedBox(height: 96),
             Container(
               alignment: Alignment.center,

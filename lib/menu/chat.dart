@@ -129,6 +129,14 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal>
       resizeToAvoidBottomInset: false,
       appBar: CustomAppBar(
         title: "Chat",
+        threeDots: [
+          CustomThreeDot(
+            'Feedback',
+            onTap: () {
+              showFeedbackDialog(context);
+            },
+          ),
+        ],
       ),
       body: AnimatedContainer(
         duration: Duration(milliseconds: 200),
