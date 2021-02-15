@@ -1,15 +1,11 @@
-import 'package:flutter/services.dart';
-import 'package:four_in_a_row/connection/server_connection.dart';
-import 'package:four_in_a_row/main.dart';
+import 'package:four_in_a_row/inherit/route.dart';
 import 'package:four_in_a_row/menu/account/offline.dart';
 import 'package:four_in_a_row/menu/main_menu.dart';
 import 'package:four_in_a_row/menu/outdated.dart';
 import 'package:four_in_a_row/play/models/cpu/cpu.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/other.dart';
-import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
 import 'package:four_in_a_row/play/widgets/cpu/play_cpu.dart';
-import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:four_in_a_row/menu/play_selection/common.dart';
 import 'package:four_in_a_row/menu/play_selection/online.dart';
 import 'package:four_in_a_row/play/widgets/local/play_local.dart';

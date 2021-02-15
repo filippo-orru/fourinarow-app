@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/main.dart';
+import 'package:flutter/services.dart';
+import 'package:four_in_a_row/inherit/route.dart';
 
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
@@ -13,7 +16,7 @@ import '../common/board.dart';
 import '../common/winner_overlay.dart';
 
 class PlayingCPU extends StatefulWidget {
-  late final Cpu cpuPlayer;
+  final Cpu cpuPlayer;
 
   PlayingCPU({Key? key, required CpuDifficulty difficulty})
       : this.cpuPlayer = Cpu.fromDifficulty(difficulty),
@@ -80,8 +83,6 @@ class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
     super.reassemble();
     field.checkWin();
   }
-
-  String playerNames(Player p) => p == Player.One ? "You" : "CPU";
 
   @override
   Widget build(BuildContext context) {

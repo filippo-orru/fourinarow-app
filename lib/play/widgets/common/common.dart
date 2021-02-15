@@ -68,15 +68,13 @@ class TurnIndicator extends StatelessWidget {
     return Container(
       width: double.infinity,
       child: Column(children: [
-        Text("Your turn,",
-            style: TextStyle(fontSize: 24, color: Colors.black87)),
+        Text("Now playing",
+            style:
+                TextStyle(fontSize: 22, color: Colors.black.withOpacity(0.7))),
         AnimatedSwitcher(
           duration: Duration(milliseconds: 170),
           switchInCurve: Curves.easeInOutExpo,
           switchOutCurve: Curves.easeInOutExpo,
-          // layoutBuilder: (Widget child, List<Widget> prevChildren) {
-          //   return child;
-          // },
           transitionBuilder: (Widget child, Animation<double> anim) {
             final begin =
                 child.key == ValueKey(turn) ? Offset(1, 0) : Offset(-1, 0);
@@ -89,12 +87,12 @@ class TurnIndicator extends StatelessWidget {
             );
           },
           child: Text(
-            turn.colorWord,
+            playerNames(turn),
             key: ValueKey(turn),
             style: TextStyle(
-                fontSize: 32,
+                fontSize: 36,
                 fontWeight: FontWeight.w700,
-                fontStyle: FontStyle.italic,
+                // fontStyle: FontStyle.italic,
                 color: turn.color()),
           ),
         ),
