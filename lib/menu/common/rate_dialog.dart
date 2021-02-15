@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:android_intent/android_intent.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:four_in_a_row/lottie/reaction.dart';
 import 'package:four_in_a_row/util/extensions.dart';
 
 abstract class RateDialogState {}
@@ -20,6 +21,13 @@ class RDSHighRating extends RateDialogState {
 class RDSDonate extends RateDialogState {}
 
 class RateTheGameDialog extends StatefulWidget {
+  static show(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => RateTheGameDialog(),
+    );
+  }
+
   @override
   _RateTheGameDialogState createState() => _RateTheGameDialogState();
 }
@@ -27,6 +35,15 @@ class RateTheGameDialog extends StatefulWidget {
 class _RateTheGameDialogState extends State<RateTheGameDialog>
     with SingleTickerProviderStateMixin {
   RateDialogState state = RDSIdle();
+
+  void highRating() {
+    setState(() => state = RDSHighRating(5));
+  }
+
+  void lowRating() {
+    // show feedback
+    setState(() => state = RDSLowRating());
+  }
 
   List<Widget> buildBody() {
     var state = this.state;
@@ -46,17 +63,36 @@ class _RateTheGameDialogState extends State<RateTheGameDialog>
             fontSize: 18,
           ),
         ),
-        FiveStarsPicker(
-          onPick: (number) {
-            print("Picked $number stars");
-            if (number < 3) {
-              this.state = RDSLowRating();
-            } else {
-              this.state = RDSHighRating(number);
-            }
-            setState(() {});
-          },
+        SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            LottieReaction(
+              name: 'sad',
+              onTap: () => lowRating(),
+            ),
+            LottieReaction(
+              name: 'neutral',
+              onTap: () => lowRating(),
+            ),
+            LottieReaction(
+              name: 'happy',
+              startsGrey: false,
+              onTap: () => highRating(),
+            ),
+          ],
         ),
+        // FiveStarsPicker(
+        //   onPick: (number) {
+        //     print("Picked $number stars");
+        //     if (number < 3) {
+        //       this.state = RDSLowRating();
+        //     } else {
+        //       this.state = RDSHighRating(number);
+        //     }
+        //     setState(() {});
+        //   },
+        // ),
       ];
     } else if (state is RDSLowRating) {
       return [Text('Thanks! Do you have feedback for me?'), TextField()];

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/chat.dart';
 import 'package:four_in_a_row/main.dart';
@@ -160,10 +162,12 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
             ),
             // Flexible(flex: 4, child: Container()),
             Expanded(child: SizedBox()),
-            // Flexible(
-            //   flex: 4,
-            //   fit: FlexFit.tight,
-            // child:
+            TextButton(
+              child: Text('game has ended'),
+              onPressed: () {
+                RateTheGameDialog.show(context);
+              },
+            ),
             SizedBox(
               height: 150,
               child: buildPlayButton(context),
@@ -256,13 +260,6 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
   Container buildTitle(BuildContext context) {
     return Container(
       alignment: Alignment.center,
-      // constraints: BoxConstraints.expand(
-      // width: max(0, MediaQuery.of(context).size.width - 48),
-      // padding: EdgeInsets.symmetric(vertical: 48),
-      // height: 48,
-      // child:
-      // FittedBox(
-      // fit: BoxFit.contain,
       child: Text(
         "Four in a Row".toUpperCase(),
         style: TextStyle(

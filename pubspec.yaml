@@ -33,9 +33,10 @@ dependencies:
   flutter_local_notifications: ^3.0.2
   provider: ^4.3.2+2
   tuple: ^1.0.3
-  android_intent: '>=0.3.7+7 <2.0.0'
+  android_intent: ">=0.3.7+7 <2.0.0"
   connectivity: ^2.0.2
   stream_channel: ^2.1.0-nullsafety.3
+  lottie: ^0.8.0-nullsafety.3
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +65,8 @@ flutter:
 
   assets:
     - assets/img/
+    - assets/lottie/reactions/
+    - assets/lottie/reactions/images/
 
   fonts:
     - family: Arvo
