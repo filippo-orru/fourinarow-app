@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 class MenuWrapper extends StatelessWidget {
   final Widget child;
@@ -92,8 +93,11 @@ PageRouteBuilder fadeRoute(Widget child, {int millDuration = 300}) {
 }
 
 class CustomAppBar extends AppBar {
+  final List<CustomThreeDot> threeDots;
+
   CustomAppBar({
     required String title,
+    this.threeDots = const [],
     bool refreshing = false,
     Key? key,
   }) : super(
@@ -116,73 +120,113 @@ class CustomAppBar extends AppBar {
                       scale: 0.7, child: CircularProgressIndicator())
                   : SizedBox(),
             ),
+            threeDots.isNotEmpty
+                ? PopupMenuButton(
+                    onSelected: (index) => threeDots[index as int].onTap(),
+                    itemBuilder: (_) => threeDots
+                        .asMap()
+                        .map((index, customDot) => MapEntry(
+                            index,
+                            PopupMenuItem(
+                              value: index,
+                              child: Text(customDot.label),
+                              height: kToolbarHeight,
+                            )))
+                        .values
+                        .toList())
+                : SizedBox(),
           ],
         );
+}
 
-  // final String title;
-  // final bool refreshing;
+class CustomThreeDot {
+  final String label;
+  final VoidCallback onTap;
 
-  /*@override
+  CustomThreeDot(this.label, {required this.onTap});
+}
+
+void showFeedbackDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (_) => FeedbackDialog(),
+  );
+}
+
+class FeedbackDialog extends StatefulWidget {
+  @override
+  _FeedbackDialogState createState() => _FeedbackDialogState();
+}
+
+class _FeedbackDialogState extends State<FeedbackDialog>
+    with SingleTickerProviderStateMixin {
+  bool done = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 64,
-      // margin: EdgeInsets.only(
-      //     bottom: 4, left: 4, right: 4, top: 4),
-      // alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
-        // color: Colors.purple[300],
-        // color: Colors.grey[300],
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 5,
-            color: Colors.black12,
-          )
-        ],
-        borderRadius: BorderRadius.all(Radius.circular(4)),
-      ),
-      child: Material(
-        type: MaterialType.transparency,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Row(
-            children: <Widget>[
-              IconButton(
-                icon: const BackButtonIcon(),
-                splashColor: Colors.grey[400],
-                color: Colors.black,
-                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-                onPressed: () => Navigator.maybePop(context),
-              ),
-              SizedBox(width: 24),
-              Text(title,
+    return AnimatedSize(
+      vsync: this,
+      duration: Duration(milliseconds: 180),
+      curve: Curves.easeInOut,
+      child: AnimatedSwitcher(
+        key: ValueKey(done),
+        duration: Duration(milliseconds: 100),
+        child: done
+            ? Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text("Thanks!", style: TextStyle(color: Colors.black)),
+              )
+            : SimpleDialog(
+                title: Text(
+                  'Feedback',
                   style: TextStyle(
-                    fontFamily: "RobotoSlab",
-                    // color: Colors.white,
-                    fontSize: 20,
+                    fontFamily: 'RobotoSlab',
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
-                  )),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: AnimatedSwitcher(
-                    duration: Duration(milliseconds: 200),
-                    child: refreshing
-                        ? Transform.scale(
-                            scale: 0.7, child: CircularProgressIndicator())
-                        // Container(
-                        //     constraints: BoxConstraints.expand(),
-                        //     color: Colors.black26,
-                        //     child: Center(child: C),
-                        //   )
-                        : SizedBox(),
                   ),
                 ),
+                contentPadding: EdgeInsets.all(16),
+                children: [
+                  Text(
+                      "I'm very happy about any feedback! Tell me what you like or dislike about the game :)"),
+                  SizedBox(height: 16),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: TextField(
+                      minLines: 1,
+                      maxLines: 4,
+                      decoration: InputDecoration(hintText: "Any feedback..."),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        child: Text('Cancel'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      ElevatedButton(
+                        child: Text('Send'),
+                        onPressed: () {
+                          setState(() => done = true);
+                          // TODO send feedback
+                          Future.delayed(Duration(milliseconds: 800), () {
+                            Navigator.of(context).pop();
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
       ),
     );
-  }*/
+  }
 }
