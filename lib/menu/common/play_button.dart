@@ -2,7 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import 'package:four_in_a_row/main.dart';
+
+import 'package:four_in_a_row/inherit/route.dart';
 
 class PlayButton extends StatefulWidget {
   const PlayButton({

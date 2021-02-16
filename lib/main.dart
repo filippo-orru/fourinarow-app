@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
+import 'package:four_in_a_row/inherit/route.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
@@ -233,23 +234,5 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
     );
-  }
-}
-
-class RouteObserverProvider extends InheritedWidget {
-  RouteObserverProvider(
-      {Key key, @required this.child, @required this.observer})
-      : super(key: key, child: child);
-
-  final Widget child;
-  final RouteObserver observer;
-
-  static RouteObserverProvider of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<RouteObserverProvider>();
-  }
-
-  @override
-  bool updateShouldNotify(RouteObserverProvider oldWidget) {
-    return false;
   }
 }

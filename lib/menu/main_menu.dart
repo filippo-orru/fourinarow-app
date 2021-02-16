@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/chat.dart';
+import 'package:four_in_a_row/inherit/route.dart';
 import 'package:four_in_a_row/main.dart';
 import 'package:four_in_a_row/menu/account/friends.dart';
 import 'package:four_in_a_row/menu/account/onboarding/onboarding.dart';
