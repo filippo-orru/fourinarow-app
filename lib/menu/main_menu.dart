@@ -162,12 +162,6 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
             ),
             // Flexible(flex: 4, child: Container()),
             Expanded(child: SizedBox()),
-            TextButton(
-              child: Text('game has ended'),
-              onPressed: () {
-                RateTheGameDialog.show(context);
-              },
-            ),
             SizedBox(
               height: 150,
               child: buildPlayButton(context),
