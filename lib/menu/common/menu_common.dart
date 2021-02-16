@@ -93,7 +93,7 @@ PageRouteBuilder fadeRoute(Widget child, {int millDuration = 300}) {
 }
 
 class CustomAppBar extends AppBar {
-  final List<CustomThreeDot> threeDots;
+  final List<FiarThreeDotItem> threeDots;
 
   CustomAppBar({
     required String title,
@@ -120,30 +120,35 @@ class CustomAppBar extends AppBar {
                       scale: 0.7, child: CircularProgressIndicator())
                   : SizedBox(),
             ),
-            threeDots.isNotEmpty
-                ? PopupMenuButton(
-                    onSelected: (index) => threeDots[index as int].onTap(),
-                    itemBuilder: (_) => threeDots
-                        .asMap()
-                        .map((index, customDot) => MapEntry(
-                            index,
-                            PopupMenuItem(
-                              value: index,
-                              child: Text(customDot.label),
-                              height: kToolbarHeight,
-                            )))
-                        .values
-                        .toList())
-                : SizedBox(),
+            threeDots.isNotEmpty ? FiarPopupMenuButton(threeDots) : SizedBox(),
           ],
         );
 }
 
-class CustomThreeDot {
+class FiarThreeDotItem {
   final String label;
   final VoidCallback onTap;
 
-  CustomThreeDot(this.label, {required this.onTap});
+  FiarThreeDotItem(this.label, {required this.onTap});
+}
+
+class FiarPopupMenuButton extends PopupMenuButton {
+  final List<FiarThreeDotItem> threeDots;
+
+  FiarPopupMenuButton(this.threeDots)
+      : super(
+            onSelected: (index) => threeDots[index as int].onTap(),
+            itemBuilder: (_) => threeDots
+                .asMap()
+                .map((index, customDot) => MapEntry(
+                    index,
+                    PopupMenuItem(
+                      value: index,
+                      child: Text(customDot.label),
+                      height: kToolbarHeight,
+                    )))
+                .values
+                .toList());
 }
 
 void showFeedbackDialog(BuildContext context) {

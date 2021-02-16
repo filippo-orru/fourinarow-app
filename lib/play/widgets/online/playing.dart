@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
 import 'package:four_in_a_row/play/widgets/common/board.dart';
@@ -67,13 +69,21 @@ class PlayingViewer extends AbstractGameStateViewer {
             ],
           ),
         ),
-        _playingState.opponentInfo.user != null
-            ? OpponentInfoWidget(_playingState.opponentInfo.user!)
-            : SizedBox(),
         Positioned(
-          bottom: 32,
-          right: 32,
+          left: 0,
+          bottom: 0,
+          right: 0,
+          child: _BottomSheetWidget(_playingState.opponentInfo.user),
+        ),
+        Positioned(
+          top: 32 + 16,
+          left: 24,
           child: ConnectionIndicator(_playingState.connectionLost),
+        ),
+        Positioned(
+          top: 32 + 16,
+          right: 24,
+          child: _ThreeDotMenu(),
         ),
         WinnerOverlay(
           winDetails,
@@ -99,114 +109,235 @@ class PlayingViewer extends AbstractGameStateViewer {
   }
 }
 
-class OpponentInfoWidget extends StatefulWidget {
-  final PublicUser user;
+class _ThreeDotMenu extends StatefulWidget {
+  @override
+  _ThreeDotMenuState createState() => _ThreeDotMenuState();
+}
 
-  OpponentInfoWidget(this.user);
+class _ThreeDotMenuState extends State<_ThreeDotMenu> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(100),
+        boxShadow: [
+          BoxShadow(color: Colors.black26),
+        ],
+      ),
+      child: FiarPopupMenuButton(
+        [
+          FiarThreeDotItem(
+            'Feedback',
+            onTap: () => showFeedbackDialog(context),
+          ),
+          FiarThreeDotItem('Leave', onTap: () {
+            Navigator.of(context).pop();
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class _BottomSheetWidget extends StatefulWidget {
+  final PublicUser? user;
+
+  _BottomSheetWidget(this.user);
 
   @override
-  _OpponentInfoState createState() => _OpponentInfoState();
+  _BottomSheetState createState() => _BottomSheetState();
 }
 
 enum AddedState { NotAdded, Adding, Added }
 
-class _OpponentInfoState extends State<OpponentInfoWidget> {
+class _BottomSheetState extends State<_BottomSheetWidget> {
   AddedState added = AddedState.NotAdded;
   bool errorAdding = false;
+
+  bool reactionPickerOpen = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.user.isFriend == true) {
+    if (widget.user?.isFriend == true) {
       added = AddedState.Added;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      left: 0,
-      bottom: 32,
-      right: 0,
-      child: AnimatedSwitcher(
-        duration: Duration(milliseconds: 300),
-        child: Center(
-          child: Container(
-            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-            decoration: BoxDecoration(
-              // color: Colors.black.withOpacity(0.25),
-              borderRadius: BorderRadius.all(Radius.circular(6)),
-            ),
-            // width: 100,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    // Text(
-                    //   "Enemy".toUpperCase(),
-                    //   style: TextStyle(
-                    //     fontSize: 14,
-                    //     letterSpacing: 0.5,
-                    //     color: Colors.white,
-                    //   ),
-                    // ),
-                    SizedBox(width: 6),
-                    Text(
-                      widget.user.name,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontFamily: 'RobotoSlab',
-                        color: Colors.black87,
+    return Container(
+      height: 72,
+      margin: EdgeInsets.symmetric(horizontal: 24),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 10)
+        ],
+      ),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: reactionPickerOpen
+                    ? SizedBox()
+                    : Row(
+                        children: [
+                          PlayerIcon(widget.user),
+                          SizedBox(width: 12),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                widget.user?.name ?? "Guest",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontFamily: 'RobotoSlab',
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              SizedBox(width: 6),
+                              widget.user != null
+                                  ? Text(
+                                      "${widget.user!.gameInfo.skillRating} SR",
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        fontFamily: 'RobotoSlab',
+                                        color: Colors.black54,
+                                      ),
+                                    )
+                                  : SizedBox(),
+                            ],
+                          ),
+                        ],
                       ),
-                    ),
-                    SizedBox(width: 6),
-                    Text(
-                      "${widget.user.gameInfo.skillRating} SR",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'RobotoSlab',
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(width: 6),
-                IconButton(
-                    icon: errorAdding
-                        ? Icon(Icons.close)
-                        : added == AddedState.Adding
-                            ? CircularProgressIndicator()
-                            : added == AddedState.Added
-                                ? Icon(Icons.check)
-                                : Icon(Icons.add),
-                    onPressed:
-                        added == AddedState.NotAdded && errorAdding == false
-                            ? () {
-                                // if () {
-                                setState(() => added = AddedState.Adding);
-                                context
-                                    .read<UserInfo>()
-                                    .addFriend(widget.user.id)
-                                    .then((ok) => setState(() {
-                                          if (ok) {
-                                            added = AddedState.Added;
-                                          } else {
-                                            errorAdding = true;
-                                            added = AddedState.NotAdded;
-                                          }
-                                        }));
-                                // }
-                              }
-                            : null),
-              ],
-            ),
+              ),
+              ReactionPicker(
+                open: reactionPickerOpen,
+                onOpen: () {
+                  setState(() => reactionPickerOpen = true);
+                },
+                onClose: () {
+                  setState(() => reactionPickerOpen = false);
+                },
+                onChoose: (reaction) {
+                  print("chose reaction: $reaction");
+                },
+              ),
+            ],
           ),
         ),
       ),
+    );
+
+    // IconButton(
+    //     icon: errorAdding
+    //         ? Icon(Icons.close)
+    //         : added == AddedState.Adding
+    //             ? CircularProgressIndicator()
+    //             : added == AddedState.Added
+    //                 ? Icon(Icons.check)
+    //                 : Icon(Icons.add),
+    //     onPressed: () {
+    //       if (added == AddedState.NotAdded && errorAdding == false) {
+    //         setState(() => added = AddedState.Adding);
+    //         context
+    //             .read<UserInfo>()
+    //             .addFriend(widget.user!.id)
+    //             .then((ok) => setState(() {
+    //                   if (ok) {
+    //                     added = AddedState.Added;
+    //                   } else {
+    //                     errorAdding = true;
+    //                     added = AddedState.NotAdded;
+    //                   }
+    //                 }));
+    //         // }
+    //       }
+    //     });
+  }
+}
+
+class PlayerIcon extends StatelessWidget {
+  final PublicUser? player;
+
+  const PlayerIcon(this.player, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.ac_unit_outlined,
+      color: Colors.grey[700],
+      size: 24,
+    );
+  }
+}
+
+class ReactionPicker extends StatelessWidget {
+  final bool open;
+  final VoidCallback onOpen;
+  final VoidCallback onClose;
+  final void Function(String) onChoose;
+
+  const ReactionPicker({
+    Key? key,
+    required this.open,
+    required this.onOpen,
+    required this.onClose,
+    required this.onChoose,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final List<String> reactions = ["😀", "🤔", "😐"];
+    return open
+        ? Row(
+            children: reactions
+                .map<Widget>((reaction) => _ReactionSmiley(reaction,
+                    onTapped: () => onChoose(reaction)))
+                .toList()
+                  ..add(IconButton(
+                    icon: Icon(Icons.sentiment_satisfied_outlined),
+                    onPressed: () => onClose,
+                  )),
+          )
+        : IconButton(
+            icon: Icon(Icons.sentiment_satisfied_outlined),
+            onPressed: () => onOpen,
+          );
+  }
+}
+
+class _ReactionSmiley extends StatelessWidget {
+  final String content;
+  final VoidCallback onTapped;
+
+  const _ReactionSmiley(
+    this.content, {
+    Key? key,
+    required this.onTapped,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return
+        // GestureDetector(
+        //   onTap: onTapped,
+        //   child:
+        IconButton(
+      icon: Text(content),
+      onPressed: () => onTapped,
+      // ),
     );
   }
 }

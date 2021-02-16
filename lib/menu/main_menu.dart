@@ -150,29 +150,64 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
-        child: Column(
-          // mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Stack(
           children: [
-            Flexible(
-              flex: 10,
-              fit: FlexFit.tight,
-              child:
-                  // SizedBox( height :)
-                  buildTitle(context),
+            Column(
+              // mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  flex: 10,
+                  fit: FlexFit.tight,
+                  child:
+                      // SizedBox( height :)
+                      buildTitle(context),
+                ),
+                // Flexible(flex: 4, child: Container()),
+                Expanded(child: SizedBox()),
+                SizedBox(
+                  height: 150,
+                  child: buildPlayButton(context),
+                ),
+                SizedBox(height: 96),
+                Container(
+                  alignment: Alignment.center,
+                  constraints: BoxConstraints(maxWidth: 600),
+                  margin: EdgeInsets.only(bottom: 32, left: 24, right: 24),
+                  child: buildBottomBar(context),
+                ),
+              ],
             ),
-            // Flexible(flex: 4, child: Container()),
-            Expanded(child: SizedBox()),
-            SizedBox(
-              height: 150,
-              child: buildPlayButton(context),
-            ),
-            SizedBox(height: 96),
-            Container(
-              alignment: Alignment.center,
-              constraints: BoxConstraints(maxWidth: 600),
-              margin: EdgeInsets.only(bottom: 32, left: 24, right: 24),
-              child: buildBottomBar(context),
+            Positioned(
+              top: MediaQuery.of(context).padding.top,
+              right: 24,
+              child: Opacity(
+                opacity: 0.3,
+                child: Container(
+                  margin: EdgeInsets.all(16), //top: 32, right:
+                  decoration: BoxDecoration(
+                    color: Colors.white54,
+                    borderRadius: BorderRadius.all(Radius.circular(4)),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 4,
+                        color: Colors.black12,
+                        offset: Offset(0, 0),
+                      ),
+                    ],
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: Text(
+                    'BETA2',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontFamily: 'Roboto',
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),

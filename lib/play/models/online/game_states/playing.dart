@@ -117,13 +117,13 @@ class PlayingState extends GameState {
     }
     if (response.statusCode == 200) {
       this.opponentInfo.user = PublicUser.fromMap(jsonDecode(response.body));
-      // TODO vvv
-      /*if (UserinfoProvider.of(context)
-            .user
-            .friends
-            .any((friend) => friend.id == opponentInfo.id)) {
-          opponentInfo.isFriend = true;
-        }*/
+      notifyListeners();
+
+      if (gsm.userInfo?.user?.friends
+              .any((friend) => friend.id == opponentInfo.user?.id) ==
+          true) {
+        opponentInfo.isFriend = true;
+      }
     }
   }
 
@@ -179,6 +179,7 @@ class PlayingState extends GameState {
 class OpponentInfo {
   PublicUser? user;
   bool hasLeft = false;
+  bool? isFriend;
 
-  OpponentInfo({this.user});
+  OpponentInfo({this.user, this.isFriend});
 }

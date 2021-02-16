@@ -83,7 +83,7 @@ class _FriendsListState extends State<FriendsList>
           title: 'Friends',
           refreshing: userInfo.refreshing,
           threeDots: [
-            CustomThreeDot(
+            FiarThreeDotItem(
               'Feedback',
               onTap: () {
                 showFeedbackDialog(context);

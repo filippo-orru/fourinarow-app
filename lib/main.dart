@@ -118,39 +118,6 @@ class _MyAppState extends State<MyApp> {
                         child,
                         Positioned(
                           top: MediaQuery.of(ctx).padding.top,
-                          right: 24,
-                          child: Opacity(
-                            opacity: 0.3,
-                            child: Container(
-                              margin: EdgeInsets.all(16), //top: 32, right:
-                              decoration: BoxDecoration(
-                                color: Colors.white54,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(4)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    blurRadius: 4,
-                                    color: Colors.black12,
-                                    offset: Offset(0, 0),
-                                  ),
-                                ],
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 4),
-                              child: Text(
-                                'BETA2',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontFamily: 'Roboto',
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: MediaQuery.of(ctx).padding.top,
                           left: 0,
                           right: 0,
                           child: Selector<GameStateManager, List<dynamic>>(

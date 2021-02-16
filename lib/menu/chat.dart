@@ -130,7 +130,7 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal>
       appBar: CustomAppBar(
         title: "Chat",
         threeDots: [
-          CustomThreeDot(
+          FiarThreeDotItem(
             'Feedback',
             onTap: () {
               showFeedbackDialog(context);
