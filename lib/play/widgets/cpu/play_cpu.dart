@@ -57,6 +57,13 @@ class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
     setState(() => field.reset());
   }
 
+  String _playerNames(Player p) {
+    if (p == Player.One)
+      return "You";
+    else
+      return "CPU";
+  }
+
   late RouteObserver _routeObserver;
 
   @override
@@ -96,7 +103,7 @@ class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                TurnIndicator(turn: field.turn, playerNames: playerNames),
+                TurnIndicator(turn: field.turn, playerNames: _playerNames),
                 Expanded(
                   child: Center(
                     child: Board(field, dropChip: _dropChip),
@@ -108,7 +115,7 @@ class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
           WinnerOverlay(
             field.checkWin(),
             onTap: _fieldReset,
-            playerNames: playerNames,
+            playerNames: _playerNames,
             board: Board(field, dropChip: _dropChip),
           ),
         ],
