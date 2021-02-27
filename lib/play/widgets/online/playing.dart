@@ -1,20 +1,25 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:four_in_a_row/inherit/chat.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
-import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
 import 'package:four_in_a_row/play/widgets/common/board.dart';
 import 'package:four_in_a_row/play/widgets/common/winner_overlay.dart';
 import 'package:four_in_a_row/util/toast.dart';
+import 'package:four_in_a_row/util/extensions.dart';
+import 'package:four_in_a_row/util/global_common_widgets.dart';
 
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:provider/provider.dart';
+import 'package:tuple/tuple.dart';
 
 class PlayingViewer extends AbstractGameStateViewer {
   final PlayingState _playingState;
@@ -70,10 +75,19 @@ class PlayingViewer extends AbstractGameStateViewer {
           ),
         ),
         Positioned(
-          left: 0,
-          bottom: 0,
-          right: 0,
-          child: _BottomSheetWidget(_playingState.opponentInfo.user),
+          bottom: FiarBottomSheet.HEIGHT,
+          left: 24,
+          right: 24,
+          child: Consumer<ChatState>(
+            builder: (_, chatState, __) => ScrollingChatMiniview(
+              messages: chatState.ingameMessages
+                  .map(
+                    (chatMessage) => MiniviewMessage(
+                        chatMessage.sender is SenderMe, chatMessage.content),
+                  )
+                  .toList(),
+            ),
+          ),
         ),
         Positioned(
           top: 32 + 16,
@@ -85,6 +99,7 @@ class PlayingViewer extends AbstractGameStateViewer {
           right: 24,
           child: _ThreeDotMenu(),
         ),
+        _BottomSheetWidget(_playingState.opponentInfo.user),
         WinnerOverlay(
           winDetails,
           playerNames: (p) => p.playerWord,
@@ -167,60 +182,48 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 72,
-      margin: EdgeInsets.symmetric(horizontal: 24),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 10)
-        ],
-      ),
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-        clipBehavior: Clip.antiAlias,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
+    return FiarBottomSheet(
+      disabled: reactionPickerOpen,
+      color: Colors.blueAccent,
+      expandedHeight: 150,
+      topChildren: [
+        Expanded(
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              Expanded(
-                child: reactionPickerOpen
-                    ? SizedBox()
-                    : Row(
-                        children: [
-                          PlayerIcon(widget.user),
-                          SizedBox(width: 12),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              Text(
-                                widget.user?.name ?? "Guest",
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontFamily: 'RobotoSlab',
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              SizedBox(width: 6),
-                              widget.user != null
-                                  ? Text(
-                                      "${widget.user!.gameInfo.skillRating} SR",
-                                      style: TextStyle(
-                                        fontSize: 17,
-                                        fontFamily: 'RobotoSlab',
-                                        color: Colors.black54,
-                                      ),
-                                    )
-                                  : SizedBox(),
-                            ],
-                          ),
-                        ],
+              Row(
+                children: [
+                  PlayerIcon(widget.user),
+                  SizedBox(width: 12),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        widget.user?.name ?? "Player",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontFamily: 'RobotoSlab',
+                          color: widget.user == null
+                              ? Colors.black.withOpacity(0.65)
+                              : Colors.black87,
+                        ),
                       ),
+                      SizedBox(width: 6),
+                      widget.user != null
+                          ? Text(
+                              "${widget.user!.gameInfo.skillRating} SR",
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontFamily: 'RobotoSlab',
+                                color: Colors.black54,
+                              ),
+                            )
+                          : SizedBox(),
+                    ],
+                  ),
+                ],
               ),
               ReactionPicker(
                 open: reactionPickerOpen,
@@ -231,13 +234,20 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
                   setState(() => reactionPickerOpen = false);
                 },
                 onChoose: (reaction) {
-                  print("chose reaction: $reaction");
+                  reactionPickerOpen = false;
+                  context
+                      .read<ChatState>()
+                      .sendMessage(reaction, ingameMessage: true);
                 },
               ),
             ],
           ),
         ),
-      ),
+      ],
+      children: [Text('Lol')],
+
+      //   ),
+      // ),
     );
 
     // IconButton(
@@ -268,6 +278,141 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
   }
 }
 
+class MiniviewMessage {
+  final bool senderIsMe;
+  final String content;
+
+  MiniviewMessage(this.senderIsMe, this.content);
+}
+
+class ScrollingChatMiniview extends StatefulWidget {
+  final List<MiniviewMessage> messages;
+
+  const ScrollingChatMiniview({Key? key, required this.messages})
+      : super(key: key);
+
+  @override
+  _ScrollingChatMiniviewState createState() => _ScrollingChatMiniviewState();
+}
+
+class _ScrollingChatMiniviewState extends State<ScrollingChatMiniview>
+    with SingleTickerProviderStateMixin {
+  void startScrollingToBottom() {
+    int iterations = 0;
+    while (ctrl.position.pixels ~/ ScrollingChatMiniviewMessage.HEIGHT <
+            widget.messages.length &&
+        iterations < 5) {
+      // We need to scroll down
+      ctrl.position.animateTo(
+          ctrl.position.maxScrollExtent + ScrollingChatMiniviewMessage.HEIGHT,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.ease);
+      iterations++;
+    }
+  }
+
+  late final ScrollController ctrl;
+  late final AnimationController opacityCtrl;
+  Timer? fadeTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    ctrl = ScrollController();
+    opacityCtrl =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 150))
+          ..value = 0.3;
+  }
+
+  @override
+  void didUpdateWidget(ScrollingChatMiniview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.messages.length > oldWidget.messages.length) {
+      opacityCtrl.animateTo(1);
+      fadeTimer?.cancel();
+      fadeTimer = Timer(Duration(milliseconds: 2500), () {
+        fadeTimer?.cancel();
+        opacityCtrl.animateTo(0.3, duration: Duration(milliseconds: 600));
+      });
+      // new message
+      startScrollingToBottom();
+    }
+  }
+
+  @override
+  void dispose() {
+    ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: ScrollingChatMiniviewMessage.HEIGHT,
+      width: double.infinity,
+      child: IgnorePointer(
+        child: ListView(
+          // reverse: true,
+          itemExtent: ScrollingChatMiniviewMessage.HEIGHT,
+          padding: EdgeInsets.zero,
+          controller: ctrl,
+          children: widget.messages
+              .map(
+                (message) => AnimatedBuilder(
+                  animation: opacityCtrl,
+                  builder: (_, child) =>
+                      Opacity(opacity: opacityCtrl.value, child: child),
+                  child: ScrollingChatMiniviewMessage(message),
+                ),
+              )
+              .toList(),
+        ),
+      ),
+    );
+  }
+}
+
+class ScrollingChatMiniviewMessage extends StatelessWidget {
+  static const double HEIGHT = 48;
+
+  final MiniviewMessage message;
+
+  const ScrollingChatMiniviewMessage(this.message, {Key? key})
+      : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: HEIGHT,
+      child: Align(
+        alignment:
+            message.senderIsMe ? Alignment.centerRight : Alignment.centerLeft,
+        child: Container(
+          constraints: BoxConstraints.expand(width: 48),
+          padding: EdgeInsets.all(2),
+          // decoration: BoxDecoration(
+          //   borderRadius: BorderRadius.circular(6),
+          // border: Border.all(
+          //   color: message.senderIsMe
+          //       ? Colors.blueAccent[200]!.withOpacity(0.9)
+          //       : Colors.redAccent[200]!.withOpacity(0.9),
+          //   width: 1,
+          // ),
+          // ),
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: Text(
+              message.content,
+              style: TextStyle(
+                  // fontSize: 18,
+                  ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class PlayerIcon extends StatelessWidget {
   final PublicUser? player;
 
@@ -283,13 +428,14 @@ class PlayerIcon extends StatelessWidget {
   }
 }
 
-class ReactionPicker extends StatelessWidget {
+class ReactionPicker extends StatefulWidget {
+  final List<String> reactions = ["😐", "🤔", "👏", "😀"];
   final bool open;
   final VoidCallback onOpen;
   final VoidCallback onClose;
   final void Function(String) onChoose;
 
-  const ReactionPicker({
+  ReactionPicker({
     Key? key,
     required this.open,
     required this.onOpen,
@@ -298,27 +444,111 @@ class ReactionPicker extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _ReactionPickerState createState() => _ReactionPickerState();
+}
+
+class _ReactionPickerState extends State<ReactionPicker> {
+  final Animatable<double> openCloseFade = Tween<double>(begin: 0, end: 1);
+  final Animatable<double> openCloseRotate = Tween<double>(begin: 0, end: 1)
+      .chain(CurveTween(curve: Curves.easeOutQuart));
+
+  final Animatable<Offset> emojiSlideTween =
+      Tween<Offset>(begin: Offset(0.2, 0), end: Offset.zero);
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final List<String> reactions = ["😀", "🤔", "😐"];
-    return open
-        ? Row(
-            children: reactions
-                .map<Widget>((reaction) => _ReactionSmiley(reaction,
-                    onTapped: () => onChoose(reaction)))
-                .toList()
-                  ..add(IconButton(
-                    icon: Icon(Icons.sentiment_satisfied_outlined),
-                    onPressed: () => onClose,
-                  )),
-          )
-        : IconButton(
-            icon: Icon(Icons.sentiment_satisfied_outlined),
-            onPressed: () => onOpen,
-          );
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Expanded(
+          child: AnimatedSwitcher(
+            transitionBuilder: (child, anim) => FadeTransition(
+              opacity: anim.drive(CurveTween(curve: Curves.easeOutCubic)),
+              child: SlideTransition(
+                  position: emojiSlideTween
+                      .chain(CurveTween(curve: Curves.easeOutCubic))
+                      .animate(anim),
+                  child: child),
+            ),
+            duration: Duration(milliseconds: 170),
+            child: widget.open
+                ? Container(
+                    constraints: BoxConstraints.expand(),
+                    color: Colors.white.withOpacity(0.8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: widget.reactions
+                          .asMap()
+                          .map((index, reaction) {
+                            return MapEntry<int, Widget>(
+                              index,
+                              // Row(
+                              //   children: [
+                              _ReactionSmiley(
+                                reaction,
+                                onTapped: () => widget.onChoose(reaction),
+                              ),
+                              //  index != reactions.length - 1 ? 12 : 0),
+                              //   ],
+                              // ),
+                            );
+                          })
+                          .values
+                          .toList()
+                            ..insert(0, SizedBox(width: 24)),
+                    ),
+                  )
+                : SizedBox(),
+          ),
+        ),
+        AnimatedSwitcher(
+          duration: Duration(milliseconds: 350),
+          transitionBuilder: (Widget child, Animation<double> anim) {
+            final bool isNewWidget = child.key == ValueKey(widget.open);
+            final Curve opacityCurve = widget.open
+                ? Curves.easeInOutCubic // when opening
+                : isNewWidget
+                    ? Curves.easeOutCubic
+                    : Curves.easeInCubic;
+            final tween = isNewWidget
+                ? Tween<double>(begin: 0.0, end: 1.0)
+                : Tween<double>(begin: 1.0, end: 0.0);
+            return FadeTransition(
+              opacity: openCloseFade
+                  .animate(anim.drive(CurveTween(curve: opacityCurve))),
+              child: RotationTransition(
+                  turns: openCloseRotate.animate(anim.drive(tween)),
+                  child: child),
+            );
+          },
+          switchInCurve: Curves.easeInOutCubic,
+          child: widget.open
+              ? IconButton(
+                  key: ValueKey(widget.open),
+                  splashRadius: Material.defaultSplashRadius * 0.8,
+                  icon: Icon(Icons.close, color: Colors.black54),
+                  onPressed: widget.onClose,
+                )
+              : IconButton(
+                  key: ValueKey(widget.open),
+                  splashRadius: Material.defaultSplashRadius * 0.8,
+                  icon: Icon(Icons.sentiment_satisfied_outlined,
+                      color: Colors.black87),
+                  onPressed: widget.onOpen,
+                ),
+        )
+      ],
+    );
   }
 }
 
-class _ReactionSmiley extends StatelessWidget {
+class _ReactionSmiley extends StatefulWidget {
   final String content;
   final VoidCallback onTapped;
 
@@ -329,15 +559,121 @@ class _ReactionSmiley extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _ReactionSmileyState createState() => _ReactionSmileyState();
+}
+
+class SplashingWidgetState {
+  final double degree;
+  final double speed;
+
+  SplashingWidgetState(this.degree, this.speed);
+}
+
+class _ReactionSmileyState extends State<_ReactionSmiley>
+    with SingleTickerProviderStateMixin {
+  static const double DEGREE_RANGE = 1;
+
+  static Random rng = Random();
+  List<SplashingWidgetState> splashingCopies = [];
+
+  void _generateSplashingCopies() {
+    for (int _ in 1.to(rng.nextInt(2) + 3)) {
+      splashingCopies.add(SplashingWidgetState(
+          (rng.nextDouble() - 0.5) * DEGREE_RANGE, rng.nextDouble() + 1));
+    }
+  }
+
+  late final AnimationController splashesAnimCtrl;
+  @override
+  void initState() {
+    super.initState();
+    splashesAnimCtrl =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 350))
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              splashesAnimCtrl.value = 0;
+              setState(() => splashingCopies = []);
+            }
+          });
+  }
+
+  @override
+  void dispose() {
+    splashesAnimCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return
-        // GestureDetector(
-        //   onTap: onTapped,
-        //   child:
-        IconButton(
-      icon: Text(content),
-      onPressed: () => onTapped,
-      // ),
+    double fadeOffThreshold = 0.4;
+    return IconButton(
+      splashRadius: Material.defaultSplashRadius * 0.8,
+      highlightColor: Colors.yellow[200]!.withOpacity(0.8),
+      splashColor: Colors.orange[300]!.withOpacity(0.9),
+      hoverColor: Colors.yellow[200],
+      focusColor: Colors.orange[300]!.withOpacity(0.3),
+      icon: Stack(
+        children: <Widget>[] +
+            (splashingCopies.map((splash) {
+              //return _ReactionSmileyStatic(content: widget.content);
+              return Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()
+                  ..scale(0.88)
+                  ..rotateZ(splash.degree),
+                child: AnimatedBuilder(
+                  animation: splashesAnimCtrl,
+                  builder: (_, child) {
+                    double x = splashesAnimCtrl.value;
+                    double initialOpacity = 0.5;
+                    double opacity = initialOpacity;
+                    if (x > fadeOffThreshold) {
+                      opacity = (x - fadeOffThreshold) *
+                              (initialOpacity / (fadeOffThreshold - 1)) +
+                          initialOpacity;
+                    }
+
+                    return Opacity(
+                      opacity: opacity,
+                      child: Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.identity()
+                          ..translate(0.0, -x * splash.speed * 30),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: _ReactionSmileyStatic(content: widget.content),
+                ),
+              );
+            }).toList()) +
+            [_ReactionSmileyStatic(content: widget.content)],
+      ),
+      onPressed: () {
+        setState(() => _generateSplashingCopies());
+        // print("Splangicopies: ${splashingCopies.map((s) => s.degree)}");
+        splashesAnimCtrl.forward();
+        Future.delayed(Duration(milliseconds: 150), widget.onTapped);
+      },
+    );
+  }
+}
+
+class _ReactionSmileyStatic extends StatelessWidget {
+  const _ReactionSmileyStatic({
+    Key? key,
+    required this.content,
+  }) : super(key: key);
+
+  final String content;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      content,
+      style: TextStyle(
+        fontSize: 24,
+      ),
     );
   }
 }

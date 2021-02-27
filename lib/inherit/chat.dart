@@ -10,6 +10,8 @@ class ChatState with ChangeNotifier {
 
   final List<ChatMessage> messages = [];
 
+  final List<ChatMessage> ingameMessages = [];
+
   ChatState(this._serverConnection) {
     _serverConnection.serverMsgStream.listen((msg) {
       if (msg is MsgChatMessage) {
@@ -20,6 +22,9 @@ class ChatState with ChangeNotifier {
           } else {
             unread += 1;
           }
+        } else {
+          ingameMessages
+              .add(ChatMessage(SenderOther(msg.senderName), msg.content));
         }
         notifyListeners();
       } else if (msg is MsgChatRead) {
@@ -42,17 +47,21 @@ class ChatState with ChangeNotifier {
 
   bool _viewing = false;
 
-  Future<bool> sendMessage(String msg) async {
-    messages.add(ChatMessage(Sender.me, msg));
+  Future<bool> sendMessage(String msgStr, {bool ingameMessage = false}) async {
+    var msg = ChatMessage(Sender.me, msgStr);
+    (ingameMessage ? ingameMessages : messages).add(msg);
+
     await Future.delayed(Duration(milliseconds: 85));
-    _serverConnection.send(PlayerMsgChatMessage(msg));
+    _serverConnection.send(PlayerMsgChatMessage(msg.content));
 
     bool success = await _serverConnection.waitForOkay();
 
     if (success) {
-      messages.last.state = ConfirmationState.Received;
+      (ingameMessage ? ingameMessages : messages).last.state =
+          ConfirmationState.Received;
     } else {
-      messages.last.state = ConfirmationState.Error;
+      (ingameMessage ? ingameMessages : messages).last.state =
+          ConfirmationState.Error;
     }
     notifyListeners();
     return success;

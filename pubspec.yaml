@@ -31,7 +31,7 @@ dependencies:
   http: ^0.12.1
   equatable: ^1.1.1
   flutter_local_notifications: ^3.0.2
-  provider: ^4.3.2+2
+  provider: ^5.0.0-nullsafety.3
   tuple: ^1.0.3
   android_intent: ">=0.3.7+7 <2.0.0"
   connectivity: ^2.0.2

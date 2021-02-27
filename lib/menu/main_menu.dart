@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/chat.dart';
 import 'package:four_in_a_row/inherit/route.dart';
@@ -198,7 +199,7 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
                   ),
                   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                   child: Text(
-                    'BETA2',
+                    kDebugMode ? '🛠 DEBUG 🛠' : 'BETA2',
                     style: TextStyle(
                       color: Colors.black,
                       fontFamily: 'Roboto',

@@ -1,18 +1,21 @@
 import 'dart:convert';
 import 'dart:math';
+
+import 'package:flutter/material.dart' hide BottomSheet;
 import 'package:flutter/scheduler.dart';
+import 'package:http/http.dart' as http;
+
 import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:four_in_a_row/util/battle_req_popup.dart';
-import 'package:http/http.dart' as http;
 import 'package:four_in_a_row/util/constants.dart' as constants;
-import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/user.dart';
-import '../common/overlay_dialog.dart';
+import 'package:four_in_a_row/menu/common/overlay_dialog.dart';
 import 'package:four_in_a_row/util/extensions.dart';
+import 'package:four_in_a_row/util/global_common_widgets.dart';
 
 import '../main_menu.dart';
 import 'onboarding/onboarding.dart';
@@ -66,15 +69,6 @@ class _FriendsListState extends State<FriendsList>
         Tween(begin: Offset(0, 0.5), end: Offset.zero).animate(expandMore);
   }
 
-  // @override
-  // didUpdateWidget(Widget oldWidget) {
-  //   super.didUpdateWidget(oldWidget);
-  //   context
-  //       .read<UserInfo>()
-  //       .refresh(shouldSetState: false)
-  //       .then((_) => setState(() {}));
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<UserInfo>(
@@ -103,14 +97,84 @@ class _FriendsListState extends State<FriendsList>
                     ),
                     Positioned(
                       right: 24,
-                      bottom: BottomSheet.HEIGHT,
+                      bottom: FiarBottomSheet.HEIGHT,
                       child: FloatingActionButton(
                         backgroundColor: Colors.purple[300],
                         child: Icon(Icons.add),
                         onPressed: () => setState(() => showAddFriend = true),
                       ),
                     ),
-                    BottomSheet(userInfo),
+                    FiarBottomSheet(
+                      color: Colors.purple,
+                      children: [
+                        Material(
+                          type: MaterialType.transparency,
+                          child: ListTile(
+                            onTap: () {
+                              print('object');
+                            },
+                            // leading: Icon(Icons.sentiment_satisfied),
+                            title: Text(userInfo.username!),
+                            subtitle: Text('Change username (soon)'),
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 24),
+                          ),
+                        ),
+                        Material(
+                          type: MaterialType.transparency,
+                          child: ListTile(
+                            onTap: () {
+                              print('object');
+                            },
+                            title: Text(
+                                userInfo.user?.email ?? "Set email (soon)"),
+                            subtitle: Text(userInfo.user?.email == null
+                                ? 'You haven\'t set an email yet'
+                                : 'Change email (soon)'),
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 24),
+                          ),
+                        ),
+                        Divider(
+                          indent: 12,
+                          endIndent: 12,
+                        ),
+                        Material(
+                          type: MaterialType.transparency,
+                          child: ListTile(
+                            onTap: () {
+                              userInfo.logOut();
+                              Navigator.of(context).pushReplacement(
+                                  slideUpRoute(AccountOnboarding()));
+                            },
+                            leading: Icon(Icons.exit_to_app),
+                            title: Text('Log out'),
+                            // subtitle: Text('Change email'),
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 24),
+                          ),
+                        ),
+                        Material(
+                          type: MaterialType.transparency,
+                          child: ListTile(
+                            onTap: () {
+                              print('object');
+                            },
+                            leading: Icon(Icons.delete_forever),
+                            title: Text('Delete Account (soon)'),
+                            // subtitle: Text('Change email'),
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 24),
+                          ),
+                        ),
+                        ListTile(
+                          title: Text('Credits'),
+                          subtitle:
+                              Text('Sword icon made by Freepik @ flaticon.com'),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                        ),
+                      ],
+                    ),
                     AddFriendDialog(
                       visible: showAddFriend,
                       hide: () => setState(
@@ -239,301 +303,6 @@ class MoreButton extends StatelessWidget {
 
     //   // Icon(Icons.backspace),
     // );
-  }
-}
-
-class BottomSheet extends StatefulWidget {
-  static const double HEIGHT = _CONT_HEIGHT + _MARGIN;
-  static const double _CONT_HEIGHT = 78;
-  static const double _MARGIN = 24;
-
-  final UserInfo userInfo;
-
-  const BottomSheet(
-    this.userInfo, {
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  _BottomSheetState createState() => _BottomSheetState();
-}
-
-class _BottomSheetState extends State<BottomSheet>
-    with SingleTickerProviderStateMixin {
-  static const double HEIGHT = 400;
-
-  late AnimationController animCtrl;
-  late Animation<double> moveUpAnim;
-  late Animation<double> rotateAnim;
-  late Animation<double> opacityAnim;
-  bool expanded = false;
-
-  Future<void> show() async {
-    await Future.delayed(Duration(milliseconds: 30));
-
-    setState(() => expanded = true);
-    await animCtrl.forward();
-  }
-
-  Future<void> hide() async {
-    await animCtrl.reverse();
-    setState(() => expanded = false);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    animCtrl =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 260));
-
-    moveUpAnim = Tween<double>(begin: 0, end: HEIGHT)
-        .chain(CurveTween(curve: Curves.easeInOutQuart))
-        .animate(animCtrl);
-
-    rotateAnim = Tween<double>(begin: 0, end: 0.5)
-        .chain(CurveTween(curve: Curves.easeInOutQuart))
-        .animate(animCtrl);
-
-    opacityAnim = Tween<double>(begin: 0, end: 0.3)
-        .chain(CurveTween(curve: Curves.easeOut))
-        .animate(animCtrl);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    assert(debugCheckHasMaterial(context));
-
-    return WillPopScope(
-      onWillPop: () async {
-        if (expanded) {
-          await hide();
-          return Future.value(false);
-        } else {
-          return Future.value(true);
-        }
-      },
-      child: Positioned(
-        left: 0,
-        right: 0,
-        bottom: 0,
-        top: 0,
-        // width: double.infinity,
-        child: Stack(
-          fit: StackFit.loose,
-          alignment: Alignment.bottomCenter,
-          children: [
-            expanded
-                ? GestureDetector(
-                    behavior: expanded
-                        ? HitTestBehavior.opaque
-                        : HitTestBehavior.translucent,
-                    onTap: () {
-                      if (expanded) hide();
-                    },
-                    child: AnimatedBuilder(
-                      animation: animCtrl,
-                      builder: (ctx, child) => Container(
-                        constraints: BoxConstraints.expand(),
-                        color: Colors.black.withOpacity(opacityAnim.value),
-                      ),
-                    ),
-                  )
-                : SizedBox(),
-            AnimatedBuilder(
-              animation: animCtrl,
-              builder: (ctx, child) => SizedOverflowBox(
-                alignment: Alignment.topCenter,
-                size: Size(double.infinity,
-                    BottomSheet._CONT_HEIGHT + moveUpAnim.value),
-                child: child,
-              ),
-              child: Container(
-                height: MediaQuery.of(context).size.height,
-                // height: HEIGHT,
-                // padding: EdgeInsets.only(top: 12),
-                // height: double.infinity,
-                // constraints: BoxConstraints.expand(),
-                // color: Colors.white,
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Container(
-                      margin: EdgeInsets.all(6),
-                      // margin: EdgeInsets.only(left: 6, top: 6, right: 6, bottom: 6),
-                      // padding: EdgeInsets.only(top: 5),
-                      height: BottomSheet._CONT_HEIGHT - 12,
-                      // constraints:
-                      //     BoxConstraints.tightFor(height: BottomSheet._CONT_HEIGHT),
-                      child: Container(
-                        // margin: EdgeInsets.only(top: 6),
-                        constraints: BoxConstraints.expand(),
-                        // padding: EdgeInsets.only(left: 24, right: 24),
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              blurRadius: 5,
-                              color: Colors.black12,
-                            )
-                          ],
-                          borderRadius: BorderRadius.all(
-                              // topLeft: Radius.circular(24),
-                              Radius.circular(24)),
-                          color: Colors.white,
-                        ),
-                        child: Material(
-                          type: MaterialType.transparency,
-                          // color: Colors.red,
-                          child: InkResponse(
-                            containedInkWell: true,
-                            highlightShape: BoxShape.rectangle,
-                            // customBorder: RoundedRectangleBorder(
-                            //   borderRadius:
-                            //       BorderRadius.all(Radius.circular(24)),
-                            // ),
-                            borderRadius: BorderRadius.all(Radius.circular(24)),
-                            onTap: () {
-                              if (expanded)
-                                hide();
-                              else
-                                show();
-                            },
-                            splashColor: Colors.purple[300]!.withOpacity(0.5),
-                            // focusColor: Colors.blue,
-                            highlightColor:
-                                Colors.purple[100]!.withOpacity(0.5),
-                            // hoverColor: Colors.green,
-                            child: Padding(
-                              padding: EdgeInsets.only(left: 24, right: 24),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                mainAxisSize: MainAxisSize.max,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text('Me',
-                                      style: TextStyle(
-                                          fontFamily: 'RobotoSlab',
-                                          color: Colors.grey[900],
-                                          fontSize: 18)),
-                                  RotationTransition(
-                                    turns: rotateAnim,
-                                    child: Icon(
-                                      Icons.arrow_drop_up,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // SizedBox(height: 24),
-                    Container(
-                      height: HEIGHT,
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 5,
-                            color: Colors.black12.withOpacity(0.06),
-                          )
-                        ],
-                        borderRadius: BorderRadius.all(Radius.circular(24)),
-                        color: Colors.white,
-                      ),
-                      // height: MediaQuery.of(context).size.height / 8,
-                      margin: EdgeInsets.symmetric(vertical: 12),
-                      // child: InkWell(
-                      // When the user taps the button, show a snackbar.
-                      child: ListView(
-                        // padding: EdgeInsets.zero,
-                        padding: EdgeInsets.only(top: 24, bottom: 32),
-                        children: [
-                          // Center(
-                          //     child: Text('These don\'t work yet.',
-                          //         style: TextStyle(fontSize: 18))),
-                          Material(
-                            type: MaterialType.transparency,
-                            child: ListTile(
-                              onTap: () {
-                                print('object');
-                              },
-                              // leading: Icon(Icons.sentiment_satisfied),
-                              title: Text(widget.userInfo.username!),
-                              subtitle: Text('Change username (soon)'),
-                              contentPadding:
-                                  EdgeInsets.symmetric(horizontal: 24),
-                            ),
-                          ),
-                          Material(
-                            type: MaterialType.transparency,
-                            child: ListTile(
-                              onTap: () {
-                                print('object');
-                              },
-                              title: Text(widget.userInfo.user?.email ??
-                                  "Set email (soon)"),
-                              subtitle: Text(widget.userInfo.user?.email == null
-                                  ? 'You haven\'t set an email yet'
-                                  : 'Change email (soon)'),
-                              contentPadding:
-                                  EdgeInsets.symmetric(horizontal: 24),
-                            ),
-                          ),
-                          Divider(
-                            indent: 12,
-                            endIndent: 12,
-                          ),
-                          Material(
-                            type: MaterialType.transparency,
-                            child: ListTile(
-                              onTap: () {
-                                widget.userInfo.logOut();
-                                Navigator.of(context).pushReplacement(
-                                    slideUpRoute(AccountOnboarding()));
-                              },
-                              leading: Icon(Icons.exit_to_app),
-                              title: Text('Log out'),
-                              // subtitle: Text('Change email'),
-                              contentPadding:
-                                  EdgeInsets.symmetric(horizontal: 24),
-                            ),
-                          ),
-                          Material(
-                            type: MaterialType.transparency,
-                            child: ListTile(
-                              onTap: () {
-                                print('object');
-                              },
-                              leading: Icon(Icons.delete_forever),
-                              title: Text('Delete Account (soon)'),
-                              // subtitle: Text('Change email'),
-                              contentPadding:
-                                  EdgeInsets.symmetric(horizontal: 24),
-                            ),
-                          ),
-                          ListTile(
-                            title: Text('Credits'),
-                            subtitle: Text(
-                                'Sword icon made by Freepik @ flaticon.com'),
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 24),
-                          ),
-                        ],
-                        // ),
-                      ),
-                    ),
-                    // Expanded(child: Container()),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
