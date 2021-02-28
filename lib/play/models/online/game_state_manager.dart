@@ -31,6 +31,15 @@ class GameStateManager with ChangeNotifier {
 
   late GameState _cgs; // currentGameState
   GameState get currentGameState => _cgs;
+  set cgs(newCgs) {
+    _cgs.removeListener(_listenToGamestate);
+    newCgs.addListener(_listenToGamestate);
+    _cgs = newCgs;
+  }
+
+  void _listenToGamestate() {
+    notifyListeners();
+  }
 
   late GameLoginState _gls;
   GameLoginState get gameLoginState => _gls;
@@ -41,7 +50,7 @@ class GameStateManager with ChangeNotifier {
     _serverInfo = s;
     _serverInfo!.currentlyConnectedPlayers--;
     if (s?.playerWaitingInLobby == true &&
-        this._cgs is WaitingForWWOpponentState) {
+        currentGameState is WaitingForWWOpponentState) {
       _serverInfo!.playerWaitingInLobby = false;
     }
   }
@@ -50,7 +59,7 @@ class GameStateManager with ChangeNotifier {
     _serverConnection.addListener(() {
       notifyListeners();
     });
-    _cgs = IdleState(this);
+    cgs = IdleState(this);
     _gls = GameLoginLoggedOut(this);
     _listenToStreams();
   }
@@ -93,13 +102,14 @@ class GameStateManager with ChangeNotifier {
   }
 
   Future<bool> startGame(OnlineRequest req) async {
-    if (_cgs is! IdleState) {
+    if (currentGameState is! IdleState) {
       // throw UnimplementedError("Maybe this should never occur");
       _serverConnection.send(PlayerMsgLeave());
       _serverConnection.waitForOkay(duration: Duration(milliseconds: 400));
     }
 
     var userInfo = this.userInfo;
+    notifyListeners();
     if (userInfo != null &&
         userInfo.username != null &&
         userInfo.password != null) {
@@ -128,8 +138,8 @@ class GameStateManager with ChangeNotifier {
   void _listenToStreams() {
     this._serverConnection.serverMsgStream.listen((msg) {
       this._handleServerMessage(msg);
-      GameState? newGameState = _cgs.handleServerMessage(msg);
-      this._cgs = newGameState ?? _cgs;
+      GameState? newGameState = currentGameState.handleServerMessage(msg);
+      this.cgs = newGameState ?? currentGameState;
 
       GameLoginState? newLoginState = _gls.handleServerMessage(msg);
       this._gls = newLoginState ?? _gls;
@@ -138,8 +148,8 @@ class GameStateManager with ChangeNotifier {
     this._serverConnection.playerMsgStream.listen((msg) {
       this._handlePlayerMessage(msg);
 
-      GameState? newGameState = _cgs.handlePlayerMessage(msg);
-      this._cgs = newGameState ?? _cgs;
+      GameState? newGameState = currentGameState.handlePlayerMessage(msg);
+      this.cgs = newGameState ?? currentGameState;
       notifyListeners();
     });
   }
@@ -148,7 +158,7 @@ class GameStateManager with ChangeNotifier {
     if (msg is MsgCurrentServerInfo) {
       this.serverInfo = msg.currentServerInfo;
     } else if (msg is MsgOppJoined) {
-      if (this._cgs is WaitingForWWOpponentState) {
+      if (currentGameState is WaitingForWWOpponentState) {
         showViewer = true;
       }
       notifyListeners();

@@ -9,6 +9,7 @@ import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
 import 'package:four_in_a_row/play/widgets/common/board.dart';
@@ -244,7 +245,22 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
           ),
         ),
       ],
-      children: [Text('Lol')],
+      children: [
+        widget.user == null
+            ? SizedBox()
+            : ListTile(
+                leading: Icon(Icons.group_add),
+                title: Text('Add ${widget.user!.name} as friend'),
+                subtitle: Text(
+                    'You will become friends once they accept your request'),
+              ),
+        ListTile(
+            leading: Icon(Icons.report_gmailerrorred_outlined),
+            title: Text('Report'),
+            onTap: () {
+              // TODO: maybe :)
+            }),
+      ],
 
       //   ),
       // ),

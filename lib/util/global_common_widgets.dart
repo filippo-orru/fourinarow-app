@@ -159,7 +159,8 @@ class _FiarBottomSheetState extends State<FiarBottomSheet>
                         //   absorbing: widget.disabled,
                         child: SwipeDetector(
                           swipeConfiguration: SwipeConfiguration(
-                            verticalSwipeMinDisplacement: 60,
+                            verticalSwipeMinDisplacement: 40,
+                            verticalSwipeMinVelocity: 220,
                           ),
                           onSwipeUp: () {
                             if (!expanded) show();

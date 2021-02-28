@@ -43,12 +43,12 @@ class SwipeDetector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //Vertical drag details
-    late DragStartDetails startVerticalDragDetails;
-    late DragUpdateDetails updateVerticalDragDetails;
+    DragStartDetails? startVerticalDragDetails;
+    DragUpdateDetails? updateVerticalDragDetails;
 
     //Horizontal drag details
-    late DragStartDetails startHorizontalDragDetails;
-    late DragUpdateDetails updateHorizontalDragDetails;
+    DragStartDetails? startHorizontalDragDetails;
+    DragUpdateDetails? updateHorizontalDragDetails;
 
     return GestureDetector(
       child: child,
@@ -59,10 +59,10 @@ class SwipeDetector extends StatelessWidget {
         updateVerticalDragDetails = dragDetails;
       },
       onVerticalDragEnd: (endDetails) {
-        double dx = updateVerticalDragDetails.globalPosition.dx -
-            startVerticalDragDetails.globalPosition.dx;
-        double dy = updateVerticalDragDetails.globalPosition.dy -
-            startVerticalDragDetails.globalPosition.dy;
+        double dx = updateVerticalDragDetails?.globalPosition.dx ??
+            0 - (startVerticalDragDetails?.globalPosition.dx ?? 0);
+        double dy = updateVerticalDragDetails?.globalPosition.dy ??
+            0 - (startVerticalDragDetails?.globalPosition.dy ?? 0);
         double velocity = endDetails.primaryVelocity ?? 0.0;
 
         //Convert values to be positive
@@ -94,10 +94,10 @@ class SwipeDetector extends StatelessWidget {
         updateHorizontalDragDetails = dragDetails;
       },
       onHorizontalDragEnd: (endDetails) {
-        double dx = updateHorizontalDragDetails.globalPosition.dx -
-            startHorizontalDragDetails.globalPosition.dx;
-        double dy = updateHorizontalDragDetails.globalPosition.dy -
-            startHorizontalDragDetails.globalPosition.dy;
+        double dx = updateHorizontalDragDetails?.globalPosition.dx ??
+            0 - (startHorizontalDragDetails?.globalPosition.dx ?? 0);
+        double dy = updateHorizontalDragDetails?.globalPosition.dy ??
+            0 - (startHorizontalDragDetails?.globalPosition.dy ?? 0);
         double velocity = endDetails.primaryVelocity ?? 0.0;
 
         if (dx < 0) dx = -dx;

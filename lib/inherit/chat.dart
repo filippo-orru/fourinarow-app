@@ -13,6 +13,11 @@ class ChatState with ChangeNotifier {
   final List<ChatMessage> ingameMessages = [];
 
   ChatState(this._serverConnection) {
+    _serverConnection.playerMsgStream.listen((msg) {
+      if (msg is PlayerMsgLeave) {
+        ingameMessages.clear();
+      }
+    });
     _serverConnection.serverMsgStream.listen((msg) {
       if (msg is MsgChatMessage) {
         if (msg.isGlobal) {
