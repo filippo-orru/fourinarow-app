@@ -43,7 +43,7 @@ class _LottieReactionState extends State<LottieReaction>
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        print("active: $active");
+        // print("active: $active");
         this.active = !active;
         setState(() => _grey = !active);
         if (active) {

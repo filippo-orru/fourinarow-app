@@ -34,13 +34,7 @@ class LifecycleProviderState extends State<LifecycleProvider>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance!.removeObserver(this);
-    super.dispose();
+    WidgetsBinding.instance?.addObserver(this);
   }
 
   @override

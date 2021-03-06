@@ -23,3 +23,5 @@ const int QUEUE_RESEND_TIMEOUT_MS = 700;
 const int CHECK_CONN_INTERVAL_MS = 1000;
 
 const int PROTOCOL_VERSION = 2;
+
+const int STARTUP_DELAY_MS = 600;

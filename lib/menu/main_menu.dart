@@ -13,6 +13,7 @@ import 'package:four_in_a_row/menu/common/rate_dialog.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
+import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'common/play_button.dart';
@@ -69,7 +70,6 @@ PageRouteBuilder slideUpRoute(Widget content) {
 
 class _MainMenuState extends State<MainMenu> with RouteAware {
   bool loadingUserInfo = false;
-  late final SharedPreferences sharedPrefs;
 
   void accountCheck({bool force = false}) async {
     var gsm = context.read<UserInfo>();
@@ -97,11 +97,7 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
   }
 
   void showChat() async {
-    bool hasAcceptedChat = false;
-    if (sharedPrefs.containsKey("hasAcceptedChat")) {
-      hasAcceptedChat = sharedPrefs.getBool("hasAcceptedChat");
-    }
-    if (hasAcceptedChat) {
+    if (FiarSharedPrefs.hasAcceptedChat) {
       Navigator.of(context).push(slideUpRoute(ChatScreen()));
     } else {
       bool? accepted = await showDialog(
@@ -110,19 +106,10 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
             return ChatAcceptDialog();
           });
       if (accepted == true) {
-        sharedPrefs.setBool("hasAcceptedChat", true);
+        FiarSharedPrefs.hasAcceptedChat = true;
         Navigator.of(context).push(slideUpRoute(ChatScreen()));
       }
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    SharedPreferences.getInstance().then((prefs) {
-      this.sharedPrefs = prefs;
-    });
   }
 
   late RouteObserver _routeObserver;
@@ -262,7 +249,7 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
             ),
           ],
         ),
-        Text('• Filippo Orru, 2020 •'.toUpperCase(),
+        Text('• Filippo Orru, 2021 •'.toUpperCase(),
             style: TextStyle(
               letterSpacing: 0.5,
               color: Colors.black54,

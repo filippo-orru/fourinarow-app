@@ -25,14 +25,16 @@ class SwipeConfiguration {
 
 class SwipeDetector extends StatelessWidget {
   final Widget child;
-  final Function()? onSwipeUp;
-  final Function()? onSwipeDown;
-  final Function()? onSwipeLeft;
-  final Function()? onSwipeRight;
+  final VoidCallback? onTap;
+  final VoidCallback? onSwipeUp;
+  final VoidCallback? onSwipeDown;
+  final VoidCallback? onSwipeLeft;
+  final VoidCallback? onSwipeRight;
   final SwipeConfiguration swipeConfiguration;
 
-  SwipeDetector({
+  const SwipeDetector({
     required this.child,
+    this.onTap,
     this.onSwipeUp,
     this.onSwipeDown,
     this.onSwipeLeft,
@@ -52,6 +54,7 @@ class SwipeDetector extends StatelessWidget {
 
     return GestureDetector(
       child: child,
+      onTap: onTap,
       onVerticalDragStart: (dragDetails) {
         startVerticalDragDetails = dragDetails;
       },
@@ -94,10 +97,10 @@ class SwipeDetector extends StatelessWidget {
         updateHorizontalDragDetails = dragDetails;
       },
       onHorizontalDragEnd: (endDetails) {
-        double dx = updateHorizontalDragDetails?.globalPosition.dx ??
-            0 - (startHorizontalDragDetails?.globalPosition.dx ?? 0);
-        double dy = updateHorizontalDragDetails?.globalPosition.dy ??
-            0 - (startHorizontalDragDetails?.globalPosition.dy ?? 0);
+        double dx = (updateHorizontalDragDetails?.globalPosition.dx ?? 0) -
+            (startHorizontalDragDetails?.globalPosition.dx ?? 0);
+        double dy = (updateHorizontalDragDetails?.globalPosition.dy ?? 0) -
+            (startHorizontalDragDetails?.globalPosition.dy ?? 0);
         double velocity = endDetails.primaryVelocity ?? 0.0;
 
         if (dx < 0) dx = -dx;
@@ -110,15 +113,11 @@ class SwipeDetector extends StatelessWidget {
           return;
 
         if (velocity < 0) {
-          //Swipe Up
-          if (onSwipeLeft != null) {
-            onSwipeLeft?.call();
-          }
+          //Swipe Left
+          onSwipeLeft?.call();
         } else {
-          //Swipe Down
-          if (onSwipeRight != null) {
-            onSwipeRight?.call();
-          }
+          //Swipe Right
+          onSwipeRight?.call();
         }
       },
     );

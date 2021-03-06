@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:four_in_a_row/util/constants.dart' as constants;
@@ -10,7 +11,6 @@ import 'package:four_in_a_row/util/constants.dart' as constants;
 import 'package:four_in_a_row/util/extensions.dart';
 
 class UserInfo with ChangeNotifier {
-  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   http.Client _client = http.Client();
 
   // bool _ok = false;
@@ -26,9 +26,7 @@ class UserInfo with ChangeNotifier {
   bool get loggedIn => username != null && password != null && user != null;
 
   UserInfo() {
-    _prefs.then((_) {
-      loadCredentials();
-    });
+    loadCredentials();
   }
 
   Map<String, String> _body(String username, String password) {
@@ -44,25 +42,18 @@ class UserInfo with ChangeNotifier {
     this.password = null;
     this.user = null;
 
-    var prefs = await _prefs;
-    if (prefs.containsKey('username') && prefs.containsKey('password')) {
-      prefs.remove('username');
-      prefs.remove('password');
-    }
+    FiarSharedPrefs.remove('username');
+    FiarSharedPrefs.remove('password');
   }
 
   void loadCredentials() async {
-    var prefs = await _prefs;
-    if (prefs.containsKey('username') && prefs.containsKey('password')) {
-      this.setCredentials(
-          prefs.getString('username'), prefs.getString('password'));
-    }
+    this.setCredentials(
+        FiarSharedPrefs.accountUsername, FiarSharedPrefs.accountPassword);
   }
 
   void setCredentials(String username, String password) async {
-    var prefs = await _prefs;
-    prefs.setString('username', username);
-    prefs.setString('password', password);
+    FiarSharedPrefs.accountUsername = username;
+    FiarSharedPrefs.accountPassword = password;
 
     this.username = username;
     this.password = password;

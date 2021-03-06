@@ -11,6 +11,8 @@ import 'package:four_in_a_row/menu/play_selection/common.dart';
 import 'package:four_in_a_row/menu/play_selection/online.dart';
 import 'package:four_in_a_row/play/widgets/local/play_local.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
+import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
+import 'package:four_in_a_row/util/swipe_detector.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:four_in_a_row/util/toast.dart';
 
@@ -32,7 +34,6 @@ class PlaySelection extends StatefulWidget {
 }
 
 class _PlaySelectionState extends State<PlaySelection> with RouteAware {
-  late final SharedPreferences _sharedPrefs;
   final PageController pageCtrl = PageController(
     initialPage: 0,
   );
@@ -67,17 +68,14 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
       );
     }
 
-    var shownDialogCount = 0;
-    if (_sharedPrefs.containsKey("shownOnlineDialogCount")) {
-      shownDialogCount = _sharedPrefs.getInt("shownOnlineDialogCount");
-    }
+    var shownDialogCount = FiarSharedPrefs.shownOnlineDialogCount;
     if (shownDialogCount <= 2) {
       await showDialog(
         context: context,
         builder: (ctx) =>
             OnlineInfoDialog(howManyMoreTimes: 2 - shownDialogCount),
       );
-      _sharedPrefs.setInt("shownOnlineDialogCount", shownDialogCount + 1);
+      FiarSharedPrefs.shownOnlineDialogCount = shownDialogCount + 1;
     }
     playOnline();
   }
@@ -94,14 +92,6 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
     } else {
       Navigator.of(context).push(slideUpRoute(OfflineScreen()));
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    SharedPreferences.getInstance().then((s) {
-      _sharedPrefs = s;
-    });
   }
 
   late RouteObserver _routeObserver;
@@ -260,6 +250,12 @@ class FiarSimpleDialog extends StatelessWidget {
           content,
           style: TextStyle(color: Colors.black, fontSize: 16, height: 1.3),
         ),
+        Align(
+            alignment: Alignment.centerRight,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Okay'),
+            ))
       ],
     );
   }
@@ -451,8 +447,7 @@ class SwipeDialog extends StatefulWidget {
 
 class _SwipeDialogState extends State<SwipeDialog>
     with SingleTickerProviderStateMixin {
-  Future<SharedPreferences> prefsFuture = SharedPreferences.getInstance();
-  late AnimationController animCtrl;
+  late AnimationController tooltipAnimCtrl;
 
   bool _show = false;
   bool _triedItOut = false;
@@ -460,57 +455,38 @@ class _SwipeDialogState extends State<SwipeDialog>
   @override
   void initState() {
     super.initState();
-    _checkPrefs();
+    this._show = !FiarSharedPrefs.shownSwipeDialog;
 
-    animCtrl = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 200),
-      reverseDuration: Duration(milliseconds: 900),
-    )..addStatusListener((status) {
+    tooltipAnimCtrl = AnimationController(
+        vsync: this,
+        duration: Duration(milliseconds: 200),
+        reverseDuration: Duration(milliseconds: 900))
+      ..drive(CurveTween(curve: Curves.easeInOut))
+      ..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
-          Future.delayed(Duration(milliseconds: 700), animCtrl.reverse);
+          // hide
+          Future.delayed(Duration(milliseconds: 700), tooltipAnimCtrl.reverse);
         }
       });
-
-    animCtrl.drive(CurveTween(curve: Curves.easeInOut));
   }
 
   @override
   void dispose() {
-    this.animCtrl.dispose();
+    this.tooltipAnimCtrl.dispose();
     super.dispose();
   }
 
-  void remindToTryOut() {
-    this.animCtrl.reverse();
-    this.animCtrl.forward();
+  void showTooltip() {
+    this.tooltipAnimCtrl.reverse();
+    this.tooltipAnimCtrl.forward();
   }
 
-  void _checkPrefs() async {
-    var prefs = await prefsFuture;
-    if (prefs.containsKey('shown_swype_dialog')) {
-      // this._show = true;
-      this._show = !prefs.getBool('shown_swype_dialog');
-    } else {
-      this._show = true;
-      await prefs.setBool('shown_swype_dialog', false);
-    }
-    setState(() {});
-  }
-
-  void tappedDialog() async {
-    var prefs = await prefsFuture;
-    if (_triedItOut) {
-      setState(() => this._show = false);
-      await prefs.setBool('shown_swype_dialog', true);
-    } else {
-      remindToTryOut();
-    }
-  }
-
-  void triedItOut(DragEndDetails d) {
+  void triedItOut() {
     setState(() => this._triedItOut = true);
-    Future.delayed(Duration(milliseconds: 750), tappedDialog);
+    Future.delayed(Duration(milliseconds: 750), () {
+      setState(() => this._show = false);
+      FiarSharedPrefs.shownSwipeDialog = true;
+    });
   }
 
   @override
@@ -518,10 +494,9 @@ class _SwipeDialogState extends State<SwipeDialog>
     return AnimatedSwitcher(
       duration: Duration(milliseconds: 330),
       child: _show
-          ? GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onHorizontalDragEnd: triedItOut,
-              onTapDown: (_) => tappedDialog(),
+          ? SwipeDetector(
+              onTap: showTooltip,
+              onSwipeLeft: () => triedItOut(),
               child: Container(
                 constraints: BoxConstraints.expand(),
                 color: Colors.black38,
@@ -592,9 +567,9 @@ class _SwipeDialogState extends State<SwipeDialog>
                         ),
                         Spacer(flex: 1),
                         AnimatedBuilder(
-                          animation: animCtrl,
-                          builder: (ctx, child) =>
-                              Opacity(child: child, opacity: animCtrl.value),
+                          animation: tooltipAnimCtrl,
+                          builder: (ctx, child) => Opacity(
+                              child: child, opacity: tooltipAnimCtrl.value),
                           child: Container(
                             padding: EdgeInsets.symmetric(
                                 horizontal: 18, vertical: 14),

@@ -29,10 +29,10 @@ class GameStateManager with ChangeNotifier {
 
   UserInfo? userInfo;
 
-  late GameState _cgs; // currentGameState
-  GameState get currentGameState => _cgs;
+  GameState? _cgs; // currentGameState
+  GameState get currentGameState => _cgs!;
   set cgs(newCgs) {
-    _cgs.removeListener(_listenToGamestate);
+    _cgs?.removeListener(_listenToGamestate);
     newCgs.addListener(_listenToGamestate);
     _cgs = newCgs;
   }

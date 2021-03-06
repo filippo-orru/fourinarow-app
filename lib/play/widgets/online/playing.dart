@@ -7,9 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:four_in_a_row/inherit/chat.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/menu/common/rate_dialog.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
-import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
 import 'package:four_in_a_row/play/widgets/common/board.dart';
@@ -33,6 +33,11 @@ class PlayingViewer extends AbstractGameStateViewer {
 
   @override
   Widget build(BuildContext context) {
+    if (_playingState.showRatingDialog) {
+      _playingState.showRatingDialog = false;
+      RateTheGameDialog.show(context);
+    }
+
     Toast? toast;
     if (_playingState.toastState != null) {
       toast = Toast(_playingState.toastState!);
@@ -445,7 +450,7 @@ class PlayerIcon extends StatelessWidget {
 }
 
 class ReactionPicker extends StatefulWidget {
-  final List<String> reactions = ["😐", "🤔", "👏", "😀"];
+  final List<String> reactions = ["😐", "🤔", "👏", "😄"];
   final bool open;
   final VoidCallback onOpen;
   final VoidCallback onClose;
@@ -582,7 +587,7 @@ class SplashingWidgetState {
   final double degree;
   final double speed;
 
-  SplashingWidgetState(this.degree, this.speed);
+  SplashingWidgetState({required this.degree, required this.speed});
 }
 
 class _ReactionSmileyState extends State<_ReactionSmiley>
@@ -593,9 +598,18 @@ class _ReactionSmileyState extends State<_ReactionSmiley>
   List<SplashingWidgetState> splashingCopies = [];
 
   void _generateSplashingCopies() {
-    for (int _ in 1.to(rng.nextInt(2) + 3)) {
+    int copiesAmount = 3;
+    for (int i in 0.to(copiesAmount)) {
+      double thisDegreeRangeFrom =
+          (i / copiesAmount) * DEGREE_RANGE - DEGREE_RANGE / 2;
+      double thisDegreeRangeTo =
+          ((i + 1) / copiesAmount) * DEGREE_RANGE - DEGREE_RANGE / 2;
+      double thisDegreeRange = thisDegreeRangeTo - thisDegreeRangeFrom;
       splashingCopies.add(SplashingWidgetState(
-          (rng.nextDouble() - 0.5) * DEGREE_RANGE, rng.nextDouble() + 1));
+          degree: thisDegreeRangeFrom +
+              thisDegreeRange *
+                  (rng.nextDouble() * 0.5 - 0.25), // between 0.25 and 0.75
+          speed: rng.nextDouble() + 1.5));
     }
   }
 
@@ -621,7 +635,7 @@ class _ReactionSmileyState extends State<_ReactionSmiley>
 
   @override
   Widget build(BuildContext context) {
-    double fadeOffThreshold = 0.4;
+    double fadeOffThreshold = 0.5;
     return IconButton(
       splashRadius: Material.defaultSplashRadius * 0.8,
       highlightColor: Colors.yellow[200]!.withOpacity(0.8),
@@ -644,9 +658,7 @@ class _ReactionSmileyState extends State<_ReactionSmiley>
                     double initialOpacity = 0.5;
                     double opacity = initialOpacity;
                     if (x > fadeOffThreshold) {
-                      opacity = (x - fadeOffThreshold) *
-                              (initialOpacity / (fadeOffThreshold - 1)) +
-                          initialOpacity;
+                      opacity = (x - fadeOffThreshold) * initialOpacity;
                     }
 
                     return Opacity(
@@ -654,7 +666,7 @@ class _ReactionSmileyState extends State<_ReactionSmiley>
                       child: Transform(
                         alignment: Alignment.center,
                         transform: Matrix4.identity()
-                          ..translate(0.0, -x * splash.speed * 30),
+                          ..translate(0.0, -x * splash.speed * 45),
                         child: child,
                       ),
                     );
@@ -817,32 +829,34 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: colorAnim,
-      builder: (_, child) => Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(100)),
-              color: colorAnim.value,
-            ),
-            width: 24,
-            height: 24,
-          ),
-          AnimatedBuilder(
-            animation: breatheAnim,
-            builder: (_, child) =>
-                Transform.scale(scale: breatheAnim.value, child: child),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(100)),
-                color: Colors.white,
+      builder: (_, child) => AnimatedBuilder(
+        animation: breatheAnim,
+        builder: (_, child) => Stack(
+          alignment: Alignment.center,
+          children: [
+            child!,
+            Transform.scale(
+              scale: breatheAnim.value,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(100)),
+                  color: Colors.white,
+                ),
+                width: 24,
+                height: 24,
               ),
-              width: 24,
-              height: 24,
             ),
-            // child:
+          ],
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(100)),
+            color: colorAnim.value,
           ),
-        ],
+          width: 24,
+          height: 24,
+        ),
+        // child
       ),
     );
   }

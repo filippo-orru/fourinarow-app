@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:four_in_a_row/play/models/common/field.dart';
@@ -10,6 +11,7 @@ import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/util/toast.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'game_state.dart';
 
 class PlayingState extends GameState {
@@ -35,6 +37,8 @@ class PlayingState extends GameState {
   Timer? toastTimer;
   OpponentInfo opponentInfo = OpponentInfo();
 
+  bool showRatingDialog = false;
+
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
     if (msg is PlayerMsgPlayAgain) {
@@ -58,6 +62,8 @@ class PlayingState extends GameState {
       }
     } else if (msg is MsgGameStart) {
       this._reset(msg.myTurn);
+    } else if (msg is MsgGameOver && msg.iWon) {
+      _maybeShowRatingDialog();
     } else if (msg.isConfirmation) {
       //awaitingConfirmation = false;
       //notifyListeners();
@@ -124,6 +130,12 @@ class PlayingState extends GameState {
         opponentInfo.isFriend = true;
       }
       notifyListeners();
+    }
+  }
+
+  void _maybeShowRatingDialog() async {
+    if (FiarSharedPrefs.shouldShowRatingDialog) {
+      showRatingDialog = true;
     }
   }
 
