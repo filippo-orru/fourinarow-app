@@ -28,19 +28,22 @@ class _LoginPageState extends State<LoginPage> {
         "username": widget.usernameCtrl.text,
         "password": widget.pwCtrl.text,
       };
-      loginFuture = http.post(
-        '${constants.HTTP_URL}/api/users/login',
-        body: body,
-      )..then((response) {
-          if (response.statusCode == 200) {
-            widget.callback(
-                context, widget.usernameCtrl.text, widget.pwCtrl.text);
-          } else {
-            print(response);
-          }
-        }, onError: (_) {
-          print("Error logging in!");
-        });
+      loginFuture = http
+          .post(
+            '${constants.HTTP_URL}/api/users/login',
+            body: body,
+          )
+          .timeout(Duration(seconds: 4))
+            ..then((response) {
+              if (response.statusCode == 200) {
+                widget.callback(
+                    context, widget.usernameCtrl.text, widget.pwCtrl.text);
+              } else {
+                print(response);
+              }
+            }, onError: (_) {
+              print("Error logging in!");
+            });
     });
   }
 

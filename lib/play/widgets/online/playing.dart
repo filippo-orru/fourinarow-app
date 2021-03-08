@@ -170,21 +170,10 @@ class _BottomSheetWidget extends StatefulWidget {
   _BottomSheetState createState() => _BottomSheetState();
 }
 
-enum AddedState { NotAdded, Adding, Added }
-
 class _BottomSheetState extends State<_BottomSheetWidget> {
-  AddedState added = AddedState.NotAdded;
   bool errorAdding = false;
 
   bool reactionPickerOpen = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.user?.isFriend == true) {
-      added = AddedState.Added;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

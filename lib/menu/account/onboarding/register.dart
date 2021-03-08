@@ -25,15 +25,18 @@ class _RegisterPageState extends State<RegisterPage> {
         "username": widget.usernameCtrl.text,
         "password": widget.pwCtrl.text,
       };
-      registerFuture = http.post(
-        '${constant.HTTP_URL}/api/users/register',
-        body: body,
-      )..then((response) {
-          if (response.statusCode == 200 && context != null) {
-            widget.callback(
-                context, widget.usernameCtrl.text, widget.pwCtrl.text);
-          }
-        });
+      registerFuture = http
+          .post(
+            '${constant.HTTP_URL}/api/users/register',
+            body: body,
+          )
+          .timeout(Duration(seconds: 4))
+            ..then((response) {
+              if (response.statusCode == 200 && context != null) {
+                widget.callback(
+                    context, widget.usernameCtrl.text, widget.pwCtrl.text);
+              }
+            });
     });
   }
 

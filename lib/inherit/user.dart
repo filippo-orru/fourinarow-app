@@ -102,7 +102,7 @@ class UserInfo with ChangeNotifier {
     // ..bodyFields = _body;
 
     try {
-      var response = await _client.send(req);
+      var response = await _client.send(req).timeout(Duration(seconds: 4));
       if (response.statusCode == 200) {
         User? user =
             User.fromMap(jsonDecode(await response.stream.bytesToString()));
@@ -170,18 +170,38 @@ class GameInfo extends Equatable {
   List<Object> get props => [skillRating, playerRank];
 }
 
+enum FriendState { IsFriend, IsRequestedByMe, HasRequestedMe, None, Loading }
+
+extension FriendStateExtension on FriendState {
+  Widget icon() {
+    switch (this) {
+      case FriendState.IsFriend:
+        return Icon(Icons.check);
+      case FriendState.IsRequestedByMe:
+        return Icon(Icons.outgoing_mail);
+      case FriendState.HasRequestedMe:
+        return Icon(Icons.move_to_inbox_rounded);
+      case FriendState.None:
+        return Icon(Icons.person_add);
+      case FriendState.Loading:
+        return Container(
+            width: 24, height: 24, child: CircularProgressIndicator());
+    }
+  }
+}
+
 class PublicUser {
   final String id;
   final String name;
   final GameInfo gameInfo;
-  bool isFriend;
+  FriendState friendState;
   bool isPlaying;
 
   PublicUser(
     this.id,
     this.name,
     this.gameInfo, {
-    this.isFriend = false,
+    this.friendState = FriendState.None,
     this.isPlaying = false,
   });
 
@@ -208,6 +228,7 @@ class User extends Equatable {
     // this.password,
     required this.email,
     required this.friends,
+    required this.friendRequests,
     required this.gameInfo,
   });
 
@@ -216,6 +237,7 @@ class User extends Equatable {
   // final String password;
   final String email;
   final List<PublicUser> friends;
+  final List<FriendRequest> friendRequests;
   final GameInfo gameInfo;
 
   static User? fromMap(Map<String, dynamic> map) {
@@ -228,6 +250,13 @@ class User extends Equatable {
         .toList()
         .filterNotNull();
 
+    List<FriendRequest> friendRequests =
+        (map['friend_requests'] as List<dynamic>)
+            .map((dynamic friendMap) =>
+                FriendRequest.fromMap(friendMap as Map<String, dynamic>))
+            .toList()
+            .filterNotNull();
+
     GameInfo? gameInfo = GameInfo.fromMap(map['game_info']);
     if (gameInfo == null) return null;
 
@@ -236,16 +265,49 @@ class User extends Equatable {
       username: map['username'] as String,
       email: map['email'] as String,
       friends: friends,
+      friendRequests: friendRequests,
       gameInfo: gameInfo,
     );
   }
 
   @override
-  List<Object> get props => [id, username, email, friends, gameInfo];
-  // String get id => _id;
-  // String get username => _username;
-  // String get password => _password;
-  // String get email => _email;
-  // List<PublicUser> get friends => _friends;
-  // GameInfo get gameInfo => _gameInfo;
+  List<Object> get props =>
+      [id, username, email, friends, friendRequests, gameInfo];
+}
+
+enum FriendRequestDirection { Incoming, Outgoing }
+
+extension FriendRequestDirectionExtension on FriendRequestDirection {
+  static FriendRequestDirection? fromString(String s) {
+    if (s == "Incoming")
+      return FriendRequestDirection.Incoming;
+    else if (s == "Outgoing")
+      return FriendRequestDirection.Outgoing;
+    else
+      return null;
+  }
+}
+
+class FriendRequest {
+  final FriendRequestDirection direction;
+  final PublicUser other;
+
+  FriendRequest({required this.direction, required this.other});
+
+  static FriendRequest? fromMap(Map<String, dynamic> map) {
+    for (String key in ['direction', 'other']) {
+      if (!map.containsKey(key)) return null;
+    }
+    FriendRequestDirection? direction =
+        FriendRequestDirectionExtension.fromString(map['direction']);
+    if (direction == null) return null;
+
+    PublicUser? other = PublicUser.fromMap(map['other']);
+    if (other == null) return null;
+
+    return FriendRequest(
+      direction: direction,
+      other: other,
+    );
+  }
 }

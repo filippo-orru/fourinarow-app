@@ -241,21 +241,25 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
     return RefreshIndicator(
       onRefresh: () => widget.userInfo.refresh().then((_) => setState(() {})),
       key: widget.refreshKey,
-      child: widget.userInfo.user?.friends.isNotEmpty == true
-          ? ListView.builder(
-              itemCount: widget.userInfo.user?.friends.length ?? 0,
-              itemBuilder: (_, index) {
-                bool isLast = index != widget.userInfo.user!.friends.length - 1;
-                return FriendsListTile(widget.userInfo.user!.friends[index],
-                    widget.onBattleRequest, isLast);
-              },
-              padding: EdgeInsets.only(bottom: 164),
-            )
-          : Container(
+      child: ListView.builder(
+        itemCount: (widget.userInfo.user?.friends.length ?? 0) + 1,
+        itemBuilder: (_, index) {
+          if (widget.userInfo.user?.friends.isEmpty == true) {
+            return Container(
+              height: MediaQuery.of(context).size.height -
+                  FiarBottomSheet.HEIGHT -
+                  92,
               alignment: Alignment.center,
-              padding: EdgeInsets.only(top: 24),
               child: Text("No friends yet. Add some to get started!"),
-            ),
+            );
+          } else {
+            bool isLast = index != widget.userInfo.user!.friends.length - 1;
+            return FriendsListTile(widget.userInfo.user!.friends[index],
+                widget.onBattleRequest, isLast);
+          }
+        },
+        padding: EdgeInsets.only(bottom: 164),
+      ),
     );
   }
 }
@@ -534,37 +538,65 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
       searchResults!.forEach((publicUser) {
         if (widget.userInfo.user?.friends.any((f) => f.id == publicUser.id) ==
             true) {
-          publicUser.isFriend = true;
+          publicUser.friendState = FriendState.IsFriend;
+        } else {
+          FriendRequest? fr = widget.userInfo.user?.friendRequests
+              .map<FriendRequest?>((x) => x)
+              .singleWhere((f) => f?.other.id == publicUser.id,
+                  orElse: () => null);
+          if (fr != null) {
+            publicUser.friendState =
+                fr.direction == FriendRequestDirection.Incoming
+                    ? FriendState.HasRequestedMe
+                    : FriendState.IsRequestedByMe;
+          }
         }
       });
     }
     setState(() {
       searching = false;
     });
-    // }
-
-    // onError: () => setState(() {
-    //   searching = false;
-    // }),
   }
 
   void addFriend(String id, int index) async {
     setState(() => addingFriend = index);
     // if (
     await widget.userInfo.addFriend(id);
+
+    //ree
+    searchResults!.forEach((publicUser) {
+      if (widget.userInfo.user?.friends.any((f) => f.id == publicUser.id) ==
+          true) {
+        publicUser.friendState = FriendState.IsFriend;
+      } else {
+        FriendRequest? fr = widget.userInfo.user?.friendRequests
+            .map<FriendRequest?>((x) => x)
+            .singleWhere((f) => f?.other.id == publicUser.id,
+                orElse: () => null);
+        if (fr != null) {
+          publicUser.friendState =
+              fr.direction == FriendRequestDirection.Incoming
+                  ? FriendState.HasRequestedMe
+                  : FriendState.IsRequestedByMe;
+        }
+      }
+    });
+    //end:ree
+
     searchResults?.forEach((publicUser) {
       if (widget.userInfo.user?.friends.any((f) => f.id == publicUser.id) ==
           true) {
-        publicUser.isFriend = true;
+        publicUser.friendState =
+            publicUser.friendState == FriendState.IsRequestedByMe ||
+                    publicUser.friendState == FriendState.HasRequestedMe
+                ? FriendState.IsFriend
+                : FriendState.IsRequestedByMe;
       }
     });
-    // ) {
-    //   .add(index);
-    // }
+
+    addingFriend = null;
     if (mounted) {
-      setState(() {
-        addingFriend = null;
-      });
+      setState(() {});
     }
   }
 
@@ -724,13 +756,13 @@ class FriendSearchResult extends StatelessWidget {
       trailing: IconButton(
         splashColor: Colors.red[700]!.withOpacity(0.5),
         highlightColor: Colors.red[700]!.withOpacity(0.5),
-        icon: publicUser.isFriend
-            ? Icon(Icons.check)
-            : addingFriend == index
-                ? CircularProgressIndicator()
-                : Icon(Icons.person_add),
-        onPressed:
-            publicUser.isFriend ? () {} : () => addFriend(publicUser.id, index),
+        icon: addingFriend == index
+            ? CircularProgressIndicator()
+            : publicUser.friendState.icon(),
+        onPressed: publicUser.friendState == FriendState.None ||
+                publicUser.friendState == FriendState.HasRequestedMe
+            ? () => addFriend(publicUser.id, index)
+            : () {},
       ),
     );
   }

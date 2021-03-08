@@ -117,7 +117,7 @@ class PlayingState extends GameState {
     try {
       response = await http
           .get("${constants.HTTP_URL}/api/users/$opponentId")
-          .timeout(Duration(milliseconds: 4000));
+          .timeout(Duration(seconds: 4));
     } on Exception {
       return;
     }

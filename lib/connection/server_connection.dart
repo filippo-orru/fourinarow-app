@@ -524,7 +524,11 @@ class ServerIsDownState {
     if (_serverIsDownCheckDate.difference(DateTime.now()) >
         Duration(minutes: 1)) {
       // Check if server is down
-      _serverIsDown = (await http.get(HTTP_URL + '/status')).body == "NOT_OK";
+      _serverIsDown = (await http
+                  .get(HTTP_URL + '/status')
+                  .timeout(Duration(seconds: 4), onTimeout: () => null))
+              ?.body ==
+          "NOT_OK";
     }
     return _serverIsDown;
   }
