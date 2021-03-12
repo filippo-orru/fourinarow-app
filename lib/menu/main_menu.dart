@@ -15,6 +15,7 @@ import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'common/play_button.dart';
 
@@ -73,10 +74,16 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
 
   void accountCheck({bool force = false}) async {
     var gsm = context.read<UserInfo>();
-    if (gsm.offline) {
-      Navigator.of(context).push(slideUpRoute(OfflineScreen()));
-    } else if (gsm.loggedIn) {
-      Navigator.of(context).push(slideUpRoute(FriendsList()));
+    if (gsm.loggedIn) {
+      if (gsm.offline) {
+        Navigator.of(context).push(slideUpRoute(OfflineScreen(
+          refreshCheckAction: () {
+            return gsm.refresh().then((userInfo) => userInfo != null);
+          },
+        )));
+      } else {
+        Navigator.of(context).push(slideUpRoute(FriendsList()));
+      }
     } else {
       Navigator.of(context).push(slideUpRoute(AccountOnboarding()));
     }
@@ -277,18 +284,14 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
 
   Container buildTitle(BuildContext context) {
     return Container(
-      alignment: Alignment.center,
-      child: Text(
-        "Four in a Row".toUpperCase(),
-        style: TextStyle(
-          fontSize: 40,
-          fontFamily: "RobotoSlab",
-          letterSpacing: 1.01,
-          // fontWeight: FontWeight.w900,
-          // fontStyle: FontStyle.italic
+      padding: EdgeInsets.symmetric(horizontal: 32),
+      child: Hero(
+        tag: "wide_logo_banner",
+        child: Image.asset(
+          "assets/img/wide_logo_banner.png",
+          fit: BoxFit.contain,
         ),
       ),
-      // ),
     );
   }
 }

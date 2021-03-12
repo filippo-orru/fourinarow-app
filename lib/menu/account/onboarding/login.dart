@@ -1,17 +1,19 @@
 // import 'dart:convert';
 
+import 'package:four_in_a_row/inherit/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/util/constants.dart' as constants;
+import 'package:provider/provider.dart';
 
 import 'common.dart';
 
 class LoginPage extends StatefulWidget {
   final title = 'Login';
   final Color accentColor = Colors.blueAccent;
-  final usernameCtrl = TextEditingController();
-  final pwCtrl = TextEditingController();
-  final void Function(BuildContext context, String, String) callback;
+  final usernameCtrl = TextEditingController()..text = "fefe";
+  final pwCtrl = TextEditingController()..text = "00000000";
+  final VoidCallback callback;
 
   LoginPage({required this.callback});
 
@@ -20,38 +22,27 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  Future<http.Response>? loginFuture;
+  Future<int>? loginFuture;
 
-  void onPressed() {
-    setState(() {
-      Map<String, String> body = {
-        "username": widget.usernameCtrl.text,
-        "password": widget.pwCtrl.text,
-      };
-      loginFuture = http
-          .post(
-            '${constants.HTTP_URL}/api/users/login',
-            body: body,
-          )
-          .timeout(Duration(seconds: 4))
-            ..then((response) {
-              if (response.statusCode == 200) {
-                widget.callback(
-                    context, widget.usernameCtrl.text, widget.pwCtrl.text);
-              } else {
-                print(response);
-              }
-            }, onError: (_) {
-              print("Error logging in!");
-            });
-    });
+  void onPressed() async {
+    loginFuture = context
+        .read<UserInfo>()
+        .login(widget.usernameCtrl.text, widget.pwCtrl.text);
+
+    setState(() {});
+    if (await loginFuture == 200) {
+      widget.callback();
+    }
   }
 
   String textFromStatuscode(int? code) {
     if (code == 200) {
-      return "You have been logged in successfully!";
+      return "You have been logged in successfully! :)";
     } else if (code == 403) {
       return "Username or password are incorrect!";
+    } else if (code == 0) {
+      // my special case
+      return "Network error! Could not connect or server is down. Please try again later.";
     } else {
       return "Error! (Code: $code)";
     }
@@ -73,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
           child: loginFuture != null
               ? FutureBuilder(
                   future: loginFuture,
-                  builder: (ctx, AsyncSnapshot<http.Response> snapshot) {
+                  builder: (ctx, AsyncSnapshot<int> snapshot) {
                     return GestureDetector(
                       onTap: () => setState(() => loginFuture = null),
                       child: Container(
@@ -92,8 +83,7 @@ class _LoginPageState extends State<LoginPage> {
                                         BorderRadius.all(Radius.circular(4)),
                                   ),
                                   child: Text(
-                                    textFromStatuscode(
-                                        snapshot.data?.statusCode),
+                                    textFromStatuscode(snapshot.data),
                                     style: TextStyle(
                                       color: Colors.black,
                                     ),

@@ -66,6 +66,9 @@ class ServerConnection with ChangeNotifier {
   }
 
   void send(PlayerMessage msg) {
+    // print("send: $msg");
+    // debugPrintStack();
+
     this._playerMsgStreamCtrl.add(msg);
   }
 
@@ -83,6 +86,8 @@ class ServerConnection with ChangeNotifier {
   }
 
   void close() {
+    _reconnectionTimer?.cancel();
+
     _serverMsgStreamCtrl.close();
     _playerMsgStreamCtrl.close();
 
@@ -230,6 +235,8 @@ class ServerConnection with ChangeNotifier {
   }
 
   StreamSubscription? _handleWsIn(Stream<dynamic> wsStream) {
+    // debugPrintStack();
+
     try {
       return wsStream.listen(
         this._receivedWsMsg,
@@ -278,8 +285,8 @@ class ServerConnection with ChangeNotifier {
             .add(ReliablePktMsgOut(this._playerMsgIndex, msg));
       },
       onError: this._websocketErr,
-      cancelOnError: true,
       onDone: this._connect,
+      cancelOnError: true,
     );
   }
 
@@ -308,9 +315,11 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _websocketDone() {
+    // debugPrintStack();
+
     int timeoutMs = (min(
               24.0,
-              0.5 + pow(_connectionTries.toDouble(), 1.5),
+              1 + pow(_connectionTries.toDouble(), 1.5),
             ) *
             1000)
         .toInt();
@@ -356,8 +365,17 @@ class ServerConnection with ChangeNotifier {
   void _resetReliabilityLayer({required bool reconnect}) {
     this._playerMsgIndex = 0;
     this._serverMsgIndex = 0;
+
     this._serverMsgStreamCtrl.add(MsgReset());
-    if (reconnect) this.retryConnection(force: true, reset: true);
+
+    if (reconnect) {
+      this._playerMsgQ.clear();
+      this._serverMsgQ.clear();
+
+      this._sessionState = SessionStateIdle();
+      //this.retryConnection(force: true, reset: true);
+      this._connection!.sink.close();
+    }
   }
 
   void _receivedReliablePacket(ReliablePacketIn rPkt) {
@@ -396,28 +414,25 @@ class ServerConnection with ChangeNotifier {
     } else if (rPkt is ReliablePktHelloIn) {
       if (this._sessionState is! SessionStateWaiting) {
         print("   #WARN# Got unexpected ReliablePktHelloIn");
-        this._resetReliabilityLayer(reconnect: false);
-      }
-      if (rPkt.foundState == FoundState.New) {
         this._playerMsgQ.clear();
         this._serverMsgQ.clear();
         this._resetReliabilityLayer(reconnect: false);
       }
+      if (rPkt.foundState == FoundState.New) {
+        this._resetReliabilityLayer(reconnect: false);
+      }
       _connectionTries = 0;
       this._sessionState = SessionStateConnected(rPkt.sessionIdentifier);
+      this._serverMsgStreamCtrl.add(MsgHello());
       notifyListeners();
     } else if (rPkt is ReliablePktHelloInOutDated) {
       this._sessionState = SessionStateOutDated();
     } else if (rPkt is ReliablePktErrIn) {
       print("   #WARN# Got ReliablePktErrIn");
-      this._playerMsgQ.clear();
-      this._serverMsgQ.clear();
       this._resetReliabilityLayer(reconnect: true);
       // this.retryConnection(force: true);
     } else if (rPkt is ReliablePktNotConnectedIn) {
       print("   #WARN# Got ReliablePktNotConnectedIn");
-      this._playerMsgQ.clear();
-      this._serverMsgQ.clear();
       this._resetReliabilityLayer(reconnect: true);
       // this.retryConnection(force: true);
     } else {

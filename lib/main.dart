@@ -26,28 +26,57 @@ import 'menu/main_menu.dart';
 
 void main() {
   runApp(
-    SplashApp(
-      key: UniqueKey(),
-      mainApp: mainApp,
-    ),
+    SplashApp(),
   );
 }
 
-class SplashApp extends StatefulWidget {
-  final Widget Function() mainApp;
+class SplashApp extends StatelessWidget {
+  // final HeroController _heroController = ;
 
-  const SplashApp({
+  @override
+  Widget build(BuildContext context) {
+    return WidgetsApp(
+      debugShowCheckedModeBanner: false,
+      color: Colors.blue,
+      navigatorObservers: [HeroController()],
+      onGenerateRoute: (settings) {
+        if (settings.name == "/") {
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => SplashAppInternal(),
+          );
+          // return PageRouteBuilder(
+          //   settings: settings,
+          //   pageBuilder: (_, enterAnim, exitAnim) => SplashAppInternal(),
+          // );
+        } else {
+          return MaterialPageRoute(
+              settings: settings, builder: (_) => mainApp());
+          //  PageRouteBuilder(
+          //   settings: settings,
+          //   pageBuilder: (_, enterAnim, exitAnim) => mainApp(),
+          // );
+        }
+      },
+    );
+  }
+}
+
+class SplashAppInternal extends StatefulWidget {
+  // final Widget Function() mainApp;
+
+  const SplashAppInternal({
     Key key,
-    @required this.mainApp,
+    // @required this.mainApp,
   }) : super(key: key);
 
   @override
-  _SplashAppState createState() => _SplashAppState();
+  _SplashAppInternalState createState() => _SplashAppInternalState();
 }
 
 enum AppLoadState { Loading, Preloading, Loaded, Error }
 
-class _SplashAppState extends State<SplashApp>
+class _SplashAppInternalState extends State<SplashAppInternal>
     with SingleTickerProviderStateMixin {
   AnimationController _lottieAnimCtrl;
   AppLoadState state = AppLoadState.Loading;
@@ -56,27 +85,33 @@ class _SplashAppState extends State<SplashApp>
   void initState() {
     super.initState();
 
-    _lottieAnimCtrl =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 1100))
-          ..forward()
-          ..addStatusListener((status) {
-            if (status == AnimationStatus.completed) {
-              _lottieAnimCtrl.value = 0; //.95 / 3.0;
-              _lottieAnimCtrl.forward();
-            }
-          });
+    _lottieAnimCtrl = AnimationController(
+      vsync: this,
+      // duration: Duration(milliseconds: 400),
+    );
+    // ..forward()
+    // ..addStatusListener((status) {
+    //   if (status == AnimationStatus.completed) {
+    //     _lottieAnimCtrl.value = 0; //.95 / 3.0;
+    //     _lottieAnimCtrl.forward();
+    //   }
+    // });
     _initializeAsyncDependencies();
   }
 
   Future<void> _initializeAsyncDependencies() async {
-    setState(() => state = AppLoadState.Loading);
+    // setState(() => state = AppLoadState.Loading);
     await Future.delayed(Duration(milliseconds: STARTUP_DELAY_MS));
     FiarSharedPrefs.setup().then(
       (_) {
-        setState(() => state = AppLoadState.Preloading);
-        Future.delayed(Duration(milliseconds: 380), () {
-          setState(() => state = AppLoadState.Loaded);
-        });
+        Navigator.of(context).pushNamed("/main");
+        // _lottieAnimCtrl.forward().then((_) {
+        //   setState(() => state = AppLoadState.Preloading);
+        //   Future.delayed(Duration(milliseconds: 380), () {
+        //     Navigator.of(context).pushNamed("main");
+        //     // setState(() => state = AppLoadState.Loaded);
+        //   });
+        // });
       },
       onError: ((error, stackTrace) {
         setState(() => state = AppLoadState.Error);
@@ -110,44 +145,64 @@ class _SplashAppState extends State<SplashApp>
             key: ValueKey("loading"),
             color: Colors.white,
             constraints: BoxConstraints.expand(),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                AnimatedBuilder(
-                  animation: _lottieAnimCtrl,
-                  builder: (_, child) => Transform.rotate(
-                      angle: pi * _lottieAnimCtrl.value, child: child),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: Colors.grey[100],
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.black26,
-                              offset: Offset(0, 0),
-                              blurRadius: 12),
-                        ]),
-                    padding: EdgeInsets.all(12),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(mainAxisSize: MainAxisSize.min, children: [
-                          buildDot(red: true),
-                          SizedBox(width: 8),
-                          buildDot(red: false),
-                        ]),
-                        SizedBox(height: 8),
-                        Row(mainAxisSize: MainAxisSize.min, children: [
-                          buildDot(red: false),
-                          SizedBox(width: 8),
-                          buildDot(red: true),
-                        ])
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 32),
+              // child:
+              // Hero(
+              // tag: "wide_logo_banner",
+              child: Image.asset(
+                "assets/img/wide_logo_banner.png",
+                fit: BoxFit.contain,
+              ),
+              // Lottie.asset(
+              //   "assets/lottie/main_menu/wide logo banner anim.json",
+              //   fit: BoxFit.contain,
+              //   controller: _lottieAnimCtrl,
+              //   onLoaded: (c) {
+              //     _lottieAnimCtrl.duration = c.duration;
+              //     _initializeAsyncDependencies();
+              //   },
+              // ),
+              // ),
             ),
+            // Stack(
+            //   alignment: Alignment.center,
+            //   children: [
+            // AnimatedBuilder(
+            //   animation: _lottieAnimCtrl,
+            //   builder: (_, child) => Transform.rotate(
+            //       angle: pi * _lottieAnimCtrl.value, child: child),
+            //   child: Container(
+            //     decoration: BoxDecoration(
+            //         borderRadius: BorderRadius.circular(20),
+            //         color: Colors.grey[100],
+            //         boxShadow: [
+            //           BoxShadow(
+            //               color: Colors.black26,
+            //               offset: Offset(0, 0),
+            //               blurRadius: 12),
+            //         ]),
+            //     padding: EdgeInsets.all(12),
+            //     child: Column(
+            //       mainAxisSize: MainAxisSize.min,
+            //       children: [
+            //         Row(mainAxisSize: MainAxisSize.min, children: [
+            //           buildDot(red: true),
+            //           SizedBox(width: 8),
+            //           buildDot(red: false),
+            //         ]),
+            //         SizedBox(height: 8),
+            //         Row(mainAxisSize: MainAxisSize.min, children: [
+            //           buildDot(red: false),
+            //           SizedBox(width: 8),
+            //           buildDot(red: true),
+            //         ])
+            //       ],
+            //     ),
+            //   ),
+            // ),
+            //   ],
+            // ),
           ),
         );
       default:
@@ -155,31 +210,32 @@ class _SplashAppState extends State<SplashApp>
     }
   }
 
-  Widget buildDot({bool red}) {
-    return Container(
-      height: 28,
-      width: 28,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: red ? Colors.redAccent : Colors.blueAccent,
-      ),
-    );
-  }
+  // Widget buildDot({bool red}) {
+  //   return Container(
+  //     height: 28,
+  //     width: 28,
+  //     decoration: BoxDecoration(
+  //       shape: BoxShape.circle,
+  //       color: red ? Colors.redAccent : Colors.blueAccent,
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        state == AppLoadState.Preloading || state == AppLoadState.Loaded
-            ? mainApp()
-            : SizedBox(),
-        AnimatedSwitcher(
-          duration: Duration(milliseconds: 150),
-          child: buildLoadingScreen(),
-        ),
-      ],
-    );
+    return buildLoadingScreen();
+    // return Stack(
+    //   alignment: Alignment.center,
+    //   children: [
+    //     state == AppLoadState.Preloading || state == AppLoadState.Loaded
+    //         ? mainApp()
+    //         : SizedBox(),
+    //     AnimatedSwitcher(
+    //       duration: Duration(milliseconds: 150),
+    //       child: buildLoadingScreen(),
+    //     ),
+    //   ],
+    // );
   }
 
   @override

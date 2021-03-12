@@ -127,7 +127,7 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal>
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: CustomAppBar(
+      appBar: FiarAppBar(
         title: "Chat",
         threeDots: [
           FiarThreeDotItem(

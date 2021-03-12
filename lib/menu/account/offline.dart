@@ -11,9 +11,9 @@ import 'package:provider/provider.dart';
 // }
 
 class OfflineScreen extends StatefulWidget {
-  // final OfflineCaller caller;
+  final Future<bool> Function()? refreshCheckAction;
 
-  // OfflineScreen(this.caller);
+  OfflineScreen({Key? key, this.refreshCheckAction}) : super(key: key);
 
   @override
   _OfflineScreenState createState() => _OfflineScreenState();
@@ -23,22 +23,10 @@ class _OfflineScreenState extends State<OfflineScreen> {
   bool hasRetried = false;
   bool loading = false;
 
-  Future<bool> action() async {
+  Future<bool> _defaultRefreshCheckAction() async {
     var serverConnection = context.read<ServerConnection>();
     serverConnection.retryConnection();
     return serverConnection.connected;
-
-    // switch (widget.caller) {
-    //   case OfflineCaller.OnlineMatch:
-    //     return await ServerConnProvider.of(context).refresh();
-
-    //   case OfflineCaller.Friends:
-    //     var userInfo = await UserInfo.of(context).refresh();
-    //     return !userInfo.offline;
-    //     break;
-    //   default:
-    //     return false;
-    // }
   }
 
   void retry() async {
@@ -46,7 +34,8 @@ class _OfflineScreenState extends State<OfflineScreen> {
 
     await Future.delayed(Duration(milliseconds: 600)); // Better UX
 
-    if (await action() == true) {
+    if (await (widget.refreshCheckAction ?? _defaultRefreshCheckAction)() ==
+        true) {
       Navigator.of(context).pop();
     } else {
       setState(() => hasRetried = true);

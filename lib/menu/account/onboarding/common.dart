@@ -108,6 +108,8 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
     super.initState();
     widget.pwCtrl.addListener(_checkInputs);
     widget.usernameCtrl.addListener(_checkInputs);
+
+    _checkInputs();
   }
 
   @override

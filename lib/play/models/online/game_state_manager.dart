@@ -13,36 +13,54 @@ class GameStateManager with ChangeNotifier {
   LifecycleProviderState? _lifecycle;
   LifecycleProviderState? get lifecycle => _lifecycle;
   set lifecycle(l) {
+    lifecycle?.removeListener(_lifecycleListener);
     _lifecycle = l;
-    lifecycle!.addListener(() {
-      if (lifecycle!.state == AppLifecycleState.detached) {
-        leave();
-      }
-      if (!connected && lifecycle!.state == AppLifecycleState.resumed) {
-        print("   #FORCE CNNCT# (app resumed)");
-        _serverConnection.retryConnection();
-      }
-    });
+    lifecycle?.addListener(_lifecycleListener);
+  }
+
+  void _lifecycleListener() {
+    if (lifecycle!.state == AppLifecycleState.detached) {
+      leave();
+    }
+    if (!connected && lifecycle!.state == AppLifecycleState.resumed) {
+      print("   #FORCE CNNCT# (app resumed)");
+      _serverConnection.retryConnection();
+    }
   }
 
   NotificationsProviderState? notifications;
 
-  UserInfo? userInfo;
+  UserInfo? _userInfo;
+  UserInfo? get userInfo => _userInfo;
+  set userInfo(UserInfo? u) {
+    _userInfo?.removeListener(_userInfoListener);
+    _userInfo = u;
+    _userInfo?.addListener(_userInfoListener);
+  }
+
+  void _userInfoListener() {
+    if (_userInfo?.loggedIn == true &&
+        this.currentLoginState is! GameLoginLoggedIn) {
+      // When logging in
+      _sendLoginMsg();
+    }
+  }
 
   GameState? _cgs; // currentGameState
   GameState get currentGameState => _cgs!;
-  set cgs(newCgs) {
-    _cgs?.removeListener(_listenToGamestate);
-    newCgs.addListener(_listenToGamestate);
+  set currentGameState(GameState newCgs) {
+    _cgs?.removeListener(notifyListeners);
+    newCgs.addListener(notifyListeners);
     _cgs = newCgs;
   }
 
-  void _listenToGamestate() {
-    notifyListeners();
+  GameLoginState? _gls;
+  GameLoginState get currentLoginState => _gls!;
+  set currentLoginState(GameLoginState newGls) {
+    _gls?.removeListener(notifyListeners);
+    newGls.addListener(notifyListeners);
+    _gls = newGls;
   }
-
-  late GameLoginState _gls;
-  GameLoginState get gameLoginState => _gls;
 
   CurrentServerInfo? _serverInfo;
   CurrentServerInfo? get serverInfo => _serverInfo;
@@ -59,7 +77,7 @@ class GameStateManager with ChangeNotifier {
     _serverConnection.addListener(() {
       notifyListeners();
     });
-    cgs = IdleState(this);
+    currentGameState = IdleState(this);
     _gls = GameLoginLoggedOut(this);
     _listenToStreams();
   }
@@ -110,12 +128,10 @@ class GameStateManager with ChangeNotifier {
 
     var userInfo = this.userInfo;
     notifyListeners();
-    if (userInfo != null &&
-        userInfo.username != null &&
-        userInfo.password != null) {
+    if (userInfo != null && userInfo.sessionToken != null) {
       if (this._gls is! GameLoginLoggedIn) {
-        this.sendPlayerMessage(
-            PlayerMsgLogin(userInfo.username!, userInfo.password!));
+        // When starting game
+        _sendLoginMsg();
       }
     }
 
@@ -139,17 +155,22 @@ class GameStateManager with ChangeNotifier {
     this._serverConnection.serverMsgStream.listen((msg) {
       this._handleServerMessage(msg);
       GameState? newGameState = currentGameState.handleServerMessage(msg);
-      this.cgs = newGameState ?? currentGameState;
+      this.currentGameState = newGameState ?? currentGameState;
 
-      GameLoginState? newLoginState = _gls.handleServerMessage(msg);
-      this._gls = newLoginState ?? _gls;
+      GameLoginState? newLoginState =
+          currentLoginState.handleServerMessage(msg);
+      this.currentLoginState = newLoginState ?? currentLoginState;
       notifyListeners();
     });
     this._serverConnection.playerMsgStream.listen((msg) {
       this._handlePlayerMessage(msg);
 
       GameState? newGameState = currentGameState.handlePlayerMessage(msg);
-      this.cgs = newGameState ?? currentGameState;
+      this.currentGameState = newGameState ?? currentGameState;
+
+      GameLoginState? newLoginState =
+          currentLoginState.handlePlayerMessage(msg);
+      this.currentLoginState = newLoginState ?? currentLoginState;
       notifyListeners();
     });
   }
@@ -167,18 +188,23 @@ class GameStateManager with ChangeNotifier {
       }
     } else if (msg is MsgReset) {
       hideViewer = true;
+    } else if (msg is MsgHello) {
+      if (userInfo?.loggedIn == true) {
+        // On startup / first connection
+        _sendLoginMsg();
+      }
     }
   }
 
-  void _handlePlayerMessage(PlayerMessage msg) {
-    // if (msg is PlayerMsgLeave) {
-    //   _cgs = IdleState(_sendPlayerMessage);
-    // }
+  void _handlePlayerMessage(PlayerMessage msg) {}
+
+  void _sendLoginMsg() {
+    this.sendPlayerMessage(PlayerMsgLogin(userInfo!.sessionToken!));
   }
 
   @override
   String toString() {
-    return "GameStateManger(cgs=$currentGameState, gls=$gameLoginState, connected=$connected)";
+    return "GameStateManger(cgs=$currentGameState, gls=$currentLoginState, connected=$connected)";
   }
 }
 

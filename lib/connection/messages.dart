@@ -221,6 +221,8 @@ class MsgOppJoined extends ServerMessage {}
 
 class MsgPong extends ServerMessage {}
 
+class MsgHello extends ServerMessage {}
+
 class MsgBattleReq extends ServerMessage {
   final String userId;
   final String lobbyCode;
@@ -313,6 +315,11 @@ class MsgChatRead extends ServerMessage {
 
 abstract class PlayerMessage {
   String serialize();
+
+  @override
+  String toString() {
+    return serialize();
+  }
 }
 
 class PlayerMsgPlaceChip extends PlayerMessage {
@@ -373,13 +380,12 @@ class PlayerMsgPlayAgain extends PlayerMessage {
 }
 
 class PlayerMsgLogin extends PlayerMessage {
-  PlayerMsgLogin(this.username, this.password);
+  PlayerMsgLogin(this.sessionToken);
 
-  final String username;
-  final String password;
+  final String sessionToken;
 
   String serialize() {
-    return "LOGIN:$username:$password";
+    return "LOGIN:$sessionToken";
   }
 }
 

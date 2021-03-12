@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -13,63 +14,123 @@ import 'package:four_in_a_row/util/extensions.dart';
 class UserInfo with ChangeNotifier {
   http.Client _client = http.Client();
 
-  // bool _ok = false;
   bool refreshing = false;
   bool offline = false;
-  // bool loadedInfo = false;
 
-  String? username;
-  String? password;
+  String? get sessionToken => FiarSharedPrefs.sessionToken;
+  set sessionToken(String? s) => FiarSharedPrefs.sessionToken = s;
 
   User? user;
 
-  bool get loggedIn => username != null && password != null && user != null;
+  bool get loggedIn => sessionToken != null && user != null;
+  //  {
+  //   if ((sessionToken == null) != (user == null)) {
+  //     // something is fucked up
+  //     logOut();
+  //   }
+  //   return ;
+  // }
 
   UserInfo() {
-    loadCredentials();
+    _loadInfo();
   }
 
-  Map<String, String> _body(String username, String password) {
-    return {
+  Map<String, String>? _headers() {
+    if (sessionToken == null) return null;
+    return {"session_token": sessionToken!};
+  }
+
+  Future<int> register(String username, String password) {
+    Map<String, String> body = {
       "username": username,
       "password": password,
     };
+
+    return _client
+        .post('${constants.HTTP_URL}/api/users/register', body: body)
+        .timeout(Duration(seconds: 4))
+        .then((response) {
+      if (response.statusCode == 200) {
+        String sessionToken = jsonDecode(response.body)['content']!;
+        setCredentials(sessionToken);
+      }
+      return response.statusCode;
+    }, onError: (_) {
+      print("Error registering!");
+      return 0;
+    });
+  }
+
+  Future<int> login(String username, String password) {
+    Map<String, String> body = {
+      "username": username,
+      "password": password,
+    };
+    return _client
+        .post("${constants.HTTP_URL}/api/users/login", body: body)
+        .timeout(Duration(seconds: 4))
+        .then((response) {
+      if (response.statusCode == 200) {
+        String sessionToken = jsonDecode(response.body)['content']!;
+        setCredentials(sessionToken);
+      }
+      return response.statusCode;
+    }, onError: (_) {
+      print("Error logging in!");
+      return 0;
+    });
   }
 
   void logOut() async {
-    // this._ok = false;
-    this.username = null;
-    this.password = null;
-    this.user = null;
+    debugPrintStack();
 
-    FiarSharedPrefs.remove('username');
-    FiarSharedPrefs.remove('password');
+    if (sessionToken != null) {
+      http
+          .post("${constants.HTTP_URL}/api/users/logout")
+          .timeout(Duration(seconds: 4), onTimeout: () => null)
+          .toNullable()
+          .onError((_, __) {
+        print("Error logging out!");
+      });
+      this.sessionToken = null;
+      this.user = null;
+    }
   }
 
-  void loadCredentials() async {
-    this.setCredentials(
-        FiarSharedPrefs.accountUsername, FiarSharedPrefs.accountPassword);
-  }
-
-  void setCredentials(String username, String password) async {
-    FiarSharedPrefs.accountUsername = username;
-    FiarSharedPrefs.accountPassword = password;
-
-    this.username = username;
-    this.password = password;
+  void setCredentials(String sessionToken) async {
+    this.sessionToken = sessionToken;
     _loadInfo();
   }
 
   Future<bool> addFriend(String id, [VoidCallback? callback]) async {
-    var u = this.username;
-    var pw = this.password;
-    if (u == null || pw == null) {
+    if (!loggedIn) return false;
+
+    var response = await _client
+        .post(
+          "${constants.HTTP_URL}/api/users/me/friends?id=$id",
+          headers: _headers(),
+        )
+        .timeout(Duration(seconds: 4));
+    if (response.statusCode == 200) {
+      if (callback != null) {
+        callback();
+      }
+      await _loadInfo();
+      // _friends.firstWhere((u) => u.id == id)?.isFriend = true;
+      return true;
+    } else {
+      _loadInfo();
       return false;
     }
+  }
 
-    var response = await _client.post(
-        "${constants.HTTP_URL}/api/users/me/friends?id=$id",
-        body: _body(u, pw));
+  Future<bool> removeFriend(String id, [VoidCallback? callback]) async {
+    var headers = _headers();
+    if (headers == null) return false;
+
+    var response = await _client.delete(
+        "${constants.HTTP_URL}/api/users/me/friends/$id",
+        headers: headers);
     if (response.statusCode == 200) {
       if (callback != null) {
         callback();
@@ -91,29 +152,30 @@ class UserInfo with ChangeNotifier {
       refreshing = true;
     }
 
-    if (username == null) return null;
-    if (password == null) return null;
-    // rebuild();
-
-    var req =
-        http.Request("GET", Uri.parse('${constants.HTTP_URL}/api/users/me'))
-          ..headers['Authorization'] = "Basic " +
-              base64.encode(Utf8Codec().encode(username! + ":" + password!));
-    // ..bodyFields = _body;
+    if (sessionToken == null) return null;
 
     try {
-      var response = await _client.send(req).timeout(Duration(seconds: 4));
+      var response = await http.get(
+        '${constants.HTTP_URL}/api/users/me',
+        headers: {"session_token": sessionToken!},
+      ).timeout(Duration(seconds: 4));
       if (response.statusCode == 200) {
-        User? user =
-            User.fromMap(jsonDecode(await response.stream.bytesToString()));
+        User? user = User.fromMap(jsonDecode(response.body));
 
         this.user = user;
+      } else if (response.statusCode == 403) {
+        // incorrect credentials
+        debugPrint(
+            "Logging out. Session token $sessionToken seems to have expired");
+        this.logOut();
       }
       offline = false;
     } on SocketException catch (e) {
       if (e.osError?.errorCode == 7) {
         offline = true;
       }
+    } on TimeoutException {
+      offline = true;
     } on http.ClientException {
       offline = true;
     }
@@ -173,19 +235,40 @@ class GameInfo extends Equatable {
 enum FriendState { IsFriend, IsRequestedByMe, HasRequestedMe, None, Loading }
 
 extension FriendStateExtension on FriendState {
-  Widget icon() {
+  static FriendState fromString(String s) {
+    switch (s) {
+      case "IsFriend":
+        return FriendState.IsFriend;
+      case "IsRequestedByMe":
+        return FriendState.IsRequestedByMe;
+      case "HasRequestedMe":
+        return FriendState.HasRequestedMe;
+      default:
+        return FriendState.None;
+    }
+  }
+
+  Widget icon({Color? color}) {
     switch (this) {
       case FriendState.IsFriend:
-        return Icon(Icons.check);
+        return Icon(Icons.check, color: color ?? Colors.grey[500]);
       case FriendState.IsRequestedByMe:
-        return Icon(Icons.outgoing_mail);
+        return Icon(Icons.outgoing_mail, color: color ?? Colors.grey[500]);
       case FriendState.HasRequestedMe:
-        return Icon(Icons.move_to_inbox_rounded);
+        return Icon(Icons.move_to_inbox_rounded,
+            color: color ?? Colors.grey[500]);
       case FriendState.None:
-        return Icon(Icons.person_add);
+        return Icon(Icons.person_add, color: color ?? Colors.grey[500]);
       case FriendState.Loading:
         return Container(
-            width: 24, height: 24, child: CircularProgressIndicator());
+          width: 24,
+          height: 24,
+          child: Theme(
+              data: ThemeData(accentColor: color),
+              child: CircularProgressIndicator()),
+        );
+      default:
+        throw new UnimplementedError();
     }
   }
 }
@@ -197,13 +280,8 @@ class PublicUser {
   FriendState friendState;
   bool isPlaying;
 
-  PublicUser(
-    this.id,
-    this.name,
-    this.gameInfo, {
-    this.friendState = FriendState.None,
-    this.isPlaying = false,
-  });
+  PublicUser(this.id, this.name, this.gameInfo, this.friendState,
+      {this.isPlaying = false});
 
   static PublicUser? fromMap(Map<String, dynamic> map) {
     for (String key in ['username', 'game_info', 'id']) {
@@ -216,6 +294,7 @@ class PublicUser {
       map['id'],
       map['username'],
       gameInfo,
+      FriendStateExtension.fromString(map['friend_state']),
       isPlaying: map['playing'] ?? false,
     );
   }
@@ -225,19 +304,15 @@ class User extends Equatable {
   User({
     required this.id,
     required this.username,
-    // this.password,
     required this.email,
     required this.friends,
-    required this.friendRequests,
     required this.gameInfo,
   });
 
   final String id;
   final String username;
-  // final String password;
   final String email;
   final List<PublicUser> friends;
-  final List<FriendRequest> friendRequests;
   final GameInfo gameInfo;
 
   static User? fromMap(Map<String, dynamic> map) {
@@ -250,13 +325,6 @@ class User extends Equatable {
         .toList()
         .filterNotNull();
 
-    List<FriendRequest> friendRequests =
-        (map['friend_requests'] as List<dynamic>)
-            .map((dynamic friendMap) =>
-                FriendRequest.fromMap(friendMap as Map<String, dynamic>))
-            .toList()
-            .filterNotNull();
-
     GameInfo? gameInfo = GameInfo.fromMap(map['game_info']);
     if (gameInfo == null) return null;
 
@@ -265,49 +333,10 @@ class User extends Equatable {
       username: map['username'] as String,
       email: map['email'] as String,
       friends: friends,
-      friendRequests: friendRequests,
       gameInfo: gameInfo,
     );
   }
 
   @override
-  List<Object> get props =>
-      [id, username, email, friends, friendRequests, gameInfo];
-}
-
-enum FriendRequestDirection { Incoming, Outgoing }
-
-extension FriendRequestDirectionExtension on FriendRequestDirection {
-  static FriendRequestDirection? fromString(String s) {
-    if (s == "Incoming")
-      return FriendRequestDirection.Incoming;
-    else if (s == "Outgoing")
-      return FriendRequestDirection.Outgoing;
-    else
-      return null;
-  }
-}
-
-class FriendRequest {
-  final FriendRequestDirection direction;
-  final PublicUser other;
-
-  FriendRequest({required this.direction, required this.other});
-
-  static FriendRequest? fromMap(Map<String, dynamic> map) {
-    for (String key in ['direction', 'other']) {
-      if (!map.containsKey(key)) return null;
-    }
-    FriendRequestDirection? direction =
-        FriendRequestDirectionExtension.fromString(map['direction']);
-    if (direction == null) return null;
-
-    PublicUser? other = PublicUser.fromMap(map['other']);
-    if (other == null) return null;
-
-    return FriendRequest(
-      direction: direction,
-      other: other,
-    );
-  }
+  List<Object> get props => [id, username, email, friends, gameInfo];
 }

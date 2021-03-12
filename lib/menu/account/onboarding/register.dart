@@ -1,6 +1,7 @@
-import 'package:http/http.dart' as http;
-import 'package:four_in_a_row/util/constants.dart' as constant;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'package:four_in_a_row/inherit/user.dart';
 import 'common.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -8,7 +9,7 @@ class RegisterPage extends StatefulWidget {
   final Color accentColor = Colors.redAccent;
   final usernameCtrl = TextEditingController();
   final pwCtrl = TextEditingController();
-  final void Function(BuildContext context, String, String) callback;
+  final VoidCallback callback;
 
   RegisterPage({required this.callback});
 
@@ -17,27 +18,17 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  Future<http.Response>? registerFuture;
+  Future<int>? registerFuture;
 
-  void onPressed() {
-    setState(() {
-      Map<String, String> body = {
-        "username": widget.usernameCtrl.text,
-        "password": widget.pwCtrl.text,
-      };
-      registerFuture = http
-          .post(
-            '${constant.HTTP_URL}/api/users/register',
-            body: body,
-          )
-          .timeout(Duration(seconds: 4))
-            ..then((response) {
-              if (response.statusCode == 200 && context != null) {
-                widget.callback(
-                    context, widget.usernameCtrl.text, widget.pwCtrl.text);
-              }
-            });
-    });
+  void onPressed() async {
+    registerFuture = context
+        .read<UserInfo>()
+        .register(widget.usernameCtrl.text, widget.pwCtrl.text);
+
+    setState(() {});
+    if (await registerFuture == 200) {
+      widget.callback();
+    }
   }
 
   String textFromStatuscode(int? code) {
@@ -69,7 +60,7 @@ class _RegisterPageState extends State<RegisterPage> {
           child: registerFuture != null
               ? FutureBuilder(
                   future: registerFuture,
-                  builder: (ctx, AsyncSnapshot<http.Response> snapshot) {
+                  builder: (ctx, AsyncSnapshot<int> snapshot) {
                     return GestureDetector(
                       onTap: () => setState(() => registerFuture = null),
                       child: Container(
@@ -88,8 +79,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                         BorderRadius.all(Radius.circular(4)),
                                   ),
                                   child: Text(
-                                    textFromStatuscode(
-                                        snapshot.data?.statusCode),
+                                    textFromStatuscode(snapshot.data),
                                     style: TextStyle(
                                       color: Colors.black,
                                     ),

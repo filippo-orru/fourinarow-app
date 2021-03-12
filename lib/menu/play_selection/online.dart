@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/play/models/online/game_login_state.dart';
+import 'package:four_in_a_row/util/extensions.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
@@ -97,36 +99,14 @@ class _MenuContentPlayOnlineState extends State<MenuContentPlayOnline> {
   }
 }
 
-extension NumberStrings on int {
-  String toNumberWord({useZero = false}) {
-    switch (this) {
-      case 0:
-        return useZero ? "zero" : "no";
-      case 1:
-        return "one";
-      case 2:
-        return "two";
-      case 3:
-        return "three";
-      default:
-        return this.toString();
-    }
-  }
-}
-
-extension StringTransform on String {
-  String capitalize() {
-    return this[0].toUpperCase() + this.substring(1);
-  }
-}
-
 class UserRankDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Selector<UserInfo, Tuple2<bool, int>>(
-        selector: (_, userInfo) =>
-            Tuple2(userInfo.loggedIn, userInfo.user?.gameInfo.skillRating),
-        builder: (_, tuple, __) => tuple.item1 == true
+    return Selector<GameStateManager, bool>(
+      selector: (_, gsm) => gsm.currentLoginState is GameLoginLoggedIn,
+      builder: (_, loggedIn, __) => Selector<UserInfo, int?>(
+        selector: (_, userInfo) => userInfo.user?.gameInfo.skillRating,
+        builder: (_, skillRating, __) => loggedIn && skillRating != null
             ? Container(
                 width: 180,
                 height: 100,
@@ -147,7 +127,7 @@ class UserRankDisplay extends StatelessWidget {
                       textBaseline: TextBaseline.alphabetic,
                       children: <Widget>[
                         Text(
-                          "${tuple.item2}",
+                          "$skillRating",
                           style: TextStyle(
                             fontSize: 48,
                             color: Colors.grey[100],
@@ -192,7 +172,9 @@ class UserRankDisplay extends StatelessWidget {
                   ],
                 ),
               )
-            : SizedBox());
+            : SizedBox(),
+      ),
+    );
   }
 }
 

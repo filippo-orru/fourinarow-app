@@ -35,46 +35,40 @@ class FiarSharedPrefs {
     }
   }
 
-  static void Function(String key) remove = _sharedPrefs.remove;
+  // static void Function(String key) remove = _sharedPrefs.remove;
 
   static List<_SharedPrefPair> _pairs = [
     _shownRatingDialog,
     _shownOnlineDialogCount,
-    _accountUsername,
-    _accountPassword,
+    _sessionToken,
     _shownSwipeDialog,
     _hasAcceptedChat
   ];
 
-  static _SharedPrefPair _accountUsername =
-      _SharedPrefPair("accountUsername", String, defaultValue: () {
-    if (_sharedPrefs.containsKey("username")) {
+  static _SharedPrefPair _sessionToken =
+      _SharedPrefPair("sessionToken", String, defaultValue: () {
+    if (_sharedPrefs.containsKey("username") &&
+        _sharedPrefs.containsKey("password")) {
       String username = _sharedPrefs.getString("username");
-      _sharedPrefs.remove("username");
-      return username;
-    } else {
-      return null;
-    }
-  });
-  static String get accountUsername =>
-      _sharedPrefs.getString(_accountUsername.key);
-  static set accountUsername(String i) =>
-      _sharedPrefs.setString(_accountUsername.key, i);
-
-  static _SharedPrefPair _accountPassword =
-      _SharedPrefPair("accountPassword", String, defaultValue: () {
-    if (_sharedPrefs.containsKey("password")) {
       String password = _sharedPrefs.getString("password");
+      _sharedPrefs.remove("username");
       _sharedPrefs.remove("password");
-      return password;
+      return "migration:$username:$password";
     } else {
       return null;
     }
   });
-  static String get accountPassword =>
-      _sharedPrefs.getString(_accountPassword.key);
-  static set accountPassword(String i) =>
-      _sharedPrefs.setString(_accountPassword.key, i);
+
+  static String? get sessionToken {
+    if (_sharedPrefs.containsKey(_sessionToken.key)) {
+      return _sharedPrefs.getString(_sessionToken.key);
+    } else {
+      return null;
+    }
+  }
+
+  static set sessionToken(String? i) =>
+      _sharedPrefs.setString(_sessionToken.key, i);
 
   static _SharedPrefPair _shownRatingDialog =
       _SharedPrefPair("ShownRatingDialog", int, defaultValue: () => 0);

@@ -92,10 +92,10 @@ PageRouteBuilder fadeRoute(Widget child, {int millDuration = 300}) {
   );
 }
 
-class CustomAppBar extends AppBar {
+class FiarAppBar extends AppBar {
   final List<FiarThreeDotItem> threeDots;
 
-  CustomAppBar({
+  FiarAppBar({
     required String title,
     this.threeDots = const [],
     bool refreshing = false,

@@ -28,3 +28,26 @@ extension RangeExtension on int {
   List<int> to(int maxInclusive) =>
       [for (int i = this; i <= maxInclusive; i++) i];
 }
+
+extension NumberStrings on int {
+  String toNumberWord({useZero = false}) {
+    switch (this) {
+      case 0:
+        return useZero ? "zero" : "no";
+      case 1:
+        return "one";
+      case 2:
+        return "two";
+      case 3:
+        return "three";
+      default:
+        return this.toString();
+    }
+  }
+}
+
+extension StringTransform on String {
+  String capitalize() {
+    return this[0].toUpperCase() + this.substring(1);
+  }
+}

@@ -16,10 +16,7 @@ class AccountOnboarding extends StatefulWidget {
 }
 
 class _AccountOnboardingState extends State<AccountOnboarding> {
-  void successfullyLoggedIn(
-      BuildContext context, String username, String password) async {
-    var userInfo = context.read<UserInfo>();
-    userInfo.setCredentials(username, password);
+  void successfullyLoggedIn() async {
     Future.delayed(Duration(milliseconds: 1500), () {
       Navigator.of(context)
         ..pop()

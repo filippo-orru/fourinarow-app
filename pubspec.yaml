@@ -67,6 +67,10 @@ flutter:
     - assets/img/
     - assets/lottie/reactions/
     - assets/lottie/reactions/images/
+    - assets/lottie/splashscreen/
+    - assets/lottie/splashscreen/images/
+    - assets/lottie/main_menu/
+    - assets/lottie/main_menu/images/
 
   fonts:
     - family: Arvo

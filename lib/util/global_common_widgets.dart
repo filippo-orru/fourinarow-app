@@ -8,13 +8,13 @@ class FiarBottomSheet extends StatefulWidget {
   static const double DEFAULT_EXPANDED_HEIGHT = 400;
 
   final List<Widget> children;
-  final List<Widget>? topChildren;
+  final List<Widget> topChildren;
   final ColorSwatch<int> color;
   final double expandedHeight;
   final bool disabled;
 
   const FiarBottomSheet({
-    this.topChildren,
+    required this.topChildren,
     required this.children,
     required this.color,
     this.expandedHeight = DEFAULT_EXPANDED_HEIGHT,
@@ -203,14 +203,7 @@ class _FiarBottomSheetState extends State<FiarBottomSheet>
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: (widget.topChildren ??
-                                          [
-                                            Text('Me',
-                                                style: TextStyle(
-                                                    fontFamily: 'RobotoSlab',
-                                                    color: Colors.grey[900],
-                                                    fontSize: 18))
-                                          ]) +
+                                  children: widget.topChildren +
                                       [
                                         RotationTransition(
                                           turns: rotateAnim,

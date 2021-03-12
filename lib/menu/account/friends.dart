@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart' hide BottomSheet;
 import 'package:flutter/scheduler.dart';
+import 'package:four_in_a_row/menu/settings.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:four_in_a_row/connection/messages.dart';
@@ -12,9 +13,9 @@ import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:four_in_a_row/util/battle_req_popup.dart';
 import 'package:four_in_a_row/util/constants.dart' as constants;
+import 'package:four_in_a_row/util/extensions.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/menu/common/overlay_dialog.dart';
-import 'package:four_in_a_row/util/extensions.dart';
 import 'package:four_in_a_row/util/global_common_widgets.dart';
 
 import '../main_menu.dart';
@@ -37,17 +38,19 @@ class _FriendsListState extends State<FriendsList>
 
   void battleRequest(String id) async {
     var gsm = context.read<GameStateManager>();
-    // Navigator.of(context).push(slideUpRoute());
-    setState(() => showBattleRequest = id);
-    bool? opponentJoined = await gsm
-        .startGame(ORqBattle(id))
-        .toNullable()
-        .timeout(BattleRequestDialog.TIMEOUT, onTimeout: () => null);
 
-    // if (msg == null) {
-    //   hideBattleRequestDialog();
-    // } else
-    if (opponentJoined == true) {
+    setState(() => showBattleRequest = id);
+    await gsm.startGame(ORqBattle(id));
+
+    bool opponentJoined = await context
+            .read<ServerConnection>()
+            .serverMsgStream
+            .firstWhere((msg) => msg is MsgOppJoined)
+            .toNullable()
+            .timeout(BattleRequestDialog.TIMEOUT, onTimeout: () => null) !=
+        null;
+
+    if (opponentJoined) {
       Navigator.of(context).push(slideUpRoute(GameStateViewer()));
       await Future.delayed(Duration(milliseconds: 180));
       hideBattleRequestDialog(leave: false);
@@ -73,7 +76,7 @@ class _FriendsListState extends State<FriendsList>
   Widget build(BuildContext context) {
     return Consumer<UserInfo>(
       builder: (_, userInfo, __) => Scaffold(
-        appBar: CustomAppBar(
+        appBar: FiarAppBar(
           title: 'Friends',
           refreshing: userInfo.refreshing,
           threeDots: [
@@ -106,39 +109,15 @@ class _FriendsListState extends State<FriendsList>
                     ),
                     FiarBottomSheet(
                       color: Colors.purple,
+                      expandedHeight: 218,
+                      topChildren: [
+                        Text(userInfo.user!.username,
+                            style: TextStyle(
+                                fontFamily: 'RobotoSlab',
+                                color: Colors.grey[900],
+                                fontSize: 18)),
+                      ],
                       children: [
-                        Material(
-                          type: MaterialType.transparency,
-                          child: ListTile(
-                            onTap: () {
-                              print('object');
-                            },
-                            // leading: Icon(Icons.sentiment_satisfied),
-                            title: Text(userInfo.username!),
-                            subtitle: Text('Change username (soon)'),
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 24),
-                          ),
-                        ),
-                        Material(
-                          type: MaterialType.transparency,
-                          child: ListTile(
-                            onTap: () {
-                              print('object');
-                            },
-                            title: Text(
-                                userInfo.user?.email ?? "Set email (soon)"),
-                            subtitle: Text(userInfo.user?.email == null
-                                ? 'You haven\'t set an email yet'
-                                : 'Change email (soon)'),
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 24),
-                          ),
-                        ),
-                        Divider(
-                          indent: 12,
-                          endIndent: 12,
-                        ),
                         Material(
                           type: MaterialType.transparency,
                           child: ListTile(
@@ -158,20 +137,21 @@ class _FriendsListState extends State<FriendsList>
                           type: MaterialType.transparency,
                           child: ListTile(
                             onTap: () {
-                              print('object');
+                              Navigator.of(context)
+                                  .push(slideUpRoute(SettingsScreen()));
                             },
-                            leading: Icon(Icons.delete_forever),
-                            title: Text('Delete Account (soon)'),
-                            // subtitle: Text('Change email'),
+                            leading: Icon(Icons.settings),
+                            title: Text('More settings'),
+                            trailing: Icon(Icons.chevron_right_rounded),
                             contentPadding:
                                 EdgeInsets.symmetric(horizontal: 24),
                           ),
                         ),
-                        ListTile(
-                          title: Text('Credits'),
-                          subtitle:
-                              Text('Sword icon made by Freepik @ flaticon.com'),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                        SizedBox(height: 32),
+                        Text(
+                          'Sword icon made by Freepik @ flaticon.com',
+                          style: Theme.of(context).textTheme.caption,
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
@@ -238,13 +218,80 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
 
   @override
   Widget build(BuildContext context) {
+    List<PublicUser> confirmedFriends = widget.userInfo.user?.friends
+            .where((f) => f.friendState == FriendState.IsFriend)
+            .toList() ??
+        [];
+    List<PublicUser> friendRequests = widget.userInfo.user?.friends
+            .where((f) => f.friendState != FriendState.IsFriend)
+            .toList() ??
+        [];
     return RefreshIndicator(
       onRefresh: () => widget.userInfo.refresh().then((_) => setState(() {})),
       key: widget.refreshKey,
       child: ListView.builder(
-        itemCount: (widget.userInfo.user?.friends.length ?? 0) + 1,
+        itemCount: confirmedFriends.isEmpty
+            ? friendRequests.isEmpty
+                ? 1 // -> show 'no friends'
+                : 1 + friendRequests.length // show requests with title
+            : confirmedFriends.length +
+                (friendRequests.isEmpty
+                    ? 0 // -> show 'x pending requests at the top'
+                    : 1),
         itemBuilder: (_, index) {
-          if (widget.userInfo.user?.friends.isEmpty == true) {
+          if (confirmedFriends.isNotEmpty) {
+            if (friendRequests.isNotEmpty && index == 0) {
+              String s = friendRequests.length == 1 ? '' : 's';
+              return ListTile(
+                  trailing: Icon(Icons.chevron_right_rounded),
+                  title: Text(
+                      '${friendRequests.length.toNumberWord().capitalize()} pending friend request$s'),
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (BuildContext context) =>
+                          FriendRequestsScreen(widget.onBattleRequest),
+                    ));
+                  });
+            } else {
+              if (friendRequests.isNotEmpty) index -= 1;
+              bool isLast = index != confirmedFriends.length - 1;
+              return FriendsListTile(
+                  confirmedFriends[index], widget.onBattleRequest, isLast);
+            }
+          } else if (friendRequests.isNotEmpty) {
+            if (index == 0) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                child: Row(
+                  children: [
+                    Text(
+                      'Friend Requests',
+                      style: TextStyle(
+                        fontFamily: "RobotoSlab",
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.3,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Container(
+                        // constraints: BoxConstraints.expand(
+                        height: 2,
+                        // ),
+                        color: Color.lerp(
+                            Colors.purple[100], Colors.grey[200], 0.5),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              bool isLast = index - 1 != friendRequests.length - 1;
+              return FriendsListTile(
+                  friendRequests[index - 1], widget.onBattleRequest, isLast);
+            }
+          } else {
             return Container(
               height: MediaQuery.of(context).size.height -
                   FiarBottomSheet.HEIGHT -
@@ -252,13 +299,63 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
               alignment: Alignment.center,
               child: Text("No friends yet. Add some to get started!"),
             );
-          } else {
-            bool isLast = index != widget.userInfo.user!.friends.length - 1;
-            return FriendsListTile(widget.userInfo.user!.friends[index],
-                widget.onBattleRequest, isLast);
           }
         },
         padding: EdgeInsets.only(bottom: 164),
+      ),
+    );
+  }
+}
+
+class FriendRequestsScreen extends StatelessWidget {
+  final void Function(String) battleRequest;
+
+  const FriendRequestsScreen(this.battleRequest, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: FiarAppBar(
+        title: "Friend Requests",
+        threeDots: [
+          FiarThreeDotItem(
+            'Feedback',
+            onTap: () {
+              showFeedbackDialog(context);
+            },
+          ),
+        ],
+      ),
+      body: Container(
+        child: Consumer<UserInfo>(
+          builder: (_, userInfo, __) {
+            List<PublicUser> friendRequests = userInfo.user?.friends
+                    .where((f) =>
+                        f.friendState == FriendState.HasRequestedMe ||
+                        f.friendState == FriendState.IsRequestedByMe)
+                    .toList() ??
+                [];
+            return !userInfo.loggedIn
+                ? Container(
+                    height: 128,
+                    child: Text(
+                        'Something went wrong. Please restart the app or log out.'))
+                : ListView(
+                    children: friendRequests
+                        .asMap()
+                        .map<int, Widget?>((i, friend) {
+                          bool isLast = i == friendRequests.length - 1;
+
+                          return MapEntry(
+                            i,
+                            FriendsListTile(friend, battleRequest, isLast),
+                          );
+                        })
+                        .values
+                        .toList()
+                        .filterNotNull());
+          },
+        ),
       ),
     );
   }
@@ -320,36 +417,103 @@ class FriendsListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var tile = ListTile(
-      enabled: true,
-      title: Text(
-        friend.name,
-        style: TextStyle(fontSize: 17),
-      ),
-      subtitle: Text("SR: ${friend.gameInfo.skillRating}"),
-      contentPadding: EdgeInsets.fromLTRB(16, 0, 24, 0),
-      trailing: friend.isPlaying
-          ? Transform.scale(
-              alignment: Alignment.center,
-              scale: 0.75,
-              child: IconButton(
-                icon: Opacity(
-                  opacity: 0.54,
-                  child: Image.asset(
-                    "assets/img/swords.png",
-                    color: Colors.black,
-                    colorBlendMode: BlendMode.src,
+    bool isFriendRequest = friend.friendState == FriendState.IsRequestedByMe ||
+        friend.friendState == FriendState.HasRequestedMe;
+    var tile = Material(
+      child: Container(
+        padding: EdgeInsets.fromLTRB(16, 16, 24, 16),
+        child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              isFriendRequest
+                  // ?
+                  ? Container(
+                      alignment: Alignment.center,
+                      child: friend.friendState.icon(color: Colors.grey[500]),
+                    )
+                  : null,
+              SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    friend.name,
+                    style: Theme.of(context).textTheme.subtitle1,
                   ),
-                ),
-                onPressed: () => battleRequest(friend.id),
+                  SizedBox(height: 4),
+                  Text(
+                    isFriendRequest
+                        ? friend.friendState == FriendState.HasRequestedMe
+                            ? "Waiting for your response"
+                            : "Awaiting response"
+                        : "SR: ${friend.gameInfo.skillRating}",
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyText2!
+                        .copyWith(color: Colors.grey[500]),
+                  ),
+                ],
               ),
-            )
-          : SizedBox(),
+              Expanded(child: SizedBox()),
+              isFriendRequest
+                  ?
+                  // TextButton(
+                  //     child: Row(
+                  //       children: [
+                  //         Text(friend.friendState == FriendState.HasRequestedMe
+                  //             ? 'Accept'
+                  //             : 'Delete'),
+                  IconButton(
+                      tooltip: friend.friendState == FriendState.HasRequestedMe
+                          ? 'Accept'
+                          : 'Delete',
+                      icon: Icon(
+                        friend.friendState == FriendState.HasRequestedMe
+                            ? Icons.check
+                            : Icons.clear,
+                        color: Colors.grey[600],
+                        //   ),
+                        // ],
+                      ),
+                      onPressed: () {
+                        var userInfo = context.read<UserInfo>();
+                        friend.friendState == FriendState.HasRequestedMe
+                            ? userInfo.addFriend(friend.id)
+                            : userInfo.removeFriend(friend.id);
+                      },
+                    )
+                  : friend.isPlaying
+                      ? Transform.scale(
+                          alignment: Alignment.center,
+                          scale: 0.75,
+                          child: IconButton(
+                            icon: Opacity(
+                              opacity: 0.54,
+                              child: Image.asset(
+                                "assets/img/swords.png",
+                                color: Colors.black.withOpacity(0.8),
+                                colorBlendMode: BlendMode.srcIn,
+                              ),
+                            ),
+                            onPressed: () => battleRequest(friend.id),
+                          ),
+                        )
+                      : SizedBox(),
+            ].filterNotNull()),
+      ),
     );
     if (isLast) {
       return Column(
         mainAxisSize: MainAxisSize.max,
         children: [
+          // ListTile(
+          //     // leading: Icon(Icons.mail_outline),
+          //     title: Text('Tite'),
+          //     subtitle: Text('stirne'),
+          //     trailing: IconButton(
+          //       icon: Icon(Icons.clear),
+          //       onPressed: () {},
+          //     )),
           Padding(
             padding: EdgeInsets.symmetric(vertical: 2),
             child: tile,
@@ -535,64 +699,31 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
 
       searchResults!.removeWhere((publicUser) => publicUser.id == widget.myId);
 
-      searchResults!.forEach((publicUser) {
-        if (widget.userInfo.user?.friends.any((f) => f.id == publicUser.id) ==
-            true) {
-          publicUser.friendState = FriendState.IsFriend;
-        } else {
-          FriendRequest? fr = widget.userInfo.user?.friendRequests
-              .map<FriendRequest?>((x) => x)
-              .singleWhere((f) => f?.other.id == publicUser.id,
-                  orElse: () => null);
-          if (fr != null) {
-            publicUser.friendState =
-                fr.direction == FriendRequestDirection.Incoming
-                    ? FriendState.HasRequestedMe
-                    : FriendState.IsRequestedByMe;
-          }
-        }
-      });
+      await setFriendStates();
     }
     setState(() {
       searching = false;
     });
   }
 
-  void addFriend(String id, int index) async {
-    setState(() => addingFriend = index);
-    // if (
-    await widget.userInfo.addFriend(id);
-
-    //ree
+  Future<void> setFriendStates() async {
+    await widget.userInfo.refresh();
     searchResults!.forEach((publicUser) {
-      if (widget.userInfo.user?.friends.any((f) => f.id == publicUser.id) ==
-          true) {
-        publicUser.friendState = FriendState.IsFriend;
-      } else {
-        FriendRequest? fr = widget.userInfo.user?.friendRequests
-            .map<FriendRequest?>((x) => x)
-            .singleWhere((f) => f?.other.id == publicUser.id,
-                orElse: () => null);
-        if (fr != null) {
-          publicUser.friendState =
-              fr.direction == FriendRequestDirection.Incoming
-                  ? FriendState.HasRequestedMe
-                  : FriendState.IsRequestedByMe;
+      for (var friend in widget.userInfo.user?.friends ?? <PublicUser>[]) {
+        if (friend.id == publicUser.id) {
+          publicUser.friendState = friend.friendState;
         }
       }
     });
-    //end:ree
+    setState(() {});
+  }
 
-    searchResults?.forEach((publicUser) {
-      if (widget.userInfo.user?.friends.any((f) => f.id == publicUser.id) ==
-          true) {
-        publicUser.friendState =
-            publicUser.friendState == FriendState.IsRequestedByMe ||
-                    publicUser.friendState == FriendState.HasRequestedMe
-                ? FriendState.IsFriend
-                : FriendState.IsRequestedByMe;
-      }
-    });
+  void addFriend(String id, int index) async {
+    setState(() => addingFriend = index);
+
+    await widget.userInfo.addFriend(id);
+
+    await setFriendStates();
 
     addingFriend = null;
     if (mounted) {
