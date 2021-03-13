@@ -147,6 +147,7 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
       body: Container(
         child: Stack(
           children: [
+            buildTitle(context),
             Column(
               // mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -154,9 +155,7 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
                 Flexible(
                   flex: 10,
                   fit: FlexFit.tight,
-                  child:
-                      // SizedBox( height :)
-                      buildTitle(context),
+                  child: SizedBox(),
                 ),
                 // Flexible(flex: 4, child: Container()),
                 Expanded(child: SizedBox()),
@@ -282,14 +281,19 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
     );
   }
 
-  Container buildTitle(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 32),
-      child: Hero(
-        tag: "wide_logo_banner",
-        child: Image.asset(
-          "assets/img/wide_logo_banner.png",
-          fit: BoxFit.contain,
+  Widget buildTitle(BuildContext context) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      top: MediaQuery.of(context).size.height * 0.22,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 32),
+        child: Hero(
+          tag: "wide_logo_banner",
+          child: Image.asset(
+            "assets/img/wide_logo_banner.png",
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );

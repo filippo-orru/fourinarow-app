@@ -26,48 +26,17 @@ import 'menu/main_menu.dart';
 
 void main() {
   runApp(
-    SplashApp(),
+    WidgetsApp(
+      debugShowCheckedModeBanner: false,
+      color: Colors.blue,
+      builder: (_, __) => SplashAppInternal(),
+    ),
   );
 }
 
-class SplashApp extends StatelessWidget {
-  // final HeroController _heroController = ;
-
-  @override
-  Widget build(BuildContext context) {
-    return WidgetsApp(
-      debugShowCheckedModeBanner: false,
-      color: Colors.blue,
-      navigatorObservers: [HeroController()],
-      onGenerateRoute: (settings) {
-        if (settings.name == "/") {
-          return MaterialPageRoute(
-            settings: settings,
-            builder: (_) => SplashAppInternal(),
-          );
-          // return PageRouteBuilder(
-          //   settings: settings,
-          //   pageBuilder: (_, enterAnim, exitAnim) => SplashAppInternal(),
-          // );
-        } else {
-          return MaterialPageRoute(
-              settings: settings, builder: (_) => mainApp());
-          //  PageRouteBuilder(
-          //   settings: settings,
-          //   pageBuilder: (_, enterAnim, exitAnim) => mainApp(),
-          // );
-        }
-      },
-    );
-  }
-}
-
 class SplashAppInternal extends StatefulWidget {
-  // final Widget Function() mainApp;
-
   const SplashAppInternal({
     Key key,
-    // @required this.mainApp,
   }) : super(key: key);
 
   @override
@@ -77,26 +46,33 @@ class SplashAppInternal extends StatefulWidget {
 enum AppLoadState { Loading, Preloading, Loaded, Error }
 
 class _SplashAppInternalState extends State<SplashAppInternal>
-    with SingleTickerProviderStateMixin {
-  AnimationController _lottieAnimCtrl;
+    with TickerProviderStateMixin {
   AppLoadState state = AppLoadState.Loading;
+
+  AnimationController _lottieAnimCtrl;
+  AnimationController _moveUpAnimCtrl;
+  Animation _moveUpAnim;
+  AnimationController _crossfadeAnimCtrl;
 
   @override
   void initState() {
     super.initState();
 
-    _lottieAnimCtrl = AnimationController(
+    _lottieAnimCtrl = AnimationController(vsync: this);
+
+    _crossfadeAnimCtrl = AnimationController(
       vsync: this,
-      // duration: Duration(milliseconds: 400),
+      duration: Duration(milliseconds: 240),
     );
-    // ..forward()
-    // ..addStatusListener((status) {
-    //   if (status == AnimationStatus.completed) {
-    //     _lottieAnimCtrl.value = 0; //.95 / 3.0;
-    //     _lottieAnimCtrl.forward();
-    //   }
-    // });
-    _initializeAsyncDependencies();
+    // _initializeAsyncDependencies();
+  }
+
+  @override
+  void dispose() {
+    _lottieAnimCtrl.dispose();
+    _moveUpAnimCtrl.dispose();
+    _crossfadeAnimCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeAsyncDependencies() async {
@@ -104,14 +80,22 @@ class _SplashAppInternalState extends State<SplashAppInternal>
     await Future.delayed(Duration(milliseconds: STARTUP_DELAY_MS));
     FiarSharedPrefs.setup().then(
       (_) {
-        Navigator.of(context).pushNamed("/main");
-        // _lottieAnimCtrl.forward().then((_) {
-        //   setState(() => state = AppLoadState.Preloading);
-        //   Future.delayed(Duration(milliseconds: 380), () {
-        //     Navigator.of(context).pushNamed("main");
-        //     // setState(() => state = AppLoadState.Loaded);
-        //   });
-        // });
+        _lottieAnimCtrl.forward();
+        Future.delayed(_lottieAnimCtrl.duration, () {
+          // Start preloading a bit before the anim is over
+          setState(() => state = AppLoadState.Preloading);
+          Future.delayed(Duration(milliseconds: 300), () {
+            // Short delay between animations because preloading causes jank
+            // Then: move & fade to app
+            _moveUpAnimCtrl.forward().then((_) {
+              Future.delayed(Duration(milliseconds: 80), () {
+                _crossfadeAnimCtrl.forward().then((_) {
+                  setState(() => state = AppLoadState.Loaded);
+                });
+              });
+            });
+          });
+        });
       },
       onError: ((error, stackTrace) {
         setState(() => state = AppLoadState.Error);
@@ -119,7 +103,41 @@ class _SplashAppInternalState extends State<SplashAppInternal>
     );
   }
 
-  Widget buildLoadingScreen() {
+  Widget buildSplashScreen() {
+    return state != AppLoadState.Loaded
+        ? AnimatedBuilder(
+            animation: _crossfadeAnimCtrl,
+            builder: (_, child) => Opacity(
+              opacity: 1 - _crossfadeAnimCtrl.value,
+              child: child,
+            ),
+            child: Container(
+              alignment: Alignment.center,
+              color: Colors.white,
+              constraints: BoxConstraints.expand(),
+              child: buildSplashScreenInternal(),
+            ),
+          )
+        : SizedBox();
+  }
+
+  Widget buildSplashScreenInternal() {
+    if (_moveUpAnimCtrl == null) {
+      double viewHeight = MediaQuery.of(context).size.height;
+      _moveUpAnimCtrl = AnimationController(
+        vsync: this,
+        duration: Duration(milliseconds: 300),
+      );
+      _moveUpAnim = _moveUpAnimCtrl.drive(
+        Tween<double>(
+          begin: viewHeight * 0.5 - 110 / 2,
+          end: viewHeight * 0.22,
+        ).chain(CurveTween(curve: Curves.easeInOutQuart)),
+      );
+
+      _initializeAsyncDependencies();
+    }
+
     switch (state) {
       case AppLoadState.Error:
         return Container(
@@ -138,71 +156,23 @@ class _SplashAppInternalState extends State<SplashAppInternal>
         );
       case AppLoadState.Loading:
       case AppLoadState.Preloading:
-        return WidgetsApp(
-          debugShowCheckedModeBanner: false,
-          color: Colors.blue,
-          builder: (_, __) => Container(
-            key: ValueKey("loading"),
-            color: Colors.white,
-            constraints: BoxConstraints.expand(),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 32),
-              // child:
-              // Hero(
-              // tag: "wide_logo_banner",
-              child: Image.asset(
-                "assets/img/wide_logo_banner.png",
-                fit: BoxFit.contain,
-              ),
-              // Lottie.asset(
-              //   "assets/lottie/main_menu/wide logo banner anim.json",
-              //   fit: BoxFit.contain,
-              //   controller: _lottieAnimCtrl,
-              //   onLoaded: (c) {
-              //     _lottieAnimCtrl.duration = c.duration;
-              //     _initializeAsyncDependencies();
-              //   },
-              // ),
-              // ),
+        return Align(
+          alignment: Alignment.topCenter,
+          child: AnimatedBuilder(
+            animation: _moveUpAnimCtrl,
+            builder: (_, child) => Container(
+                padding: EdgeInsets.only(
+                    left: 32, right: 32, top: _moveUpAnim.value),
+                child: child),
+            child: Lottie.asset(
+              "assets/lottie/main_menu/wide logo banner anim.json",
+              fit: BoxFit.contain,
+              controller: _lottieAnimCtrl,
+              onLoaded: (c) {
+                _lottieAnimCtrl.duration = c.duration;
+                _initializeAsyncDependencies();
+              },
             ),
-            // Stack(
-            //   alignment: Alignment.center,
-            //   children: [
-            // AnimatedBuilder(
-            //   animation: _lottieAnimCtrl,
-            //   builder: (_, child) => Transform.rotate(
-            //       angle: pi * _lottieAnimCtrl.value, child: child),
-            //   child: Container(
-            //     decoration: BoxDecoration(
-            //         borderRadius: BorderRadius.circular(20),
-            //         color: Colors.grey[100],
-            //         boxShadow: [
-            //           BoxShadow(
-            //               color: Colors.black26,
-            //               offset: Offset(0, 0),
-            //               blurRadius: 12),
-            //         ]),
-            //     padding: EdgeInsets.all(12),
-            //     child: Column(
-            //       mainAxisSize: MainAxisSize.min,
-            //       children: [
-            //         Row(mainAxisSize: MainAxisSize.min, children: [
-            //           buildDot(red: true),
-            //           SizedBox(width: 8),
-            //           buildDot(red: false),
-            //         ]),
-            //         SizedBox(height: 8),
-            //         Row(mainAxisSize: MainAxisSize.min, children: [
-            //           buildDot(red: false),
-            //           SizedBox(width: 8),
-            //           buildDot(red: true),
-            //         ])
-            //       ],
-            //     ),
-            //   ),
-            // ),
-            //   ],
-            // ),
           ),
         );
       default:
@@ -210,38 +180,16 @@ class _SplashAppInternalState extends State<SplashAppInternal>
     }
   }
 
-  // Widget buildDot({bool red}) {
-  //   return Container(
-  //     height: 28,
-  //     width: 28,
-  //     decoration: BoxDecoration(
-  //       shape: BoxShape.circle,
-  //       color: red ? Colors.redAccent : Colors.blueAccent,
-  //     ),
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
-    return buildLoadingScreen();
-    // return Stack(
-    //   alignment: Alignment.center,
-    //   children: [
-    //     state == AppLoadState.Preloading || state == AppLoadState.Loaded
-    //         ? mainApp()
-    //         : SizedBox(),
-    //     AnimatedSwitcher(
-    //       duration: Duration(milliseconds: 150),
-    //       child: buildLoadingScreen(),
-    //     ),
-    //   ],
-    // );
-  }
-
-  @override
-  void dispose() {
-    _lottieAnimCtrl.dispose();
-    super.dispose();
+    return Stack(
+      children: [
+        state == AppLoadState.Preloading || state == AppLoadState.Loaded
+            ? mainApp()
+            : SizedBox(),
+        buildSplashScreen(),
+      ],
+    );
   }
 }
 
@@ -375,20 +323,21 @@ class _FiarAppState extends State<FiarApp> {
                                   });
                                 }
                                 return TweenAnimationBuilder(
-                                    curve: Curves.easeOutQuad,
-                                    tween: Tween<double>(
-                                        begin: 1,
-                                        end: gsm.currentGameState
-                                                is WaitingForWWOpponentState
-                                            ? 0
-                                            : 1),
-                                    duration: Duration(milliseconds: 250),
-                                    builder: (_, val, child) =>
-                                        Transform.translate(
-                                            offset: Offset(0, -144 * val),
-                                            child: child),
-                                    child: SearchingGameNotification(
-                                        gsm.connected));
+                                  curve: Curves.easeOutQuad,
+                                  tween: Tween<double>(
+                                      begin: 1,
+                                      end: gsm.currentGameState
+                                              is WaitingForWWOpponentState
+                                          ? 0
+                                          : 1),
+                                  duration: Duration(milliseconds: 250),
+                                  builder: (_, val, child) =>
+                                      Transform.translate(
+                                          offset: Offset(0, -144 * val),
+                                          child: child),
+                                  child:
+                                      SearchingGameNotification(gsm.connected),
+                                );
                               }),
                         ),
                       ]),
