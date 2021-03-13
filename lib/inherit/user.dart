@@ -82,19 +82,21 @@ class UserInfo with ChangeNotifier {
   }
 
   void logOut() async {
-    debugPrintStack();
+    // debugPrintStack();
 
     if (sessionToken != null) {
       http
-          .post("${constants.HTTP_URL}/api/users/logout")
+          .post("${constants.HTTP_URL}/api/users/logout", headers: _headers()!)
           .timeout(Duration(seconds: 4), onTimeout: () => null)
           .toNullable()
           .onError((_, __) {
         print("Error logging out!");
       });
-      this.sessionToken = null;
-      this.user = null;
     }
+    this.sessionToken = null;
+    this.user = null;
+
+    notifyListeners();
   }
 
   void setCredentials(String sessionToken) async {
@@ -155,10 +157,12 @@ class UserInfo with ChangeNotifier {
     if (sessionToken == null) return null;
 
     try {
-      var response = await http.get(
-        '${constants.HTTP_URL}/api/users/me',
-        headers: {"session_token": sessionToken!},
-      ).timeout(Duration(seconds: 4));
+      var response = await http
+          .get(
+            '${constants.HTTP_URL}/api/users/me',
+            headers: _headers()!,
+          )
+          .timeout(Duration(seconds: 4));
       if (response.statusCode == 200) {
         User? user = User.fromMap(jsonDecode(response.body));
 
@@ -185,6 +189,7 @@ class UserInfo with ChangeNotifier {
       await Future.delayed(Duration(milliseconds: 300));
     }
     // print("set state in userinfo refresh");
+    // print("userInfo.notifyListeners()");
     notifyListeners();
     // print("reloaded user info");
     return Future.value(this);

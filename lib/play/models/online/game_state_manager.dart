@@ -31,18 +31,26 @@ class GameStateManager with ChangeNotifier {
   NotificationsProviderState? notifications;
 
   UserInfo? _userInfo;
-  UserInfo? get userInfo => _userInfo;
-  set userInfo(UserInfo? u) {
+  UserInfo get userInfo => _userInfo!;
+  bool get userInfoNotSet => _userInfo == null;
+  set userInfo(UserInfo u) {
     _userInfo?.removeListener(_userInfoListener);
     _userInfo = u;
-    _userInfo?.addListener(_userInfoListener);
+
+    userInfo.addListener(_userInfoListener);
   }
 
   void _userInfoListener() {
-    if (_userInfo?.loggedIn == true &&
-        this.currentLoginState is! GameLoginLoggedIn) {
+    // print(
+    //     "userinfolistener! (loggedin = ${userInfo.loggedIn}, cls = $currentLoginState)");
+    if (userInfo.loggedIn == true &&
+        this.currentLoginState is GameLoginLoggedOut) {
       // When logging in
       _sendLoginMsg();
+    } else if (userInfo.loggedIn == false &&
+        this.currentLoginState is! GameLoginLoggedOut) {
+      // Need to log out
+      _sendLogoutMsg();
     }
   }
 
@@ -126,13 +134,10 @@ class GameStateManager with ChangeNotifier {
       _serverConnection.waitForOkay(duration: Duration(milliseconds: 400));
     }
 
-    var userInfo = this.userInfo;
     notifyListeners();
-    if (userInfo != null && userInfo.sessionToken != null) {
-      if (this._gls is! GameLoginLoggedIn) {
-        // When starting game
-        _sendLoginMsg();
-      }
+    if (userInfo.sessionToken != null && this._gls is! GameLoginLoggedIn) {
+      // When starting game
+      _sendLoginMsg();
     }
 
     this._serverConnection.send(req.playerMsg);
@@ -189,7 +194,7 @@ class GameStateManager with ChangeNotifier {
     } else if (msg is MsgReset) {
       hideViewer = true;
     } else if (msg is MsgHello) {
-      if (userInfo?.loggedIn == true) {
+      if (userInfo.loggedIn == true) {
         // On startup / first connection
         _sendLoginMsg();
       }
@@ -199,7 +204,11 @@ class GameStateManager with ChangeNotifier {
   void _handlePlayerMessage(PlayerMessage msg) {}
 
   void _sendLoginMsg() {
-    this.sendPlayerMessage(PlayerMsgLogin(userInfo!.sessionToken!));
+    this.sendPlayerMessage(PlayerMsgLogin(userInfo.sessionToken!));
+  }
+
+  void _sendLogoutMsg() {
+    this.sendPlayerMessage(PlayerMsgLogout());
   }
 
   @override

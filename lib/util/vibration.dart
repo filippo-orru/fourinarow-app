@@ -10,6 +10,7 @@ class Vibrations {
       try {
         if (await Vibrate.canVibrate) {
           _canVibrate = true;
+          return true;
         }
       } catch (MissingPluginException) {}
       _canVibrate = false;

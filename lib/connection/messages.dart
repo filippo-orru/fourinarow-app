@@ -389,6 +389,12 @@ class PlayerMsgLogin extends PlayerMessage {
   }
 }
 
+class PlayerMsgLogout extends PlayerMessage {
+  String serialize() {
+    return "LOGOUT";
+  }
+}
+
 class PlayerMsgChatMessage extends PlayerMessage {
   final String message;
 

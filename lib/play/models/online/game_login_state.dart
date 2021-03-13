@@ -50,6 +50,9 @@ class GameLoginWaitingForResponse extends GameLoginState {
 
   @override
   GameLoginState? handlePlayerMessage(PlayerMessage msg) {
+    if (msg is PlayerMsgLogout) {
+      return GameLoginLoggedOut(gsm);
+    }
     return null;
   }
 }
@@ -64,6 +67,9 @@ class GameLoginError extends GameLoginState {
 
   @override
   GameLoginState? handleServerMessage(ServerMessage msg) {
+    if (msg is PlayerMsgLogout) {
+      return GameLoginLoggedOut(gsm);
+    }
     return null;
   }
 }
@@ -78,6 +84,9 @@ class GameLoginLoggedIn extends GameLoginState {
 
   @override
   GameLoginState? handlePlayerMessage(PlayerMessage msg) {
+    if (msg is PlayerMsgLogout) {
+      return GameLoginLoggedOut(gsm);
+    }
     return null;
   }
 }

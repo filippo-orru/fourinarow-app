@@ -65,6 +65,7 @@ flutter:
 
   assets:
     - assets/img/
+    - assets/img/ranks/
     - assets/lottie/reactions/
     - assets/lottie/reactions/images/
     - assets/lottie/main_menu/

@@ -61,7 +61,12 @@ class OutDatedDialog extends StatelessWidget {
               ),
               SizedBox(height: 18),
               isAndroid
-                  ? RaisedButton(
+                  ? ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.blueAccent,
+                        padding:
+                            EdgeInsets.symmetric(vertical: 18, horizontal: 32),
+                      ),
                       onPressed: () async {
                         AndroidIntent intent = AndroidIntent(
                           action: 'action_view',
@@ -70,14 +75,11 @@ class OutDatedDialog extends StatelessWidget {
                         );
                         await intent.launch();
                       },
-                      color: Colors.blueAccent,
                       child: Text('Update',
                           style: TextStyle(
                             fontSize: 24,
                             color: Colors.white,
                           )),
-                      padding:
-                          EdgeInsets.symmetric(vertical: 18, horizontal: 32),
                     )
                   : Text('[ Please update the app manually ]'),
             ],

@@ -43,9 +43,10 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 48),
-              RaisedButton(
-                color: Colors.blueAccent,
-                elevation: 1,
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.blueAccent,
+                ),
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute(
                       builder: (BuildContext context) =>
@@ -55,9 +56,10 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
                 child: Text('Log in'.toUpperCase(),
                     style: TextStyle(color: Colors.white)),
               ),
-              RaisedButton(
-                color: Colors.redAccent,
-                elevation: 1,
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.redAccent,
+                ),
                 onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute(
                       builder: (BuildContext context) =>

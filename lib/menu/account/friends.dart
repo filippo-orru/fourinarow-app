@@ -182,14 +182,16 @@ class _FriendsListState extends State<FriendsList>
         children: [
           Text('An error has occurred. Please log out and try again.'),
           SizedBox(height: 18),
-          RaisedButton(
-              color: Colors.grey[100],
-              elevation: 2,
-              onPressed: () {
-                userInfo.logOut();
-                Navigator.of(context).pop();
-              },
-              child: Text('Log out'))
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              primary: Colors.purple.shade200,
+            ),
+            onPressed: () {
+              userInfo.logOut();
+              Navigator.of(context).pop();
+            },
+            child: Text('Log out'),
+          )
         ],
       ),
     );
@@ -373,10 +375,12 @@ class MoreButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RaisedButton(
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        primary: Colors.purple[200],
+        shape: StadiumBorder(),
+      ),
       onPressed: () => onTap,
-      color: Colors.purple[200],
-      shape: StadiumBorder(),
       child: Text(label.toUpperCase(),
           style: TextStyle(
             color: Colors.white.withOpacity(0.9),
@@ -384,30 +388,10 @@ class MoreButton extends StatelessWidget {
             fontWeight: FontWeight.bold,
           )),
     );
-    // GestureDetector(
-    //   child: Container(
-    //     // width: 96,
-    //     // height: 48,
-    //     padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-    //     decoration: BoxDecoration(
-    //       color: Colors.blue[500],
-    //       borderRadius: BorderRadius.all(Radius.circular(100)),
-    //       boxShadow: [
-    //         BoxShadow(
-    //           color: Colors.black26,
-    //           blurRadius: 3,
-    //           offset: Offset(0, 2),
-    //         )
-    //       ],
-    //     ),
-    //   ),
-
-    //   // Icon(Icons.backspace),
-    // );
   }
 }
 
-class FriendsListTile extends StatelessWidget {
+class FriendsListTile extends StatefulWidget {
   final PublicUser friend;
   final void Function(String) battleRequest;
   final bool isLast;
@@ -416,93 +400,159 @@ class FriendsListTile extends StatelessWidget {
       : super(key: key);
 
   @override
+  _FriendsListTileState createState() => _FriendsListTileState();
+}
+
+class _FriendsListTileState extends State<FriendsListTile> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
-    bool isFriendRequest = friend.friendState == FriendState.IsRequestedByMe ||
-        friend.friendState == FriendState.HasRequestedMe;
+    bool isFriendRequest =
+        widget.friend.friendState == FriendState.IsRequestedByMe ||
+            widget.friend.friendState == FriendState.HasRequestedMe;
     var tile = Material(
-      child: Container(
+      child: Padding(
         padding: EdgeInsets.fromLTRB(16, 16, 24, 16),
-        child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              isFriendRequest
-                  // ?
-                  ? Container(
-                      alignment: Alignment.center,
-                      child: friend.friendState.icon(color: Colors.grey[500]),
-                    )
-                  : null,
-              SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    friend.name,
-                    style: Theme.of(context).textTheme.subtitle1,
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    isFriendRequest
-                        ? friend.friendState == FriendState.HasRequestedMe
-                            ? "Waiting for your response"
-                            : "Awaiting response"
-                        : "SR: ${friend.gameInfo.skillRating}",
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyText2!
-                        .copyWith(color: Colors.grey[500]),
-                  ),
-                ],
-              ),
-              Expanded(child: SizedBox()),
-              isFriendRequest
-                  ?
-                  // TextButton(
-                  //     child: Row(
-                  //       children: [
-                  //         Text(friend.friendState == FriendState.HasRequestedMe
-                  //             ? 'Accept'
-                  //             : 'Delete'),
-                  IconButton(
-                      tooltip: friend.friendState == FriendState.HasRequestedMe
-                          ? 'Accept'
-                          : 'Delete',
-                      icon: Icon(
-                        friend.friendState == FriendState.HasRequestedMe
-                            ? Icons.check
-                            : Icons.clear,
-                        color: Colors.grey[600],
-                        //   ),
-                        // ],
-                      ),
-                      onPressed: () {
-                        var userInfo = context.read<UserInfo>();
-                        friend.friendState == FriendState.HasRequestedMe
-                            ? userInfo.addFriend(friend.id)
-                            : userInfo.removeFriend(friend.id);
-                      },
-                    )
-                  : friend.isPlaying
-                      ? Transform.scale(
-                          alignment: Alignment.center,
-                          scale: 0.75,
-                          child: IconButton(
-                            icon: Opacity(
-                              opacity: 0.54,
-                              child: Image.asset(
-                                "assets/img/swords.png",
-                                color: Colors.black.withOpacity(0.8),
-                                colorBlendMode: BlendMode.srcIn,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                isFriendRequest
+                    // ?
+                    ? Container(
+                        alignment: Alignment.center,
+                        child: widget.friend.friendState
+                            .icon(color: Colors.grey[500]),
+                      )
+                    : null,
+                SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.friend.name,
+                      style: Theme.of(context).textTheme.subtitle1,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      isFriendRequest
+                          ? widget.friend.friendState ==
+                                  FriendState.HasRequestedMe
+                              ? "Waiting for your response"
+                              : "Awaiting response"
+                          : "SR: ${widget.friend.gameInfo.skillRating}",
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyText2!
+                          .copyWith(color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+                Expanded(child: SizedBox()),
+                isFriendRequest
+                    ?
+                    // TextButton(
+                    //     child: Row(
+                    //       children: [
+                    //         Text(friend.friendState == FriendState.HasRequestedMe
+                    //             ? 'Accept'
+                    //             : 'Delete'),
+                    IconButton(
+                        tooltip: widget.friend.friendState ==
+                                FriendState.HasRequestedMe
+                            ? 'Accept'
+                            : 'Delete',
+                        icon: Icon(
+                          widget.friend.friendState ==
+                                  FriendState.HasRequestedMe
+                              ? Icons.check
+                              : Icons.clear,
+                          color: Colors.grey[600],
+                          //   ),
+                          // ],
+                        ),
+                        onPressed: () {
+                          var userInfo = context.read<UserInfo>();
+                          widget.friend.friendState ==
+                                  FriendState.HasRequestedMe
+                              ? userInfo.addFriend(widget.friend.id)
+                              : userInfo.removeFriend(widget.friend.id);
+                        },
+                      )
+                    : widget.friend.isPlaying
+                        ? Transform.scale(
+                            alignment: Alignment.center,
+                            scale: 0.75,
+                            child: IconButton(
+                              icon: Opacity(
+                                opacity: 0.54,
+                                child: Image.asset(
+                                  "assets/img/swords.png",
+                                  color: Colors.black.withOpacity(0.8),
+                                  colorBlendMode: BlendMode.srcIn,
+                                ),
                               ),
+                              onPressed: () =>
+                                  widget.battleRequest(widget.friend.id),
                             ),
-                            onPressed: () => battleRequest(friend.id),
-                          ),
-                        )
-                      : SizedBox(),
-            ].filterNotNull()),
+                          )
+                        : SizedBox(),
+
+                TweenAnimationBuilder(
+                  tween: Tween<double>(begin: 0, end: _expanded ? 1 : 0),
+                  duration: Duration(milliseconds: 120),
+                  builder: (_, val, child) => Transform.rotate(
+                      angle: pi * (val as double), child: child),
+                  child: IconButton(
+                    onPressed: () {
+                      setState(() => _expanded = !_expanded);
+                      //   if (_expanded)
+                      //     hide();
+                      //   else
+                      //     show();
+                    },
+                    icon: Icon(Icons.arrow_drop_down, color: Colors.black87),
+                  ),
+                ),
+
+                // IconButton(
+                //   icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
+                //   onPressed: () => ,
+                // ),
+              ].filterNotNull(),
+            ),
+            // TweenAnimationBuilder(
+            //   tween: Tween<double>(begin: 80, end: _expanded ? 128 : 80),
+            //   duration: Duration(milliseconds: 120),
+            //   // curve: Curves.easeInOutQuad,
+            //   curve: Curves.easeInOutCubic,
+            //   builder: (_, val, child) => OverflowBox(
+            //       alignment: Alignment.topCenter,
+            //       maxHeight: val as double,
+            //       child: child),
+            //   child:
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: _expanded
+                  ? [
+                      IconButton(
+                        icon: Icon(Icons.chat_bubble_outline_rounded),
+                        onPressed: () {},
+                      ),
+                    ]
+                  : [],
+              //   ),
+            ),
+          ],
+        ),
       ),
     );
-    if (isLast) {
+    if (widget.isLast) {
       return Column(
         mainAxisSize: MainAxisSize.max,
         children: [

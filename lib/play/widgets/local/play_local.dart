@@ -96,28 +96,38 @@ class _PlayingLocalState extends State<PlayingLocal> with RouteAware {
             board: Board(field, dropChip: _dropChip),
           ),
           kDebugMode
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    RaisedButton(
-                      child: Text('Undo'),
-                      onPressed: () => setState(() => field.undo()),
-                    ),
-                    RaisedButton(
-                      child: Text('Fill random'),
-                      onPressed: () async {
-                        for (int i = 0; i < 10; i++) {
-                          await Future.delayed(
-                            Duration(milliseconds: 300),
-                            () {
-                              field.dropChip(Random().nextInt(Field.size));
-                              if (mounted) setState(() {});
-                            },
-                          );
-                        }
-                      },
-                    ),
-                  ],
+              ? Padding(
+                  padding: const EdgeInsets.only(left: 16, bottom: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.blueGrey,
+                        ),
+                        child: Text('Undo'),
+                        onPressed: () => setState(() => field.undo()),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.blueGrey,
+                        ),
+                        child: Text('Fill random'),
+                        onPressed: () async {
+                          for (int i = 0; i < 10; i++) {
+                            await Future.delayed(
+                              Duration(milliseconds: 300),
+                              () {
+                                field.dropChip(Random().nextInt(Field.size));
+                                if (mounted) setState(() {});
+                              },
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 )
               : SizedBox(),
         ],

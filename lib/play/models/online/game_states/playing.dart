@@ -124,7 +124,7 @@ class PlayingState extends GameState {
     if (response.statusCode == 200) {
       this.opponentInfo.user = PublicUser.fromMap(jsonDecode(response.body));
 
-      if (gsm.userInfo?.user?.friends
+      if (gsm.userInfo.user?.friends
               .any((friend) => friend.id == opponentInfo.user?.id) ==
           true) {
         opponentInfo.isFriend = true;

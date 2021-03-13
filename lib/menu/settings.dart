@@ -8,7 +8,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: FiarAppBar(
-        title: "Friend Requests",
+        title: "Settings",
         threeDots: [
           FiarThreeDotItem(
             'Feedback',
@@ -22,7 +22,12 @@ class SettingsScreen extends StatelessWidget {
         children: [
           Consumer<UserInfo>(
             builder: (_, userInfo, __) => ListTile(
-              leading: Icon(Icons.person_outline_rounded),
+              leading: Container(
+                height: 64,
+                width: 32,
+                alignment: Alignment.center,
+                child: Icon(Icons.person_outline_rounded),
+              ),
               title: Text('Account'),
               subtitle:
                   userInfo.loggedIn ? Text(userInfo.user!.username) : null,

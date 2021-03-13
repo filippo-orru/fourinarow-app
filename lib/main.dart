@@ -75,27 +75,21 @@ class _SplashAppInternalState extends State<SplashAppInternal>
     super.dispose();
   }
 
+  bool _skip = false;
+
   Future<void> _initializeAsyncDependencies() async {
     // setState(() => state = AppLoadState.Loading);
     await Future.delayed(Duration(milliseconds: STARTUP_DELAY_MS));
     FiarSharedPrefs.setup().then(
       (_) {
-        _lottieAnimCtrl.forward();
-        Future.delayed(_lottieAnimCtrl.duration, () {
-          // Start preloading a bit before the anim is over
-          setState(() => state = AppLoadState.Preloading);
-          Future.delayed(Duration(milliseconds: 300), () {
-            // Short delay between animations because preloading causes jank
-            // Then: move & fade to app
-            _moveUpAnimCtrl.forward().then((_) {
-              Future.delayed(Duration(milliseconds: 80), () {
-                _crossfadeAnimCtrl.forward().then((_) {
-                  setState(() => state = AppLoadState.Loaded);
-                });
-              });
-            });
+        if (_skip) {
+          _preload();
+        } else {
+          _lottieAnimCtrl.forward();
+          Future.delayed(_lottieAnimCtrl.duration, () {
+            _preload();
           });
-        });
+        }
       },
       onError: ((error, stackTrace) {
         setState(() => state = AppLoadState.Error);
@@ -103,22 +97,56 @@ class _SplashAppInternalState extends State<SplashAppInternal>
     );
   }
 
+  void _preload() {
+    if (_skip) return;
+    setState(() => state = AppLoadState.Preloading);
+
+    Future.delayed(Duration(milliseconds: 300), () {
+      // Short delay between animations because preloading causes jank
+      // Then: move & fade to app
+      _moveUpAnimCtrl.forward().then((_) {
+        if (_skip) return;
+        Future.delayed(Duration(milliseconds: 80), () {
+          if (_skip) return;
+          _crossfadeAnimCtrl.forward().then((_) {
+            if (_skip) return;
+            setState(() => state = AppLoadState.Loaded);
+          });
+        });
+      });
+    });
+  }
+
+  void _skipAnims() {
+    _skip = true;
+
+    _lottieAnimCtrl.stop();
+    _moveUpAnimCtrl.stop();
+    _crossfadeAnimCtrl.stop();
+    setState(() => state = AppLoadState.Loaded);
+  }
+
   Widget buildSplashScreen() {
-    return state != AppLoadState.Loaded
-        ? AnimatedBuilder(
-            animation: _crossfadeAnimCtrl,
-            builder: (_, child) => Opacity(
-              opacity: 1 - _crossfadeAnimCtrl.value,
-              child: child,
-            ),
-            child: Container(
-              alignment: Alignment.center,
-              color: Colors.white,
-              constraints: BoxConstraints.expand(),
-              child: buildSplashScreenInternal(),
-            ),
-          )
-        : SizedBox();
+    if (state != AppLoadState.Loaded) {
+      return GestureDetector(
+        onDoubleTap: () => _skipAnims(),
+        child: AnimatedBuilder(
+          animation: _crossfadeAnimCtrl,
+          builder: (_, child) => Opacity(
+            opacity: 1 - _crossfadeAnimCtrl.value,
+            child: child,
+          ),
+          child: Container(
+            alignment: Alignment.center,
+            color: Colors.white,
+            constraints: BoxConstraints.expand(),
+            child: buildSplashScreenInternal(),
+          ),
+        ),
+      );
+    } else {
+      return SizedBox();
+    }
   }
 
   Widget buildSplashScreenInternal() {
@@ -134,8 +162,6 @@ class _SplashAppInternalState extends State<SplashAppInternal>
           end: viewHeight * 0.22,
         ).chain(CurveTween(curve: Curves.easeInOutQuart)),
       );
-
-      _initializeAsyncDependencies();
     }
 
     switch (state) {
@@ -161,9 +187,10 @@ class _SplashAppInternalState extends State<SplashAppInternal>
           child: AnimatedBuilder(
             animation: _moveUpAnimCtrl,
             builder: (_, child) => Container(
-                padding: EdgeInsets.only(
-                    left: 32, right: 32, top: _moveUpAnim.value),
-                child: child),
+              padding:
+                  EdgeInsets.only(left: 32, right: 32, top: _moveUpAnim.value),
+              child: child,
+            ),
             child: Lottie.asset(
               "assets/lottie/main_menu/wide logo banner anim.json",
               fit: BoxFit.contain,
@@ -235,7 +262,7 @@ class _FiarAppState extends State<FiarApp> {
     var gsm = context.read<GameStateManager>();
     gsm.lifecycle ??= LifecycleProvider.of(ctx);
     gsm.notifications ??= NotificationsProvider.of(ctx);
-    gsm.userInfo ??= context.read<UserInfo>();
+    if (gsm.userInfoNotSet) gsm.userInfo = context.read<UserInfo>();
   }
 
   @override
