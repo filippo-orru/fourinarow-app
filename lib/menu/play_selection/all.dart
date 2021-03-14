@@ -18,9 +18,9 @@ import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:four_in_a_row/util/toast.dart';
 
 import 'dart:math';
-// ignore: import_of_legacy_library_into_null_safe
+
 import 'package:provider/provider.dart';
-// ignore: import_of_legacy_library_into_null_safe
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
@@ -254,6 +254,7 @@ class FiarSimpleDialog extends StatelessWidget {
         Align(
             alignment: Alignment.centerRight,
             child: ElevatedButton(
+              style: ElevatedButton.styleFrom(primary: Colors.lightBlue),
               onPressed: () => Navigator.of(context).pop(),
               child: Text('Okay'),
             ))

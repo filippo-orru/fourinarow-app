@@ -1,9 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:four_in_a_row/connection/messages.dart';
-import 'package:four_in_a_row/inherit/lifecycle.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
-import 'package:four_in_a_row/play/widgets/online/in_lobby.dart';
 
 class InLobbyState extends GameState {
   final String? code;

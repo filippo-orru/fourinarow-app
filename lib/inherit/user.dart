@@ -6,7 +6,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:four_in_a_row/util/constants.dart' as constants;
 
 import 'package:four_in_a_row/util/extensions.dart';
@@ -47,7 +46,7 @@ class UserInfo with ChangeNotifier {
     };
 
     return _client
-        .post('${constants.HTTP_URL}/api/users/register', body: body)
+        .post(Uri.parse('${constants.HTTP_URL}/api/users/register'), body: body)
         .timeout(Duration(seconds: 4))
         .then((response) {
       if (response.statusCode == 200) {
@@ -67,7 +66,7 @@ class UserInfo with ChangeNotifier {
       "password": password,
     };
     return _client
-        .post("${constants.HTTP_URL}/api/users/login", body: body)
+        .post(Uri.parse("${constants.HTTP_URL}/api/users/login"), body: body)
         .timeout(Duration(seconds: 4))
         .then((response) {
       if (response.statusCode == 200) {
@@ -86,9 +85,10 @@ class UserInfo with ChangeNotifier {
 
     if (sessionToken != null) {
       http
-          .post("${constants.HTTP_URL}/api/users/logout", headers: _headers()!)
-          .timeout(Duration(seconds: 4), onTimeout: () => null)
+          .post(Uri.parse("${constants.HTTP_URL}/api/users/logout"),
+              headers: _headers()!)
           .toNullable()
+          .timeout(Duration(seconds: 4), onTimeout: () => null)
           .onError((_, __) {
         print("Error logging out!");
       });
@@ -109,7 +109,7 @@ class UserInfo with ChangeNotifier {
 
     var response = await _client
         .post(
-          "${constants.HTTP_URL}/api/users/me/friends?id=$id",
+          Uri.parse("${constants.HTTP_URL}/api/users/me/friends?id=$id"),
           headers: _headers(),
         )
         .timeout(Duration(seconds: 4));
@@ -131,7 +131,7 @@ class UserInfo with ChangeNotifier {
     if (headers == null) return false;
 
     var response = await _client.delete(
-        "${constants.HTTP_URL}/api/users/me/friends/$id",
+        Uri.parse("${constants.HTTP_URL}/api/users/me/friends/$id"),
         headers: headers);
     if (response.statusCode == 200) {
       if (callback != null) {
@@ -159,15 +159,16 @@ class UserInfo with ChangeNotifier {
     try {
       var response = await http
           .get(
-            '${constants.HTTP_URL}/api/users/me',
+            Uri.parse('${constants.HTTP_URL}/api/users/me'),
             headers: _headers()!,
           )
-          .timeout(Duration(seconds: 4));
-      if (response.statusCode == 200) {
-        User? user = User.fromMap(jsonDecode(response.body));
+          .toNullable()
+          .timeout(Duration(seconds: 4), onTimeout: () => null);
+      if (response?.statusCode == 200) {
+        User? user = User.fromMap(jsonDecode(response!.body));
 
         this.user = user;
-      } else if (response.statusCode == 403) {
+      } else if (response?.statusCode == 403) {
         // incorrect credentials
         debugPrint(
             "Logging out. Session token $sessionToken seems to have expired");
@@ -203,7 +204,8 @@ class UserInfo with ChangeNotifier {
 
   Future<PublicUser?> getUserInfo({required String userId}) async {
     try {
-      var resp = await _client.get("${constants.HTTP_URL}/api/users/$userId");
+      var resp = await _client
+          .get(Uri.parse("${constants.HTTP_URL}/api/users/$userId"));
       if (resp.statusCode == 200) {
         return PublicUser.fromMap(jsonDecode(resp.body));
       } else {
@@ -256,14 +258,14 @@ extension FriendStateExtension on FriendState {
   Widget icon({Color? color}) {
     switch (this) {
       case FriendState.IsFriend:
-        return Icon(Icons.check, color: color ?? Colors.grey[500]);
+        return Icon(Icons.check, color: color ?? Colors.black45);
       case FriendState.IsRequestedByMe:
-        return Icon(Icons.outgoing_mail, color: color ?? Colors.grey[500]);
+        return Icon(Icons.outgoing_mail, color: color ?? Colors.black45);
       case FriendState.HasRequestedMe:
         return Icon(Icons.move_to_inbox_rounded,
-            color: color ?? Colors.grey[500]);
+            color: color ?? Colors.black45);
       case FriendState.None:
-        return Icon(Icons.person_add, color: color ?? Colors.grey[500]);
+        return Icon(Icons.person_add, color: color ?? Colors.black45);
       case FriendState.Loading:
         return Container(
           width: 24,

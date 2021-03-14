@@ -3,15 +3,16 @@ import 'dart:math';
 
 import 'package:flutter/material.dart' hide BottomSheet;
 import 'package:flutter/scheduler.dart';
+import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/menu/settings.dart';
 import 'package:http/http.dart' as http;
+import 'package:share/share.dart';
 
 import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
-import 'package:four_in_a_row/util/battle_req_popup.dart';
 import 'package:four_in_a_row/util/constants.dart' as constants;
 import 'package:four_in_a_row/util/extensions.dart';
 import 'package:four_in_a_row/inherit/user.dart';
@@ -111,11 +112,32 @@ class _FriendsListState extends State<FriendsList>
                       color: Colors.purple,
                       expandedHeight: 218,
                       topChildren: [
-                        Text(userInfo.user!.username,
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: userInfo.user!.username),
+                              TextSpan(
+                                  text: "   •   ",
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 16,
+                                  )),
+                              TextSpan(
+                                text:
+                                    "${userInfo.user!.gameInfo.skillRating} SR",
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
                             style: TextStyle(
-                                fontFamily: 'RobotoSlab',
-                                color: Colors.grey[900],
-                                fontSize: 18)),
+                              fontFamily: 'RobotoSlab',
+                              color: Colors.grey[900],
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
                       ],
                       children: [
                         Material(
@@ -128,7 +150,16 @@ class _FriendsListState extends State<FriendsList>
                             },
                             leading: Icon(Icons.exit_to_app),
                             title: Text('Log out'),
-                            // subtitle: Text('Change email'),
+                            contentPadding:
+                                EdgeInsets.symmetric(horizontal: 24),
+                          ),
+                        ),
+                        Material(
+                          type: MaterialType.transparency,
+                          child: ListTile(
+                            onTap: shareInviteFriends,
+                            leading: Icon(Icons.share_rounded),
+                            title: Text('Invite friends'),
                             contentPadding:
                                 EdgeInsets.symmetric(horizontal: 24),
                           ),
@@ -228,6 +259,17 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
             .where((f) => f.friendState != FriendState.IsFriend)
             .toList() ??
         [];
+
+    List<PublicUser> onlineFriends =
+        confirmedFriends.where((f) => f.isPlaying).toList();
+    List<PublicUser> offlineFriends =
+        confirmedFriends.where((f) => !f.isPlaying).toList();
+    int headingsCount = onlineFriends.isNotEmpty
+        ? offlineFriends.isNotEmpty
+            ? 2 // both headings
+            : 1 // only online heading
+        : 1; // only offline heading
+
     return RefreshIndicator(
       onRefresh: () => widget.userInfo.refresh().then((_) => setState(() {})),
       key: widget.refreshKey,
@@ -235,19 +277,27 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
         itemCount: confirmedFriends.isEmpty
             ? friendRequests.isEmpty
                 ? 1 // -> show 'no friends'
-                : 1 + friendRequests.length // show requests with title
+                : 1 + friendRequests.length // show friend requests with title
             : confirmedFriends.length +
+                headingsCount +
                 (friendRequests.isEmpty
-                    ? 0 // -> show 'x pending requests at the top'
-                    : 1),
+                    ? 0
+                    : 1 // 'x pending requests at the top'
+                ),
         itemBuilder: (_, index) {
           if (confirmedFriends.isNotEmpty) {
             if (friendRequests.isNotEmpty && index == 0) {
               String s = friendRequests.length == 1 ? '' : 's';
               return ListTile(
-                  trailing: Icon(Icons.chevron_right_rounded),
+                  trailing:
+                      Icon(Icons.chevron_right_rounded, color: Colors.black54),
                   title: Text(
-                      '${friendRequests.length.toNumberWord().capitalize()} pending friend request$s'),
+                    '${friendRequests.length.toNumberWord().capitalize()} pending friend request$s',
+                    style: TextStyle(
+                      color: Colors.grey.shade700,
+                      // fontStyle: FontStyle.italic,
+                    ),
+                  ),
                   onTap: () {
                     Navigator.of(context).push(MaterialPageRoute(
                       builder: (BuildContext context) =>
@@ -256,38 +306,37 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
                   });
             } else {
               if (friendRequests.isNotEmpty) index -= 1;
-              bool isLast = index != confirmedFriends.length - 1;
-              return FriendsListTile(
-                  confirmedFriends[index], widget.onBattleRequest, isLast);
+
+              if (index == 0 && onlineFriends.isNotEmpty) {
+                // return FriendListHeading(title: 'Offline');
+                return FriendListHeading(title: 'Online');
+              }
+
+              if (offlineFriends.isNotEmpty) {
+                if ((onlineFriends.isNotEmpty &&
+                        index - 1 == onlineFriends.length) ||
+                    (onlineFriends.isEmpty && index == 0)) {
+                  return FriendListHeading(title: 'Offline');
+                }
+              }
+
+              if (onlineFriends.isNotEmpty &&
+                  index - 1 < onlineFriends.length) {
+                index -= onlineFriends.isNotEmpty ? 1 : 0;
+                bool isLast = index != onlineFriends.length - 1;
+                return FriendsListTile(
+                    onlineFriends[index], widget.onBattleRequest, isLast);
+              } else {
+                index -= onlineFriends.length + headingsCount;
+
+                bool isLast = index != offlineFriends.length - 1;
+                return FriendsListTile(
+                    offlineFriends[index], widget.onBattleRequest, isLast);
+              }
             }
           } else if (friendRequests.isNotEmpty) {
             if (index == 0) {
-              return Padding(
-                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                child: Row(
-                  children: [
-                    Text(
-                      'Friend Requests',
-                      style: TextStyle(
-                        fontFamily: "RobotoSlab",
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.3,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        // constraints: BoxConstraints.expand(
-                        height: 2,
-                        // ),
-                        color: Color.lerp(
-                            Colors.purple[100], Colors.grey[200], 0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              );
+              return FriendListHeading(title: 'Friend Requests');
             } else {
               bool isLast = index - 1 != friendRequests.length - 1;
               return FriendsListTile(
@@ -304,6 +353,46 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
           }
         },
         padding: EdgeInsets.only(bottom: 164),
+      ),
+    );
+  }
+}
+
+class FriendListHeading extends StatelessWidget {
+  final String title;
+
+  const FriendListHeading({
+    required this.title,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: 12, left: 8, right: 12),
+      child: Row(
+        children: [
+          Container(height: 2, width: 12, color: Colors.grey.shade300),
+          Padding(
+            padding: const EdgeInsets.only(left: 4.0, right: 6),
+            child: Text(
+              title.toUpperCase(),
+              style: TextStyle(
+                fontFamily: "RobotoSlab",
+                color: Colors.grey.shade500,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              height: 2,
+              color: Colors.grey.shade300,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -343,19 +432,31 @@ class FriendRequestsScreen extends StatelessWidget {
                     child: Text(
                         'Something went wrong. Please restart the app or log out.'))
                 : ListView(
-                    children: friendRequests
-                        .asMap()
-                        .map<int, Widget?>((i, friend) {
-                          bool isLast = i == friendRequests.length - 1;
+                    children: friendRequests.isEmpty
+                        ? [
+                            Container(
+                              height: MediaQuery.of(context).size.height -
+                                  FiarBottomSheet.HEIGHT,
+                              alignment: Alignment.center,
+                              child: Text("No friend requests at the moment",
+                                  style: TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                  )),
+                            ),
+                          ]
+                        : friendRequests
+                            .asMap()
+                            .map<int, Widget?>((i, friend) {
+                              bool isLast = i == friendRequests.length - 1;
 
-                          return MapEntry(
-                            i,
-                            FriendsListTile(friend, battleRequest, isLast),
-                          );
-                        })
-                        .values
-                        .toList()
-                        .filterNotNull());
+                              return MapEntry(
+                                i,
+                                FriendsListTile(friend, battleRequest, isLast),
+                              );
+                            })
+                            .values
+                            .toList()
+                            .filterNotNull());
           },
         ),
       ),
@@ -421,47 +522,44 @@ class _FriendsListTileState extends State<FriendsListTile> {
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                isFriendRequest
-                    // ?
-                    ? Container(
-                        alignment: Alignment.center,
-                        child: widget.friend.friendState
-                            .icon(color: Colors.grey[500]),
-                      )
-                    : null,
-                SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.friend.name,
-                      style: Theme.of(context).textTheme.subtitle1,
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      isFriendRequest
-                          ? widget.friend.friendState ==
-                                  FriendState.HasRequestedMe
-                              ? "Waiting for your response"
-                              : "Awaiting response"
-                          : "SR: ${widget.friend.gameInfo.skillRating}",
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyText2!
-                          .copyWith(color: Colors.grey[500]),
-                    ),
-                  ],
+                Container(
+                  alignment: Alignment.center,
+                  child: isFriendRequest
+                      ? widget.friend.friendState.icon(color: Colors.grey[500])
+                      : PlayerIcon(widget.friend),
                 ),
-                Expanded(child: SizedBox()),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.friend.name,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        softWrap: false,
+                        // softWrap: true,
+                        style: Theme.of(context).textTheme.subtitle1,
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        isFriendRequest
+                            ? widget.friend.friendState ==
+                                    FriendState.HasRequestedMe
+                                ? "Waiting for your response"
+                                : "Awaiting response"
+                            : "${widget.friend.gameInfo.skillRating} SR",
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyText2!
+                            .copyWith(color: Colors.grey[500]),
+                      ),
+                    ],
+                  ),
+                ),
                 isFriendRequest
-                    ?
-                    // TextButton(
-                    //     child: Row(
-                    //       children: [
-                    //         Text(friend.friendState == FriendState.HasRequestedMe
-                    //             ? 'Accept'
-                    //             : 'Delete'),
-                    IconButton(
+                    ? IconButton(
                         tooltip: widget.friend.friendState ==
                                 FriendState.HasRequestedMe
                             ? 'Accept'
@@ -500,55 +598,107 @@ class _FriendsListTileState extends State<FriendsListTile> {
                                   widget.battleRequest(widget.friend.id),
                             ),
                           )
-                        : SizedBox(),
-
-                TweenAnimationBuilder(
-                  tween: Tween<double>(begin: 0, end: _expanded ? 1 : 0),
-                  duration: Duration(milliseconds: 120),
-                  builder: (_, val, child) => Transform.rotate(
-                      angle: pi * (val as double), child: child),
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() => _expanded = !_expanded);
-                      //   if (_expanded)
-                      //     hide();
-                      //   else
-                      //     show();
-                    },
-                    icon: Icon(Icons.arrow_drop_down, color: Colors.black87),
-                  ),
-                ),
-
-                // IconButton(
-                //   icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
-                //   onPressed: () => ,
-                // ),
+                        : null,
+                isFriendRequest
+                    ? null
+                    : TweenAnimationBuilder(
+                        tween: Tween<double>(begin: 0, end: _expanded ? 1 : 0),
+                        duration: Duration(milliseconds: 120),
+                        builder: (_, val, child) => Transform.rotate(
+                            angle: pi * (val as double), child: child),
+                        child: IconButton(
+                          onPressed: () {
+                            setState(() => _expanded = !_expanded);
+                          },
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
               ].filterNotNull(),
             ),
-            // TweenAnimationBuilder(
-            //   tween: Tween<double>(begin: 80, end: _expanded ? 128 : 80),
-            //   duration: Duration(milliseconds: 120),
-            //   // curve: Curves.easeInOutQuad,
-            //   curve: Curves.easeInOutCubic,
-            //   builder: (_, val, child) => OverflowBox(
-            //       alignment: Alignment.topCenter,
-            //       maxHeight: val as double,
-            //       child: child),
-            //   child:
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: _expanded
-                  ? [
-                      IconButton(
-                        icon: Icon(Icons.chat_bubble_outline_rounded),
-                        onPressed: () {},
-                      ),
-                    ]
-                  : [],
-              //   ),
-            ),
-          ],
+            SizedBox(height: _expanded ? 8 : 0),
+            isFriendRequest
+                ? null
+                : Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: _expanded
+                        ? [
+                            IconButton(
+                              icon: Icon(Icons.cancel_outlined,
+                                  color: Colors.grey.shade600),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => SimpleDialog(
+                                    title: Text(
+                                      "Remove Friend",
+                                      style: TextStyle(
+                                        fontFamily: 'RobotoSlab',
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    contentPadding: EdgeInsets.all(16),
+                                    children: [
+                                      Text(
+                                          'Do you really want to remove \"${widget.friend.name}\"?'),
+                                      SizedBox(height: 24),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          TextButton(
+                                            style: TextButton.styleFrom(
+                                              primary: Colors.black87,
+                                            ),
+                                            child: Text('Cancel'),
+                                            onPressed: () =>
+                                                Navigator.of(ctx).pop(),
+                                          ),
+                                          SizedBox(width: 16),
+                                          OutlinedButton(
+                                            style: OutlinedButton.styleFrom(
+                                              primary: Colors.red,
+                                            ),
+                                            onPressed: () {
+                                              context
+                                                  .read<UserInfo>()
+                                                  .removeFriend(
+                                                      widget.friend.id);
+                                              Navigator.of(ctx).pop();
+                                            },
+                                            child: Text('Remove'),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                            SizedBox(width: 12),
+                            IconButton(
+                              icon: Icon(Icons.chat_outlined,
+                                  color: Colors.grey.shade600),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => FiarSimpleDialog(
+                                    title: "Chat",
+                                    content:
+                                        'Chatting with friends is coming soon! Stay tuned 😊',
+                                  ),
+                                );
+                              },
+                            ),
+                          ]
+                        : [],
+                    //   ),
+                  ),
+          ].filterNotNull(),
         ),
       ),
     );
@@ -556,22 +706,14 @@ class _FriendsListTileState extends State<FriendsListTile> {
       return Column(
         mainAxisSize: MainAxisSize.max,
         children: [
-          // ListTile(
-          //     // leading: Icon(Icons.mail_outline),
-          //     title: Text('Tite'),
-          //     subtitle: Text('stirne'),
-          //     trailing: IconButton(
-          //       icon: Icon(Icons.clear),
-          //       onPressed: () {},
-          //     )),
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 2),
+            padding: EdgeInsets.only(bottom: 2),
             child: tile,
           ),
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 12),
+            margin: EdgeInsets.symmetric(horizontal: 24),
             constraints: BoxConstraints.expand(height: 2),
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.08),
           ),
         ],
       );
@@ -582,7 +724,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
 }
 
 class BattleRequestDialog extends StatefulWidget {
-  static const TIMEOUT = BattleRequestPopup.DURATION;
+  static const TIMEOUT = Duration(seconds: 20);
 
   final String? showBattleRequest;
   final VoidCallback hide;
@@ -729,7 +871,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
       searchText = "";
     }
 
-    String url = "${constants.HTTP_URL}/api/users?search=$searchText";
+    Uri url = Uri.parse("${constants.HTTP_URL}/api/users?search=$searchText");
     late final response;
     try {
       response = await http.get(url).timeout(Duration(milliseconds: 4000));
@@ -785,6 +927,13 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
   void didUpdateWidget(AddFriendDialog oldWidget) {
     super.didUpdateWidget(oldWidget);
     searching = false;
+    if (oldWidget.visible == false && widget.visible == true) {
+      // just shown
+      searchText = "";
+      searching = false;
+      addingFriend = -1;
+      searchResults = null;
+    }
     // widget.searchbarFocusNode.requestFocus();
   }
 
@@ -799,7 +948,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
         widget.hide();
       },
       child: Container(
-        height: 170.0 +
+        height: 232.0 +
             (searchResults == null
                 ? 0
                 : (mediaQuery.viewInsets.bottom > 20 ? double.infinity : 350)),
@@ -815,47 +964,77 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
             )
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                'Add friend',
-                style: TextStyle(
-                  fontFamily: 'RobotoSlab',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+        child: Material(
+          type: MaterialType.transparency,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Add friend',
+                        style: TextStyle(
+                          fontFamily: 'RobotoSlab',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.close,
+                        color: Colors.purple.shade200,
+                      ),
+                      splashColor: Colors.purple.withOpacity(0.2),
+                      hoverColor: Colors.transparent,
+                      highlightColor: Colors.purple.shade100.withOpacity(0.2),
+                      onPressed: () => widget.hide(),
+                    ),
+                  ],
                 ),
-              ),
-              SizedBox(height: 8),
-              GestureDetector(
-                onTap: () => widget.searchbarFocusNode.requestFocus(),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                    color: Colors.grey[100],
-                  ),
-                  margin: EdgeInsets.symmetric(vertical: 8),
-                  child: Material(
-                    type: MaterialType.transparency,
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(18, 8, 8, 8),
-                      child: Row(
-                        children: <Widget>[
-                          buildSearchfield(),
-                          buildSearchbutton(),
-                        ],
+                SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () => widget.searchbarFocusNode.requestFocus(),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                      color: Colors.grey[100],
+                    ),
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(18, 8, 8, 8),
+                        child: Row(
+                          children: <Widget>[
+                            buildSearchfield(),
+                            buildSearchbutton(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              searchResults != null
-                  ? buildSearchresults(searchResults!)
-                  : SizedBox(),
-            ],
+                searchResults != null
+                    ? buildSearchresults(searchResults!)
+                    : SizedBox(),
+                Container(
+                  height: 48,
+                  alignment: Alignment.center,
+                  child: TextButton.icon(
+                    style:
+                        TextButton.styleFrom(primary: Colors.purple.shade300),
+                    onPressed: shareInviteFriends,
+                    icon: Icon(Icons.share_rounded),
+                    label: Text('Invite friends'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -918,6 +1097,14 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
   }
 }
 
+void shareInviteFriends() {
+  Share.share(
+    "Wanna play a round of Four in a Row with me?\n" +
+        "Google Play: https://play.google.com/store/apps/details?id=ml.fourinarow\n" +
+        "Web: https://play.fourinarow.ml/",
+  );
+}
+
 class FriendSearchResult extends StatelessWidget {
   const FriendSearchResult(
       this.publicUser, this.addingFriend, this.index, this.addFriend,
@@ -933,40 +1120,18 @@ class FriendSearchResult extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(publicUser.name),
-      subtitle: Text("SR: ${publicUser.gameInfo.skillRating}"),
+      subtitle: Text("${publicUser.gameInfo.skillRating} SR"),
       trailing: IconButton(
-        splashColor: Colors.red[700]!.withOpacity(0.5),
-        highlightColor: Colors.red[700]!.withOpacity(0.5),
+        splashColor: Colors.purple.shade500.withOpacity(0.2),
+        highlightColor: Colors.purple.shade300.withOpacity(0.2),
         icon: addingFriend == index
             ? CircularProgressIndicator()
             : publicUser.friendState.icon(),
         onPressed: publicUser.friendState == FriendState.None ||
                 publicUser.friendState == FriendState.HasRequestedMe
             ? () => addFriend(publicUser.id, index)
-            : () {},
+            : null,
       ),
     );
   }
 }
-
-// class SearchResults extends StatelessWidget {
-//   const SearchResults(
-//     this.searchResults,
-//     this.addingFriend, {
-//     Key key,
-//     @required this.searchTerm,
-//     @required this.friends,
-//     @required this.addFriend,
-//   }) : super(key: key);
-
-//   final String searchTerm;
-//   final Map<int, PublicUser> searchResults;
-//   final List<PublicUser> friends;
-//   final int addingFriend;
-//   final void Function(String, int) addFriend;
-
-//   @override
-//   Widget build(BuildContext context) {
-
-//   }
-// }

@@ -2,9 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:four_in_a_row/menu/account/friends.dart';
 
 class BattleRequestPopup extends StatefulWidget {
-  static const DURATION = Duration(seconds: 20);
+  static const DURATION = BattleRequestDialog.TIMEOUT;
 
   BattleRequestPopup(
     this.username,

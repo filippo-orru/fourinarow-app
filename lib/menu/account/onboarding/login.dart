@@ -1,9 +1,8 @@
 // import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:four_in_a_row/inherit/user.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/util/constants.dart' as constants;
 import 'package:provider/provider.dart';
 
 import 'common.dart';
@@ -11,11 +10,17 @@ import 'common.dart';
 class LoginPage extends StatefulWidget {
   final title = 'Login';
   final Color accentColor = Colors.blueAccent;
-  final usernameCtrl = TextEditingController()..text = "fefe";
-  final pwCtrl = TextEditingController()..text = "00000000";
+  final usernameCtrl = TextEditingController();
+  final pwCtrl = TextEditingController();
   final VoidCallback callback;
 
-  LoginPage({required this.callback});
+  LoginPage({required this.callback}) {
+    // TODO: remove
+    if (kDebugMode) {
+      usernameCtrl.text = "fefe";
+      pwCtrl.text = "00000000";
+    }
+  }
 
   @override
   _LoginPageState createState() => _LoginPageState();

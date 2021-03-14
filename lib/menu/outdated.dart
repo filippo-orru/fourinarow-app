@@ -1,8 +1,7 @@
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:android_intent/android_intent.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-// ignore: import_of_legacy_library_into_null_safe
+
 import 'package:platform/platform.dart';
 
 class OutDatedDialog extends StatelessWidget {

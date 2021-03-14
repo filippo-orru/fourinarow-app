@@ -1,8 +1,5 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:four_in_a_row/inherit/route.dart';
 
 import 'package:four_in_a_row/play/models/common/field.dart';

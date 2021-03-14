@@ -170,12 +170,14 @@ class _PlayButtonState extends State<PlayButton>
                         style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'RobotoSlab',
-                          fontSize: 108 /
-                              (widget.loading
-                                      ? widget.loadingLabel
-                                      : widget.label)
-                                  .length,
+                          fontSize: 24 +
+                              28 /
+                                  (widget.loading
+                                          ? widget.loadingLabel
+                                          : widget.label)
+                                      .length,
                           fontWeight: FontWeight.w700,
+                          letterSpacing: 1.8,
                         ),
                       ),
                     ),

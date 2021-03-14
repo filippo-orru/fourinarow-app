@@ -11,7 +11,6 @@ import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/util/toast.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'game_state.dart';
 
 class PlayingState extends GameState {
@@ -116,7 +115,7 @@ class PlayingState extends GameState {
     late final response;
     try {
       response = await http
-          .get("${constants.HTTP_URL}/api/users/$opponentId")
+          .get(Uri.parse("${constants.HTTP_URL}/api/users/$opponentId"))
           .timeout(Duration(seconds: 4));
     } on Exception {
       return;

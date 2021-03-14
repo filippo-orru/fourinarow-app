@@ -18,9 +18,7 @@ import 'package:four_in_a_row/util/toast.dart';
 import 'package:four_in_a_row/util/extensions.dart';
 import 'package:four_in_a_row/util/global_common_widgets.dart';
 
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
 
 class PlayingViewer extends AbstractGameStateViewer {
   final PlayingState _playingState;

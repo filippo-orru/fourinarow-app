@@ -5,7 +5,6 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/inherit/route.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
@@ -15,7 +14,6 @@ import 'package:four_in_a_row/util/constants.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
 
 import 'inherit/chat.dart';
 import 'inherit/user.dart';
@@ -64,7 +62,13 @@ class _SplashAppInternalState extends State<SplashAppInternal>
       vsync: this,
       duration: Duration(milliseconds: 240),
     );
-    // _initializeAsyncDependencies();
+
+    Future.delayed(Duration(milliseconds: 500), () {
+      // Usually, the lottie animation calls initialize() when loaded.
+      // If it hasn't yet been called, call it here (screen is probably off).
+
+      _initializeAsyncDependencies(skipAnimations: true);
+    });
   }
 
   @override
@@ -75,14 +79,24 @@ class _SplashAppInternalState extends State<SplashAppInternal>
     super.dispose();
   }
 
-  bool _skip = false;
+  bool _fastForward = false;
+  bool _startedInitializing = false;
 
-  Future<void> _initializeAsyncDependencies() async {
-    // setState(() => state = AppLoadState.Loading);
-    await Future.delayed(Duration(milliseconds: STARTUP_DELAY_MS));
+  Future<void> _initializeAsyncDependencies({
+    bool skipAnimations = false,
+  }) async {
+    if (_startedInitializing) return; // Was already called
+    _startedInitializing = true;
+
     FiarSharedPrefs.setup().then(
-      (_) {
-        if (_skip) {
+      (_) async {
+        if (skipAnimations) {
+          setState(() => state = AppLoadState.Loaded);
+          return;
+        }
+
+        await Future.delayed(Duration(milliseconds: STARTUP_DELAY_MS));
+        if (_fastForward) {
           _preload();
         } else {
           _lottieAnimCtrl.forward();
@@ -98,18 +112,18 @@ class _SplashAppInternalState extends State<SplashAppInternal>
   }
 
   void _preload() {
-    if (_skip) return;
+    if (_fastForward) return;
     setState(() => state = AppLoadState.Preloading);
 
     Future.delayed(Duration(milliseconds: 300), () {
       // Short delay between animations because preloading causes jank
-      // Then: move & fade to app
+      // Then: move up & fade to app
       _moveUpAnimCtrl.forward().then((_) {
-        if (_skip) return;
-        Future.delayed(Duration(milliseconds: 80), () {
-          if (_skip) return;
+        if (_fastForward) return;
+        Future.delayed(Duration(milliseconds: 100), () {
+          if (_fastForward) return;
           _crossfadeAnimCtrl.forward().then((_) {
-            if (_skip) return;
+            if (_fastForward) return;
             setState(() => state = AppLoadState.Loaded);
           });
         });
@@ -118,7 +132,7 @@ class _SplashAppInternalState extends State<SplashAppInternal>
   }
 
   void _skipAnims() {
-    _skip = true;
+    _fastForward = true;
 
     _lottieAnimCtrl.stop();
     _moveUpAnimCtrl.stop();
@@ -154,13 +168,15 @@ class _SplashAppInternalState extends State<SplashAppInternal>
       double viewHeight = MediaQuery.of(context).size.height;
       _moveUpAnimCtrl = AnimationController(
         vsync: this,
-        duration: Duration(milliseconds: 300),
+        duration: Duration(milliseconds: 350),
       );
+
+      double begin = max(0, viewHeight * 0.5 - 110 / 2);
+      double end = max(0, viewHeight * 0.22);
+
       _moveUpAnim = _moveUpAnimCtrl.drive(
-        Tween<double>(
-          begin: viewHeight * 0.5 - 110 / 2,
-          end: viewHeight * 0.22,
-        ).chain(CurveTween(curve: Curves.easeInOutQuart)),
+        Tween<double>(begin: begin, end: end)
+            .chain(CurveTween(curve: Curves.easeInOutCubic)),
       );
     }
 
@@ -196,7 +212,7 @@ class _SplashAppInternalState extends State<SplashAppInternal>
               fit: BoxFit.contain,
               controller: _lottieAnimCtrl,
               onLoaded: (c) {
-                _lottieAnimCtrl.duration = c.duration;
+                _lottieAnimCtrl.duration = c.duration * 0.85;
                 _initializeAsyncDependencies();
               },
             ),
@@ -212,7 +228,7 @@ class _SplashAppInternalState extends State<SplashAppInternal>
     return Stack(
       children: [
         state == AppLoadState.Preloading || state == AppLoadState.Loaded
-            ? mainApp()
+            ? FiarProviderApp()
             : SizedBox(),
         buildSplashScreen(),
       ],
@@ -220,30 +236,33 @@ class _SplashAppInternalState extends State<SplashAppInternal>
   }
 }
 
-Widget mainApp() {
-  return ChangeNotifierProvider<ServerConnection>(
-    create: (_) => ServerConnection(),
-    child: ChangeNotifierProvider<UserInfo>(
-      create: (_) => UserInfo(),
-      child: Consumer<ServerConnection>(
-        builder: (_, serverConnection, child) => MultiProvider(
-          providers: [
-            ChangeNotifierProvider<GameStateManager>(
-              create: (_) => GameStateManager(serverConnection),
-              lazy: false,
-            ),
-            ChangeNotifierProvider<ChatState>(
-              create: (_) => ChatState(serverConnection),
-              lazy: false,
-            )
-          ],
-          child: child,
+class FiarProviderApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<ServerConnection>(
+      create: (_) => ServerConnection(),
+      child: ChangeNotifierProvider<UserInfo>(
+        create: (_) => UserInfo(),
+        child: Consumer<ServerConnection>(
+          builder: (_, serverConnection, child) => MultiProvider(
+            providers: [
+              ChangeNotifierProvider<GameStateManager>(
+                create: (_) => GameStateManager(serverConnection),
+                lazy: false,
+              ),
+              ChangeNotifierProvider<ChatState>(
+                create: (_) => ChatState(serverConnection),
+                lazy: false,
+              )
+            ],
+            child: child,
+          ),
+          child: FiarApp(),
         ),
-        child: FiarApp(),
+        lazy: false,
       ),
-      lazy: false,
-    ),
-  );
+    );
+  }
 }
 
 class FiarApp extends StatefulWidget {

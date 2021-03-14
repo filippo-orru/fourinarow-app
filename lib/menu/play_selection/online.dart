@@ -251,9 +251,10 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
   Container buildMoreButton() {
     return Container(
       height: 48,
-      child: FlatButton(
-        color: Colors.white24,
-        splashColor: Colors.white54,
+      child: TextButton(
+        style: TextButton.styleFrom(
+          backgroundColor: Colors.white24,
+        ),
         // padding: EdgeInsets.symmetric(
         //     horizontal: 18, vertical: 12),
         onPressed: () => setState(() => showMore = true),
@@ -272,9 +273,10 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
         // constraints:
         //     BoxConstraints.tightFor(
         height: 48,
-        child: FlatButton(
-          color: Colors.white24,
-          splashColor: Colors.white54,
+        child: TextButton(
+          style: TextButton.styleFrom(
+            backgroundColor: Colors.white24,
+          ),
           onPressed: () =>
               context.read<GameStateManager>().startGame(ORqLobbyRequest()),
           // setState(() => expandedLobbyCode = true),
@@ -393,9 +395,10 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
           : Container(
               // width: double.infinity,
               height: 48,
-              child: FlatButton(
-                color: Colors.white24,
-                splashColor: Colors.white54,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  primary: Colors.white24,
+                ),
                 onPressed: () => setState(() => expandedLobbyCode = true),
                 child: Text(
                   'JOIN LOBBY',
@@ -438,12 +441,11 @@ class FlatIconButton extends StatelessWidget {
       child: Container(
         width: 48,
         height: 48,
-        child: FlatButton(
-          padding: EdgeInsets.all(0),
-          color: bgColor,
-          splashColor: Colors.white70,
-          focusColor: Colors.white,
-          hoverColor: Colors.transparent,
+        child: TextButton(
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.all(0),
+            backgroundColor: bgColor,
+          ),
           // padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           onPressed: () {
             if (enabled) onPressed();

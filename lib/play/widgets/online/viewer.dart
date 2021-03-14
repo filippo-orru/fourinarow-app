@@ -9,7 +9,7 @@ import 'package:four_in_a_row/play/widgets/online/idle.dart';
 import 'package:four_in_a_row/play/widgets/online/other.dart';
 import 'package:four_in_a_row/play/widgets/online/in_lobby.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
-// ignore: import_of_legacy_library_into_null_safe
+
 import 'package:provider/provider.dart';
 
 export 'playing.dart';
@@ -161,8 +161,10 @@ class _ReconnectingState extends State<Reconnecting> {
               SizedBox(height: 16),
               Align(
                 alignment: Alignment.centerRight,
-                child: FlatButton(
-                  color: Colors.grey[100],
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    primary: Colors.grey.shade100,
+                  ),
                   onPressed: (s > 5) ? () => Navigator.of(context).pop() : null,
                   child: Text(
                     'Leave',

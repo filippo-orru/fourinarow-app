@@ -6,7 +6,7 @@ import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/inherit/chat.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/util/widget_extensions.dart';
-// ignore: import_of_legacy_library_into_null_safe
+
 import 'package:provider/provider.dart';
 
 class ChatScreen extends StatelessWidget {

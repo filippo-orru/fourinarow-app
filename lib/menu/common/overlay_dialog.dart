@@ -5,14 +5,14 @@ class OverlayDialog extends StatefulWidget {
     this.show, {
     required this.hide,
     required this.child,
-    // @required this.userInfo,
-    // @required this.myId,
+    this.showCloseButton = true,
     Key? key,
   }) : super(key: key);
 
   final bool show;
   final VoidCallback hide;
   final Widget child;
+  final bool showCloseButton;
   // final String myId;
   // final UserinfoProviderState userInfo;
 

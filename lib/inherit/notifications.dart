@@ -40,7 +40,9 @@ class NotificationsProviderState extends State<NotificationsProvider> {
       await flutterNotifications.initialize(
           InitializationSettings(android: androidSettings, iOS: iosSettings),
           onSelectNotification: (str) {
-        _selectedStreamCtrl.add(str);
+        if (str != null) {
+          _selectedStreamCtrl.add(str);
+        }
         return Future.value();
       });
     }

@@ -49,8 +49,8 @@ class FiarSharedPrefs {
       _SharedPrefPair("sessionToken", String, defaultValue: () {
     if (_sharedPrefs.containsKey("username") &&
         _sharedPrefs.containsKey("password")) {
-      String username = _sharedPrefs.getString("username");
-      String password = _sharedPrefs.getString("password");
+      String username = _sharedPrefs.getString("username")!;
+      String password = _sharedPrefs.getString("password")!;
       _sharedPrefs.remove("username");
       _sharedPrefs.remove("password");
       return "migration:$username:$password";
@@ -67,13 +67,18 @@ class FiarSharedPrefs {
     }
   }
 
-  static set sessionToken(String? i) =>
-      _sharedPrefs.setString(_sessionToken.key, i);
+  static set sessionToken(String? s) {
+    if (s == null)
+      _sharedPrefs.remove(_sessionToken.key);
+    else
+      _sharedPrefs.setString(_sessionToken.key, s);
+  }
 
   static _SharedPrefPair _shownRatingDialog =
       _SharedPrefPair("ShownRatingDialog", int, defaultValue: () => 0);
   static DateTime get shownRatingDialog => DateTime.fromMillisecondsSinceEpoch(
-      _sharedPrefs.getInt(_shownRatingDialog.key));
+      _sharedPrefs.getInt(_shownRatingDialog.key) ??
+          _shownRatingDialog.defaultValue());
   static set shownRatingDialog(DateTime val) =>
       _sharedPrefs.setInt(_shownRatingDialog.key, val.millisecondsSinceEpoch);
   static bool get shouldShowRatingDialog =>
@@ -83,7 +88,8 @@ class FiarSharedPrefs {
   static _SharedPrefPair _shownOnlineDialogCount =
       _SharedPrefPair("ShownOnlineDialogCount", int, defaultValue: () => 0);
   static int get shownOnlineDialogCount =>
-      _sharedPrefs.getInt(_shownOnlineDialogCount.key);
+      _sharedPrefs.getInt(_shownOnlineDialogCount.key) ??
+      _shownOnlineDialogCount.defaultValue();
   static set shownOnlineDialogCount(int i) =>
       _sharedPrefs.setInt(_shownOnlineDialogCount.key, i);
 
@@ -98,13 +104,16 @@ class FiarSharedPrefs {
     }
   });
   static bool get shownSwipeDialog =>
-      _sharedPrefs.getBool(_shownSwipeDialog.key);
+      _sharedPrefs.getBool(_shownSwipeDialog.key) ??
+      _shownSwipeDialog.defaultValue();
   static set shownSwipeDialog(bool i) =>
       _sharedPrefs.setBool(_shownSwipeDialog.key, i);
 
   static _SharedPrefPair _hasAcceptedChat =
       _SharedPrefPair("hasAcceptedChat", bool, defaultValue: () => false);
-  static bool get hasAcceptedChat => _sharedPrefs.getBool(_hasAcceptedChat.key);
+  static bool get hasAcceptedChat =>
+      _sharedPrefs.getBool(_hasAcceptedChat.key) ??
+      _hasAcceptedChat.defaultValue();
   static set hasAcceptedChat(bool i) =>
       _sharedPrefs.setBool(_hasAcceptedChat.key, i);
 }

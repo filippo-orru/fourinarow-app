@@ -2,17 +2,17 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
-// ignore: import_of_legacy_library_into_null_safe
+
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/foundation.dart';
 import 'package:stream_channel/stream_channel.dart';
-// ignore: import_of_legacy_library_into_null_safe
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/util/constants.dart';
 import 'messages.dart';
+import 'package:four_in_a_row/util/extensions.dart';
 
 const int CONNECTION_WAS_LOST_TIMEOUT_S = 30;
 
@@ -303,19 +303,22 @@ class ServerConnection with ChangeNotifier {
 
   void _websocketErr(dynamic? err) {
     if (err is WebSocketChannelException &&
-        err.inner is WebSocketChannelException &&
-        err.inner.inner is SocketException) {
-      if (err.inner.inner.osError.errorCode == 7 ||
-          err.inner.inner.osError.errorCode == 111) {
-        // Network error (no connection)
+        err.inner is WebSocketChannelException) {
+      var inner = err.inner as WebSocketChannelException;
+      if (inner.inner is SocketException) {
+        var innerInner = inner.inner as SocketException;
+        if (innerInner.osError?.errorCode == 7 ||
+            innerInner.osError?.errorCode == 111) {
+          // Network error (no connection)
+          return;
+        }
       }
-    } else {
-      print("   #ERR# \"${err.toString()}\"");
     }
+    print("   #ERR# \"${err.toString()}\"");
   }
 
   void _websocketDone() {
-    // debugPrintStack();
+    debugPrintStack();
 
     int timeoutMs = (min(
               24.0,
@@ -363,6 +366,8 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _resetReliabilityLayer({required bool reconnect}) {
+    debugPrintStack();
+
     this._playerMsgIndex = 0;
     this._serverMsgIndex = 0;
 
@@ -539,11 +544,11 @@ class ServerIsDownState {
     if (_serverIsDownCheckDate.difference(DateTime.now()) >
         Duration(minutes: 1)) {
       // Check if server is down
-      _serverIsDown = (await http
-                  .get(HTTP_URL + '/status')
-                  .timeout(Duration(seconds: 4), onTimeout: () => null))
-              ?.body ==
-          "NOT_OK";
+      http.Response? response = await http
+          .get(Uri.parse(HTTP_URL + '/status'))
+          .toNullable()
+          .timeout(Duration(seconds: 4), onTimeout: () => null);
+      _serverIsDown = response?.body == "NOT_OK";
     }
     return _serverIsDown;
   }

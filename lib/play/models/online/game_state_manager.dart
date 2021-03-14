@@ -135,13 +135,13 @@ class GameStateManager with ChangeNotifier {
     }
 
     notifyListeners();
-    if (userInfo.sessionToken != null && this._gls is! GameLoginLoggedIn) {
+    if (userInfo.sessionToken != null && this._gls is GameLoginLoggedOut) {
       // When starting game
       _sendLoginMsg();
     }
 
     this._serverConnection.send(req.playerMsg);
-    if (req is! ORqWorldwide) {
+    if (req is! ORqWorldwide && req is! ORqBattle) {
       showViewer = true;
     }
     return this
