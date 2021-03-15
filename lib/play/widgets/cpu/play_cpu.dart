@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/inherit/route.dart';
+import 'package:four_in_a_row/menu/play_selection/all.dart';
 
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
@@ -101,9 +102,47 @@ class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 TurnIndicator(turn: field.turn, playerNames: _playerNames),
+                Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: waitingForCpu
+                      ? SizedBox(
+                          width: 64,
+                          child: LinearProgressIndicator(
+                            backgroundColor: Colors.red,
+                          ))
+                      : SizedBox(height: 4),
+                ),
                 Expanded(
                   child: Center(
                     child: Board(field, dropChip: _dropChip),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 24),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Difficulty: ${widget.cpuPlayer.difficultyString()}',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.info_outline,
+                            color: Colors.grey.shade600),
+                        iconSize: 20,
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (_) => FiarSimpleDialog(
+                                    title: 'Cpu difficulty',
+                                    content:
+                                        "Right now, you can only play against the medium CPU.\nI'm working on adding harder CPU players soon!",
+                                  ));
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],

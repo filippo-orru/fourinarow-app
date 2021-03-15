@@ -53,7 +53,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
 
   ToastState? toast;
 
-  CpuDifficulty _selectedDificulty = CpuDifficulty.MEDIUM;
+  CpuDifficulty _selectedDificulty = CpuDifficulty.HARD;
 
   void backgroundTapped() {
     // TODO speed up waves?

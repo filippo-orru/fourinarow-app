@@ -31,7 +31,12 @@ class FiarSharedPrefs {
         default:
           throw new UnsupportedError("Unknown setup key type: ${pair.type}");
       }
-      setFun.call(pair.key, pair.defaultValue());
+      var value = pair.defaultValue();
+      if (value == null) {
+        _sharedPrefsInternal.remove(pair.key);
+      } else {
+        setFun.call(pair.key, value);
+      }
     }
   }
 
@@ -42,7 +47,8 @@ class FiarSharedPrefs {
     _shownOnlineDialogCount,
     _sessionToken,
     _shownSwipeDialog,
-    _hasAcceptedChat
+    _hasAcceptedChat,
+    _settingsAllowVibrate
   ];
 
   static _SharedPrefPair _sessionToken =
@@ -116,12 +122,20 @@ class FiarSharedPrefs {
       _hasAcceptedChat.defaultValue();
   static set hasAcceptedChat(bool i) =>
       _sharedPrefs.setBool(_hasAcceptedChat.key, i);
+
+  static _SharedPrefPair _settingsAllowVibrate =
+      _SharedPrefPair("settingsAllowVibrate", bool, defaultValue: () => true);
+  static bool get settingsAllowVibrate =>
+      _sharedPrefs.getBool(_settingsAllowVibrate.key) ??
+      _settingsAllowVibrate.defaultValue();
+  static set settingsAllowVibrate(bool i) =>
+      _sharedPrefs.setBool(_settingsAllowVibrate.key, i);
 }
 
 class _SharedPrefPair<T> {
   final String key;
   final Type type;
-  final T Function() defaultValue;
+  final T? Function() defaultValue;
 
   _SharedPrefPair(this.key, this.type, {required this.defaultValue});
 }

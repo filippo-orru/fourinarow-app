@@ -87,8 +87,11 @@ class _SplashAppInternalState extends State<SplashAppInternal>
   Future<void> _initializeAsyncDependencies({
     bool skipAnimations = false,
   }) async {
-    if (_startedInitializing) return; // Was already called
+    if (_startedInitializing && state != AppLoadState.Error)
+      return; // Was already called
     _startedInitializing = true;
+
+    setState(() => state = AppLoadState.Loading);
 
     FiarSharedPrefs.setup().then(
       (_) async {
@@ -153,9 +156,9 @@ class _SplashAppInternalState extends State<SplashAppInternal>
             child: child,
           ),
           child: Container(
+            constraints: BoxConstraints.expand(),
             alignment: Alignment.center,
             color: Colors.white,
-            constraints: BoxConstraints.expand(),
             child: buildSplashScreenInternal(),
           ),
         ),
@@ -184,19 +187,18 @@ class _SplashAppInternalState extends State<SplashAppInternal>
 
     switch (state) {
       case AppLoadState.Error:
-        return Container(
-          key: ValueKey("err"),
-          color: Colors.white,
-          constraints: BoxConstraints.expand(),
-          child: Column(
-            children: [
-              Text('Could not load the app due to an error. Please try again.'),
-              ElevatedButton(
-                child: Text('Retry'),
-                onPressed: () => _initializeAsyncDependencies(),
-              ),
-            ],
-          ),
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Could not load the app due to an error. Please try again.',
+                style: TextStyle(
+                  color: Colors.black87,
+                )),
+            ElevatedButton(
+              child: Text('Retry'),
+              onPressed: () => _initializeAsyncDependencies(),
+            ),
+          ],
         );
       case AppLoadState.Loading:
       case AppLoadState.Preloading:
