@@ -5,14 +5,12 @@ class OverlayDialog extends StatefulWidget {
     this.show, {
     required this.hide,
     required this.child,
-    this.showCloseButton = true,
     Key? key,
   }) : super(key: key);
 
   final bool show;
-  final VoidCallback hide;
+  final VoidCallback? hide;
   final Widget child;
-  final bool showCloseButton;
   // final String myId;
   // final UserinfoProviderState userInfo;
 
@@ -29,9 +27,11 @@ class _OverlayDialogState extends State<OverlayDialog>
   bool show = false;
 
   void _hide([selfInitiated = false]) {
+    if (widget.hide == null) return;
+
     animCtrl.reverse().then((_) {
       setState(() => show = false);
-      if (selfInitiated) widget.hide();
+      if (selfInitiated) widget.hide!.call();
     });
   }
 

@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/inherit/route.dart';
+import 'package:four_in_a_row/menu/common/overlay_dialog.dart';
+import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
@@ -385,6 +387,26 @@ class _FiarAppState extends State<FiarApp> {
                                       SearchingGameNotification(gsm.connected),
                                 );
                               }),
+                        ),
+                        Selector<ServerConnection, bool>(
+                          selector: (_, connection) =>
+                              connection.catastrophicFailure,
+                          shouldRebuild: (_, fail) => fail,
+                          builder: (_, catastrophicFailure, child) =>
+                              catastrophicFailure
+                                  ? AbsorbPointer(
+                                      child: Container(
+                                        color: Colors.black54,
+                                        constraints: BoxConstraints.expand(),
+                                        child: FiarSimpleDialog(
+                                          title: "Error!",
+                                          content:
+                                              "Oh no! A fatal error has occurred :( \n\nThe app will close now.",
+                                          showOkay: false,
+                                        ),
+                                      ),
+                                    )
+                                  : SizedBox(),
                         ),
                       ]),
                     ),

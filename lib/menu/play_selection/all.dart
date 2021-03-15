@@ -227,11 +227,13 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
 class FiarSimpleDialog extends StatelessWidget {
   final String title;
   final String content;
+  final bool showOkay;
 
   const FiarSimpleDialog({
     Key? key,
     required this.title,
     required this.content,
+    this.showOkay = true,
   }) : super(key: key);
 
   @override
@@ -251,13 +253,15 @@ class FiarSimpleDialog extends StatelessWidget {
           content,
           style: TextStyle(color: Colors.black, fontSize: 16, height: 1.3),
         ),
-        Align(
-            alignment: Alignment.centerRight,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(primary: Colors.lightBlue),
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Okay'),
-            ))
+        showOkay
+            ? Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(primary: Colors.lightBlue),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('Okay'),
+                ))
+            : SizedBox(),
       ],
     );
   }

@@ -28,7 +28,11 @@ abstract class ReliablePacketIn {
           }
         }
       } else if (parts[0] == "ERR") {
-        return ReliablePktErrIn();
+        var err = ReliablePktErr.Unknown;
+        if (parts.length == 2) {
+          err = ReliablePktErrExt.parse(parts[1]);
+        }
+        return ReliablePktErrIn(err);
       } else if (parts[0] == "NOT_CONNECTED") {
         return ReliablePktNotConnectedIn();
       }
@@ -63,7 +67,34 @@ enum FoundState { New, Found }
 
 class ReliablePktHelloInOutDated extends ReliablePacketIn {}
 
-class ReliablePktErrIn extends ReliablePacketIn {}
+class ReliablePktErrIn extends ReliablePacketIn {
+  final ReliablePktErr error;
+
+  ReliablePktErrIn(this.error);
+}
+
+enum ReliablePktErr {
+  InvalidContent,
+  InvalidFormat,
+  UnknownMessage,
+  KillClient,
+  Unknown // Might occurr if msg error can't be deserialized
+}
+
+extension ReliablePktErrExt on ReliablePktErr {
+  static ReliablePktErr parse(String str) {
+    if (str == "INVALID_CONTENT")
+      return ReliablePktErr.InvalidContent;
+    else if (str == "INVALID_FORMAT")
+      return ReliablePktErr.InvalidFormat;
+    else if (str == "UNKNOWN_MESSAGE")
+      return ReliablePktErr.UnknownMessage;
+    else if (str == "KILL_CLIENT")
+      return ReliablePktErr.KillClient;
+    else
+      return ReliablePktErr.Unknown;
+  }
+}
 
 abstract class ReliablePacketOut implements Serializable {}
 

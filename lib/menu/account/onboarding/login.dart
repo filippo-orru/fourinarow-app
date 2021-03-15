@@ -14,13 +14,7 @@ class LoginPage extends StatefulWidget {
   final pwCtrl = TextEditingController();
   final VoidCallback callback;
 
-  LoginPage({required this.callback}) {
-    // TODO: remove
-    if (kDebugMode) {
-      usernameCtrl.text = "fefe";
-      pwCtrl.text = "00000000";
-    }
-  }
+  LoginPage({required this.callback});
 
   @override
   _LoginPageState createState() => _LoginPageState();

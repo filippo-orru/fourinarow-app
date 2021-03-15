@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:http/http.dart' as http;
@@ -55,6 +56,8 @@ class ServerConnection with ChangeNotifier {
   ServerIsDownState _serverIsDownState = ServerIsDownState();
   Future<bool> get serverIsDown => _serverIsDownState.isDown;
 
+  bool catastrophicFailure = false;
+
   int _connectionTries = 0;
   Timer? _missingMsgSince;
   bool waitingForPong = false;
@@ -89,10 +92,13 @@ class ServerConnection with ChangeNotifier {
     _reconnectionTimer?.cancel();
 
     _serverMsgStreamCtrl.close();
-    _playerMsgStreamCtrl.close();
 
     _wsInStreamCtrl.close();
-    _reliablePktOutStreamCtrl.close();
+
+    // Not closing this because it would case errors and messages will
+    //  just not be received anyway.
+    //_playerMsgStreamCtrl.close();
+    //_reliablePktOutStreamCtrl.close();
 
     _connection?.sink.close();
   }
@@ -318,6 +324,8 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _websocketDone() {
+    if (catastrophicFailure) return;
+
     debugPrintStack();
 
     int timeoutMs = (min(
@@ -366,7 +374,7 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _resetReliabilityLayer({required bool reconnect}) {
-    debugPrintStack();
+    //debugPrintStack();
 
     this._playerMsgIndex = 0;
     this._serverMsgIndex = 0;
@@ -391,6 +399,7 @@ class ServerConnection with ChangeNotifier {
         if (rPkt.msg is MsgPong) {
           waitingForPong = false;
         }
+
         this._serverMsgStreamCtrl.sink.add(rPkt.msg);
         _missingMsgSince?.cancel();
         this._ackMessage(rPkt.id);
@@ -434,6 +443,22 @@ class ServerConnection with ChangeNotifier {
       this._sessionState = SessionStateOutDated();
     } else if (rPkt is ReliablePktErrIn) {
       print("   #WARN# Got ReliablePktErrIn");
+
+      if (rPkt.error == ReliablePktErr.KillClient) {
+        // Failsafe sent by server in case the client is fucking up bad.
+        // Crash the app after showing dialog.
+        catastrophicFailure = true;
+        close();
+        notifyListeners();
+        Future.delayed(Duration(seconds: 3), () {
+          SystemChannels.platform.invokeMethod<void>('SystemNavigator.pop');
+          if (Platform.isIOS) {
+            exit(0);
+          }
+        });
+        return;
+      }
+
       this._resetReliabilityLayer(reconnect: true);
       // this.retryConnection(force: true);
     } else if (rPkt is ReliablePktNotConnectedIn) {
