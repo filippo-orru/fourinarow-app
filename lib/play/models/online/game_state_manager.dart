@@ -59,6 +59,9 @@ class GameStateManager with ChangeNotifier {
   set currentGameState(GameState newCgs) {
     _cgs?.removeListener(notifyListeners);
     newCgs.addListener(notifyListeners);
+
+    if (_cgs != null) _didGameStateChange(_cgs!, newCgs);
+
     _cgs = newCgs;
   }
 
@@ -155,6 +158,16 @@ class GameStateManager with ChangeNotifier {
 
   void Function(PlayerMessage) get sendPlayerMessage =>
       this._serverConnection.send;
+
+  void _didGameStateChange(GameState oldState, GameState newState) {
+    if (oldState is! WaitingForWWOpponentState &&
+        newState is WaitingForWWOpponentState) {
+      notifications?.searchingGame();
+    } else if (oldState is WaitingForWWOpponentState &&
+        newState is! WaitingForWWOpponentState) {
+      notifications?.cancelSearchingGame();
+    }
+  }
 
   void _listenToStreams() {
     this._serverConnection.serverMsgStream.listen((msg) {

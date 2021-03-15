@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 
 class NotificationsProvider extends StatefulWidget {
   NotificationsProvider({Key? key, required this.child}) : super(key: key);
@@ -19,42 +20,51 @@ class NotificationsProvider extends StatefulWidget {
 }
 
 class NotificationsProviderState extends State<NotificationsProvider> {
-  late FlutterLocalNotificationsPlugin flutterNotifications;
+  late final FlutterLocalNotificationsPlugin flutterNotifications;
 
   final StreamController<String> _selectedStreamCtrl =
       StreamController.broadcast();
 
   Stream<String> get selectedStream => _selectedStreamCtrl.stream;
 
-  bool web = false;
+  bool get canNotify => !kIsWeb;
+  bool get shouldNotify =>
+      canNotify && FiarSharedPrefs.settingsAllowNotifications;
 
   void initialize() async {
-    if (!kIsWeb) {
-      flutterNotifications = FlutterLocalNotificationsPlugin();
-      var androidSettings = AndroidInitializationSettings('mipmap/ic_launcher');
-      var iosSettings = IOSInitializationSettings(
-        requestSoundPermission: false,
-        requestBadgePermission: false,
-        requestAlertPermission: false,
-      );
-      await flutterNotifications.initialize(
-          InitializationSettings(android: androidSettings, iOS: iosSettings),
-          onSelectNotification: (str) {
-        if (str != null) {
-          _selectedStreamCtrl.add(str);
-        }
-        return Future.value();
-      });
+    if (!shouldNotify) return;
+
+    flutterNotifications = FlutterLocalNotificationsPlugin();
+    var androidSettings =
+        AndroidInitializationSettings('mipmap/ic_launcher_foreground');
+    var iosSettings = IOSInitializationSettings(
+      requestSoundPermission: false,
+      requestBadgePermission: false,
+      requestAlertPermission: true,
+    );
+    await flutterNotifications.initialize(
+        InitializationSettings(android: androidSettings, iOS: iosSettings),
+        onSelectNotification: (str) {
+      if (str != null) {
+        _selectedStreamCtrl.add(str);
+      }
+      return Future.value();
+    });
+
+    for (var notificationId in FiarNotifications.allNotificationIds) {
+      flutterNotifications.cancel(notificationId);
     }
   }
 
   void comeToPlay() {
-    this.flutterNotifications.cancel(MyNotifications.gameFound);
+    if (!shouldNotify) return;
+
+    this.flutterNotifications.cancel(FiarNotifications.gameFound);
     this.flutterNotifications.show(
-          MyNotifications.gameFound,
+          FiarNotifications.gameFound,
           'Game Starting!',
           'Come back quickly to play!',
-          MyNotifications.gameFoundSpecifics,
+          FiarNotifications.gameFoundSpecifics,
         );
 
 /* TODO add callback for timeout and switch to provider<mynotifications> with functions like comeToPlay()
@@ -71,6 +81,22 @@ class NotificationsProviderState extends State<NotificationsProvider> {
       notifProv.flutterNotifications?.cancel(MyNotifications.gameFound);
     };
     */
+  }
+
+  void searchingGame() {
+    if (!shouldNotify) return;
+
+    this.flutterNotifications.cancel(FiarNotifications.searchingGame);
+    this.flutterNotifications.show(
+          FiarNotifications.searchingGame,
+          'Searching for game...',
+          'This might take a while.',
+          FiarNotifications.searchingGameSpecifics,
+        );
+  }
+
+  void cancelSearchingGame() {
+    this.flutterNotifications.cancel(FiarNotifications.searchingGame);
   }
 
   @override
@@ -103,7 +129,9 @@ class _NotificationsProviderInherit extends InheritedWidget {
   }
 }
 
-class MyNotifications {
+class FiarNotifications {
+  static const allNotificationIds = [battleRequest, gameFound, searchingGame];
+
   static const battleRequest = 1;
   static const battleRequestSpecifics = NotificationDetails(
     android: AndroidNotificationDetails(
@@ -140,6 +168,11 @@ class MyNotifications {
       importance: Importance.low,
       priority: Priority.low,
       ongoing: true,
+      autoCancel: false,
+      showWhen: true,
+      usesChronometer: true,
+      visibility: NotificationVisibility.public,
+      timeoutAfter: 1000 * 60 * 10, // 10 min
     ),
     iOS: IOSNotificationDetails(),
   );

@@ -130,6 +130,15 @@ class FiarSharedPrefs {
       _settingsAllowVibrate.defaultValue();
   static set settingsAllowVibrate(bool i) =>
       _sharedPrefs.setBool(_settingsAllowVibrate.key, i);
+
+  static _SharedPrefPair _settingsAllowNotifications = _SharedPrefPair(
+      "settingsAllowNotifications", bool,
+      defaultValue: () => true);
+  static bool get settingsAllowNotifications =>
+      _sharedPrefs.getBool(_settingsAllowNotifications.key) ??
+      _settingsAllowNotifications.defaultValue();
+  static set settingsAllowNotifications(bool i) =>
+      _sharedPrefs.setBool(_settingsAllowNotifications.key, i);
 }
 
 class _SharedPrefPair<T> {

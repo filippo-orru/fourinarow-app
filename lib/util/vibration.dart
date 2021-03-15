@@ -6,13 +6,13 @@ import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 class Vibrations {
   static bool? _canVibrate;
 
-  static FutureOr<bool> get shouldVibrate async {
+  static FutureOr<bool> get canVibrate async {
     if (_canVibrate == null) {
       try {
         if (await Vibrate.canVibrate) {
           _canVibrate = true;
 
-          return FiarSharedPrefs.settingsAllowVibrate;
+          return true;
         }
       } catch (MissingPluginException) {}
       _canVibrate = false;
@@ -20,6 +20,11 @@ class Vibrations {
     } else {
       return _canVibrate!;
     }
+  }
+
+  static FutureOr<bool> get shouldVibrate async {
+    bool _canVibrate = await canVibrate;
+    return _canVibrate && FiarSharedPrefs.settingsAllowVibrate;
   }
 
   static void win() async {
