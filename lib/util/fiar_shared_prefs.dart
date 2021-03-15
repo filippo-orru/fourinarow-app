@@ -139,6 +139,15 @@ class FiarSharedPrefs {
       _settingsAllowNotifications.defaultValue();
   static set settingsAllowNotifications(bool i) =>
       _sharedPrefs.setBool(_settingsAllowNotifications.key, i);
+
+  static _SharedPrefPair _settingsQuickchatEmojis = _SharedPrefPair(
+      "settingsQuickchatEmojis", String,
+      defaultValue: () => "😐🤔👏😄");
+  static String get settingsQuickchatEmojis =>
+      _sharedPrefs.getString(_settingsQuickchatEmojis.key) ??
+      _settingsQuickchatEmojis.defaultValue();
+  static set settingsQuickchatEmojis(String i) =>
+      _sharedPrefs.setString(_settingsQuickchatEmojis.key, i);
 }
 
 class _SharedPrefPair<T> {

@@ -24,12 +24,14 @@ import 'inherit/notifications.dart';
 
 import 'menu/main_menu.dart';
 
+Key splashAppKey = UniqueKey();
+
 void main() {
   runApp(
     WidgetsApp(
       debugShowCheckedModeBanner: false,
       color: Colors.blue,
-      builder: (_, __) => SplashAppInternal(),
+      builder: (_, __) => SplashAppInternal(key: splashAppKey),
     ),
   );
 }
@@ -87,6 +89,8 @@ class _SplashAppInternalState extends State<SplashAppInternal>
   Future<void> _initializeAsyncDependencies({
     bool skipAnimations = false,
   }) async {
+    if (state == AppLoadState.Loaded) return; // already initialized
+
     if (_startedInitializing && state != AppLoadState.Error)
       return; // Was already called
     _startedInitializing = true;

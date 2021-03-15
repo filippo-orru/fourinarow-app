@@ -43,6 +43,8 @@ class _OverlayDialogState extends State<OverlayDialog>
   @override
   void initState() {
     super.initState();
+    show = widget.show;
+
     animCtrl = AnimationController(
       vsync: this,
       duration: DURATION,
