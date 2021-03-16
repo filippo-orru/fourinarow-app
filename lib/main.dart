@@ -27,16 +27,7 @@ import 'menu/main_menu.dart';
 Key splashAppKey = UniqueKey();
 
 void main() {
-  runApp(
-    WidgetsApp(
-      color: Colors.blue,
-      debugShowCheckedModeBanner: false,
-      home: SplashAppInternal(),
-      pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) {
-        return MaterialPageRoute(builder: builder, settings: settings);
-      },
-    ),
-  );
+  runApp(SplashAppInternal());
 }
 
 class SplashAppInternal extends StatefulWidget {
@@ -152,7 +143,7 @@ class _SplashAppInternalState extends State<SplashAppInternal>
     setState(() => state = AppLoadState.Loaded);
   }
 
-  Widget buildSplashScreen() {
+  Widget buildSplashScreen(BuildContext ctx) {
     if (state != AppLoadState.Loaded) {
       return GestureDetector(
         onDoubleTap: () => _skipAnims(),
@@ -166,7 +157,7 @@ class _SplashAppInternalState extends State<SplashAppInternal>
             constraints: BoxConstraints.expand(),
             alignment: Alignment.center,
             color: Colors.white,
-            child: buildSplashScreenInternal(),
+            child: buildSplashScreenInternal(ctx),
           ),
         ),
       );
@@ -175,9 +166,9 @@ class _SplashAppInternalState extends State<SplashAppInternal>
     }
   }
 
-  Widget buildSplashScreenInternal() {
+  Widget buildSplashScreenInternal(BuildContext ctx) {
     if (_moveUpAnimCtrl == null) {
-      double viewHeight = MediaQuery.of(context).size.height;
+      double viewHeight = MediaQuery.of(ctx).size.height;
       _moveUpAnimCtrl = AnimationController(
         vsync: this,
         duration: Duration(milliseconds: 350),
@@ -237,11 +228,16 @@ class _SplashAppInternalState extends State<SplashAppInternal>
   @override
   Widget build(BuildContext context) {
     return Stack(
+      alignment: Alignment.center,
       children: [
         state == AppLoadState.Preloading || state == AppLoadState.Loaded
             ? FiarProviderApp()
             : SizedBox(),
-        buildSplashScreen(),
+        WidgetsApp(
+          color: Colors.blue,
+          debugShowCheckedModeBanner: false,
+          builder: (ctx, __) => buildSplashScreen(ctx),
+        ),
       ],
     );
   }
