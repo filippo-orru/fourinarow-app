@@ -1,6 +1,5 @@
 import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
-import 'package:four_in_a_row/play/widgets/online/idle.dart';
 
 import 'game_state.dart';
 

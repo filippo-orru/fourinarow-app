@@ -71,23 +71,31 @@ class _MenuContentPlayOnlineState extends State<MenuContentPlayOnline> {
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(height: 24),
-            Selector<ServerConnection, bool>(
-              selector: (_, serverConnection) => serverConnection.connected,
-              builder: (_, isConnected, __) =>
+            Selector<ServerConnection, Tuple3<bool, bool, bool>>(
+              selector: (_, serverConnection) => Tuple3(
+                serverConnection.connected,
+                serverConnection.serverIsDownSync,
+                serverConnection.tryingToConnect,
+              ),
+              builder: (_, connectionTuple, __) =>
                   Selector<GameStateManager, CurrentServerInfo?>(
                 selector: (_, gsm) => gsm.serverInfo,
                 builder: (_, serverInfo, __) => Text(
-                  isConnected
-                      ? (serverInfo == null
-                          ? "..."
-                          : serverInfo.currentlyConnectedPlayers
-                                  .toNumberWord()
-                                  .capitalize() +
-                              " other player${serverInfo.currentlyConnectedPlayers == 1 ? "" : "s"} online" +
-                              (serverInfo.playerWaitingInLobby
-                                  ? ". Player is waiting for game"
-                                  : ""))
-                      : "No connection",
+                  connectionTuple.item3 //tryingToConnect
+                      ? "..."
+                      : connectionTuple.item2 // serverIsDown
+                          ? "Server is down for maintenance"
+                          : connectionTuple.item1 // isConnected
+                              ? (serverInfo == null
+                                  ? "..."
+                                  : serverInfo.currentlyConnectedPlayers
+                                          .toNumberWord()
+                                          .capitalize() +
+                                      " other player${serverInfo.currentlyConnectedPlayers == 1 ? "" : "s"} online" +
+                                      (serverInfo.playerWaitingInLobby
+                                          ? ". Player is waiting for game"
+                                          : ""))
+                              : "No connection",
                   style: TextStyle(color: Colors.white.withOpacity(0.8)),
                 ),
               ),

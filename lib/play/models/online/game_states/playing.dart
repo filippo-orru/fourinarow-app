@@ -182,6 +182,7 @@ class PlayingState extends GameState {
   void showPopup(String s, {bool angery = false}) {
     toastState = ToastState("Opponent left", angery: angery, onComplete: () {
       super.gsm.hideViewer = true;
+      notifyListeners();
     });
     notifyListeners();
   }

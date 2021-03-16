@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:four_in_a_row/menu/account/friends.dart';
 import 'package:four_in_a_row/menu/main_menu.dart';
 import 'package:four_in_a_row/menu/settings.dart';
-import 'package:four_in_a_row/play/models/online/game_login_state.dart';
-import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'login.dart';
 import 'register.dart';
 

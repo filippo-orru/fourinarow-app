@@ -248,10 +248,33 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
               ),
               Container(
                 height: 48,
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          child: Text('Cancel'),
+                          style: TextButton.styleFrom(primary: Colors.blueGrey),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        TextButton(
+                          child: Text('Save'),
+                          style: TextButton.styleFrom(),
+                          onPressed: _allowSave()
+                              ? () {
+                                  FiarSharedPrefs.settingsQuickchatEmojis =
+                                      _selectedEmojis;
+                                  Navigator.of(context).pop();
+                                }
+                              : null,
+                        ),
+                      ],
+                    ),
                     TweenAnimationBuilder(
                       tween: ColorTween(
                           begin: Colors.black54,
@@ -266,17 +289,6 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
                             .subtitle1!
                             .copyWith(color: (color as Color)),
                       ),
-                    ),
-                    TextButton(
-                      child: Text('Save'),
-                      style: TextButton.styleFrom(),
-                      onPressed: _allowSave()
-                          ? () {
-                              FiarSharedPrefs.settingsQuickchatEmojis =
-                                  _selectedEmojis;
-                              Navigator.of(context).pop();
-                            }
-                          : null,
                     ),
                   ],
                 ),

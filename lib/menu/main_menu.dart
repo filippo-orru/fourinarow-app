@@ -13,8 +13,6 @@ import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
-import 'package:lottie/lottie.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'common/play_button.dart';
 
 import 'package:provider/provider.dart';
@@ -617,14 +615,15 @@ class _ChatAcceptDialogState extends State<ChatAcceptDialog> {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            FlatButton(
+            TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: Text('Cancel'.toUpperCase()),
             ),
             SizedBox(width: 12),
-            FlatButton(
-              color: Colors.blueAccent.withOpacity(1),
-              disabledColor: Colors.grey[300],
+            TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.blueAccent.withOpacity(1),
+              ),
               onPressed:
                   !oldEnough ? null : () => Navigator.of(context).pop(true),
               child: Text(

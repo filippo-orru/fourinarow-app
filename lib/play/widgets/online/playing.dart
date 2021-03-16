@@ -10,10 +10,12 @@ import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/menu/common/rate_dialog.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
 import 'package:four_in_a_row/play/widgets/common/board.dart';
 import 'package:four_in_a_row/play/widgets/common/winner_overlay.dart';
+import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:four_in_a_row/util/toast.dart';
 import 'package:four_in_a_row/util/extensions.dart';
 import 'package:four_in_a_row/util/global_common_widgets.dart';
@@ -168,7 +170,11 @@ class _BottomSheetWidget extends StatefulWidget {
   _BottomSheetState createState() => _BottomSheetState();
 }
 
+enum ReportedState { None, Loading, Reported }
+
 class _BottomSheetState extends State<_BottomSheetWidget> {
+  ReportedState reported = ReportedState.None;
+
   bool errorAdding = false;
 
   bool reactionPickerOpen = false;
@@ -178,7 +184,8 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
     return FiarBottomSheet(
       disabled: reactionPickerOpen,
       color: Colors.blueAccent,
-      expandedHeight: 150,
+      expandedHeight:
+          widget.user == null ? 120 : 170, // only one option if logged out
       topChildren: [
         Expanded(
           child: Stack(
@@ -248,10 +255,30 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
               ),
         ListTile(
             leading: Icon(Icons.report_gmailerrorred_outlined),
-            title: Text('Report'),
-            onTap: () {
-              // TODO: maybe :)
-            }),
+            title: Text(reported == ReportedState.None
+                ? 'Report'
+                : reported == ReportedState.Loading
+                    ? "Sending report..."
+                    : "User was reported"),
+            enabled: reported == ReportedState.None,
+            onTap: reported == ReportedState.None
+                ? () async {
+                    setState(() => reported = ReportedState.Loading);
+                    await Future.delayed(Duration(milliseconds: 600));
+                    setState(() => reported = ReportedState.Reported);
+
+                    if (widget.user == null)
+                      return; // Can't report anon users for now
+                    Map body = {
+                      "content": "Reported user: \"${widget.user!.id}\""
+                    };
+                    var userMe = context.read<GameStateManager>().userInfo.user;
+                    if (userMe != null) {
+                      body["user_id"] = userMe.id;
+                    }
+                    await FeedbackDialog.sendRequest(body);
+                  }
+                : null),
       ],
 
       //   ),
@@ -437,7 +464,7 @@ class PlayerIcon extends StatelessWidget {
 }
 
 class ReactionPicker extends StatefulWidget {
-  final List<String> reactions = ["😐", "🤔", "👏", "😄"];
+  final List<String> reactions = FiarSharedPrefs.settingsQuickchatEmojis;
   final bool open;
   final VoidCallback onOpen;
   final VoidCallback onClose;

@@ -1,5 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
+import 'package:four_in_a_row/util/constants.dart';
 
 class MenuWrapper extends StatelessWidget {
   final Widget child;
@@ -159,6 +166,11 @@ void showFeedbackDialog(BuildContext context) {
 }
 
 class FeedbackDialog extends StatefulWidget {
+  static Future<void> sendRequest(Map body) async {
+    await http.post(Uri.parse(HTTP_URL + "/api/feedback"),
+        body: jsonEncode(body), headers: {"Content-Type": "application/json"});
+  }
+
   @override
   _FeedbackDialogState createState() => _FeedbackDialogState();
 }
@@ -166,6 +178,15 @@ class FeedbackDialog extends StatefulWidget {
 class _FeedbackDialogState extends State<FeedbackDialog>
     with SingleTickerProviderStateMixin {
   bool done = false;
+
+  late final TextEditingController controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller = TextEditingController();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -202,6 +223,7 @@ class _FeedbackDialogState extends State<FeedbackDialog>
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     child: TextField(
+                      controller: controller,
                       minLines: 1,
                       maxLines: 4,
                       decoration: InputDecoration(hintText: "Any feedback..."),
@@ -219,11 +241,20 @@ class _FeedbackDialogState extends State<FeedbackDialog>
                       ),
                       ElevatedButton(
                         child: Text('Send'),
-                        onPressed: () {
+                        onPressed: () async {
+                          Map<String, String> body = {
+                            "content": controller.text,
+                          };
+                          var user =
+                              context.read<GameStateManager>().userInfo.user;
+                          if (user != null) {
+                            body["user_id"] = user.id;
+                          }
+                          await FeedbackDialog.sendRequest(body);
                           setState(() => done = true);
-                          // TODO send feedback
-                          Future.delayed(Duration(milliseconds: 800), () {
-                            Navigator.of(context).pop();
+
+                          Future.delayed(Duration(milliseconds: 400), () {
+                            if (mounted) Navigator.of(context).pop();
                           });
                         },
                       ),

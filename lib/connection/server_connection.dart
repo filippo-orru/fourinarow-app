@@ -8,7 +8,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/util/constants.dart';
@@ -53,8 +52,15 @@ class ServerConnection with ChangeNotifier {
 
   bool get outdated => _sessionState is SessionStateOutDated;
 
+  bool get serverIsDownSync => _sessionState is SessionStateServerIsDown;
+
+  bool tryingToConnect = false;
+
+  Future<bool> get serverIsDown async =>
+      _sessionState is SessionStateServerIsDown &&
+      await _serverIsDownState.isDown;
+
   ServerIsDownState _serverIsDownState = ServerIsDownState();
-  Future<bool> get serverIsDown => _serverIsDownState.isDown;
 
   bool catastrophicFailure = false;
 
@@ -110,15 +116,21 @@ class ServerConnection with ChangeNotifier {
       return;
     }
 
-    if ((_sessionState is SessionStateDisconnected ||
-            _sessionState is SessionStateServerIsDown) &&
-        await serverIsDown) {
-      _sessionState = SessionStateServerIsDown();
-      return;
-    }
-
     this._connectionTries += 1;
     print("   #CONNECT# (${this._connectionTries}. try)");
+
+    tryingToConnect = true;
+    notifyListeners();
+    Future.delayed(Duration(milliseconds: 1000), () {
+      tryingToConnect = false;
+      notifyListeners();
+    });
+
+    if (await serverIsDown) {
+      print("           # Server is down.");
+      _websocketDone();
+      return;
+    }
 
     _reconnectionTimer?.cancel();
     _connection?.sink.close();
@@ -184,7 +196,7 @@ class ServerConnection with ChangeNotifier {
       HttpClient client = HttpClient();
       HttpClientRequest? request = await client
           .getUrl(Uri.parse(HTTP_PREFIX + "://$WS_PATH"))
-          .timeout(Duration(seconds: 7))
+          .timeout(Duration(seconds: 4))
           .then<HttpClientRequest?>((r) => r)
           .catchError((_, __) {
         client.close(force: true);
@@ -221,11 +233,6 @@ class ServerConnection with ChangeNotifier {
         request.abort();
         return null;
       });
-      // TODO vvv
-      // if (_connection == null) {
-      //   _websocketDone();
-      //   return null;
-      // }
     } on SocketException catch (e) {
       var errCode = 0;
       if (e.osError?.errorCode != null) errCode = e.osError!.errorCode;
@@ -323,10 +330,10 @@ class ServerConnection with ChangeNotifier {
     print("   #ERR# \"${err.toString()}\"");
   }
 
-  void _websocketDone() {
+  void _websocketDone() async {
     if (catastrophicFailure) return;
 
-    debugPrintStack();
+    // debugPrintStack();
 
     int timeoutMs = (min(
               24.0,
@@ -342,35 +349,48 @@ class ServerConnection with ChangeNotifier {
     } else if (sessionState is SessionStateWaiting &&
         sessionState.identifier != null) {
       this._sessionState = SessionStateDisconnected(sessionState.identifier!);
+    } else {
+      this._sessionState = SessionStateFullyDisconnected();
     }
+
     notifyListeners();
     var timeout = Duration(
       milliseconds: timeoutMs,
     );
-    Connectivity().checkConnectivity().then((r) async {
-      if (r == ConnectivityResult.none) {
-        ConnectivityResult? result = await Connectivity()
-            .onConnectivityChanged
-            .map<ConnectivityResult?>((e) => e)
-            .firstWhere((result) =>
-                result == ConnectivityResult.wifi ||
-                result == ConnectivityResult.mobile)
-            .timeout(timeout, onTimeout: () => null);
-        if (result != null) {
-          print("   #FORCE CNNCT# (${result.toString().split(".")[1]})");
-          _connect();
-        }
-      }
-    });
     if (_connectionWasLostTimer?.isActive != true) {
+      // only check connectivity if no timer is set. To prevent double firing _connect();
+      Connectivity().checkConnectivity().then((r) async {
+        if (r == ConnectivityResult.none) {
+          ConnectivityResult? result = await Connectivity()
+              .onConnectivityChanged
+              .toNullable()
+              .firstWhere((result) =>
+                  result == ConnectivityResult.wifi ||
+                  result == ConnectivityResult.mobile)
+              .timeout(timeout, onTimeout: () => null);
+          if (result != null) {
+            print("   #FORCE CNNCT# (${result.toString().split(".")[1]})");
+            _connect();
+          }
+        }
+      });
       _connectionWasLostTimer =
           Timer(Duration(seconds: CONNECTION_WAS_LOST_TIMEOUT_S), () {
+        if (_sessionState is SessionStateServerIsDown) return;
+
         _serverMsgStreamCtrl.add(MsgReset());
+        this._sessionState = SessionStateFullyDisconnected();
       });
     }
     _reconnectionTimer = Timer(timeout, () {
       if (!connected) _connect();
     });
+
+    if (_sessionState is SessionStateFullyDisconnected &&
+        await _serverIsDownState.isDown) {
+      _sessionState = SessionStateServerIsDown();
+      _serverMsgStreamCtrl.add(MsgReset());
+    }
   }
 
   void _resetReliabilityLayer({required bool reconnect}) {
@@ -385,7 +405,7 @@ class ServerConnection with ChangeNotifier {
       this._playerMsgQ.clear();
       this._serverMsgQ.clear();
 
-      this._sessionState = SessionStateIdle();
+      this._sessionState = SessionStateFullyDisconnected();
       //this.retryConnection(force: true, reset: true);
       this._connection!.sink.close();
     }
@@ -537,6 +557,8 @@ abstract class SessionState {}
 
 class SessionStateIdle extends SessionState {}
 
+class SessionStateFullyDisconnected extends SessionState {}
+
 class SessionStateWaiting extends SessionState {
   final String? identifier;
 
@@ -565,15 +587,37 @@ class ServerIsDownState {
   bool _serverIsDown = false;
   DateTime _serverIsDownCheckDate = DateTime.fromMillisecondsSinceEpoch(0);
 
+  // Ping server and 1.1.1.1 for comparison
   Future<bool> get isDown async {
-    if (_serverIsDownCheckDate.difference(DateTime.now()) >
-        Duration(minutes: 1)) {
+    // Check device connection
+    if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
+      _serverIsDown = false;
+    } else if (DateTime.now().difference(_serverIsDownCheckDate) >
+        Duration(seconds: 40)) {
       // Check if server is down
-      http.Response? response = await http
-          .get(Uri.parse(HTTP_URL + '/status'))
-          .toNullable()
-          .timeout(Duration(seconds: 4), onTimeout: () => null);
-      _serverIsDown = response?.body == "NOT_OK";
+
+      bool firstOkay = false;
+      try {
+        Socket socket =
+            await Socket.connect("1.1.1.1", 53, timeout: Duration(seconds: 2));
+        socket.destroy();
+        firstOkay = true;
+
+        socket =
+            await Socket.connect(HOST, PORT, timeout: Duration(seconds: 2));
+        socket.destroy();
+        _serverIsDown = false;
+      } on SocketException {
+        if (firstOkay) {
+          // Timeout to server -> is down
+          _serverIsDown = true;
+        } else {
+          // Timeout to 1.1.1.1 -> No internet
+          _serverIsDown = false;
+        }
+      }
+
+      _serverIsDownCheckDate = DateTime.now();
     }
     return _serverIsDown;
   }

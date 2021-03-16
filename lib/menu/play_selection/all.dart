@@ -21,7 +21,6 @@ import 'dart:math';
 
 import 'package:provider/provider.dart';
 
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
 class PlaySelection extends StatefulWidget {
@@ -67,6 +66,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
         context: context,
         builder: (ctx) => ServerIsDownDialog(),
       );
+      return;
     }
 
     var shownDialogCount = FiarSharedPrefs.shownOnlineDialogCount;
@@ -78,10 +78,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
       );
       FiarSharedPrefs.shownOnlineDialogCount = shownDialogCount + 1;
     }
-    playOnline();
-  }
 
-  void playOnline() async {
     var gsm = context.read<GameStateManager>();
     if (gsm.outdated) {
       Navigator.of(context).push(slideUpRoute(OutDatedDialog()));

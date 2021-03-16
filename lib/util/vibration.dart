@@ -1,5 +1,6 @@
 import 'dart:async';
 
+// ignore: import_of_legacy_library_into_null_safe
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 
