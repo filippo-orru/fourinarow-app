@@ -81,7 +81,7 @@ class HardCpu extends MediumCpu {
 
     //await Future.delayed(Duration(seconds: 2 + _random.nextInt(2)));
     return await compute(
-        _compute, ComputeDetails(cpu, field, 0, 4, scores, _random));
+        _compute, ComputeDetails(cpu, field, 0, 3, scores, _random));
   }
 
   @override

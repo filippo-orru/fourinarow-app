@@ -156,6 +156,20 @@ class UserInfo with ChangeNotifier {
 
     if (sessionToken == null) return null;
 
+    if (sessionToken!.startsWith("migration")) {
+      // migrate from old username + pw storage
+      // Let's hope users don't have ":::" in their password
+      List<String> parts = sessionToken!.split(":::");
+      if (parts.length != 3) {
+        sessionToken = null;
+        return null;
+      }
+      if (await login(parts[1], parts[2]) != 200) {
+        sessionToken = null;
+        return null;
+      }
+    }
+
     try {
       var response = await http
           .get(

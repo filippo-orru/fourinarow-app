@@ -59,7 +59,7 @@ class FiarSharedPrefs {
       String password = _sharedPrefs.getString("password")!;
       _sharedPrefs.remove("username");
       _sharedPrefs.remove("password");
-      return "migration:$username:$password";
+      return "migration:::$username:::$password";
     } else {
       return null;
     }
