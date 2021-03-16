@@ -36,7 +36,7 @@ class NotificationsProviderState extends State<NotificationsProvider> {
 
     flutterNotifications = FlutterLocalNotificationsPlugin();
     var androidSettings =
-        AndroidInitializationSettings('mipmap/ic_launcher_foreground');
+        AndroidInitializationSettings('mipmap/ic_launcher_notification');
     var iosSettings = IOSInitializationSettings(
       requestSoundPermission: false,
       requestBadgePermission: false,
