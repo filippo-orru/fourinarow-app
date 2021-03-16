@@ -106,10 +106,27 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
   @override
   void initState() {
     super.initState();
-    widget.pwCtrl.addListener(_checkInputs);
+
     widget.usernameCtrl.addListener(_checkInputs);
+    widget.pwCtrl.addListener(_checkInputs);
 
     _checkInputs();
+  }
+
+  void submit() {
+    if (!okay) return;
+
+    if (!widget.registering || (widget.registering && oldEnough)) {
+      widget.passwordFocusNode.unfocus();
+      widget.usernameFocusNode.unfocus();
+      widget.onSubmit();
+    } else {
+      setState(() => remindAge = true);
+      Future.delayed(
+        Duration(seconds: 2),
+        () => setState(() => remindAge = false),
+      );
+    }
   }
 
   @override
@@ -144,7 +161,7 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
                   hint: 'Password',
                   password: true,
                   focusNode: widget.passwordFocusNode,
-                  onSubmit: widget.onSubmit,
+                  onSubmit: submit,
                 ),
                 showPwHint
                     ? Text('At least 8 characters, one special symbol.')
@@ -164,22 +181,11 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
     return Align(
       alignment: Alignment.centerRight,
       child: FlatIconButton(
-          enabled: okay,
-          bgColor: widget.accentColor,
-          icon: Icons.arrow_forward,
-          onPressed: () {
-            if (!widget.registering || (widget.registering && oldEnough)) {
-              widget.passwordFocusNode.unfocus();
-              widget.usernameFocusNode.unfocus();
-              widget.onSubmit();
-            } else {
-              setState(() => remindAge = true);
-              Future.delayed(
-                Duration(seconds: 2),
-                () => setState(() => remindAge = false),
-              );
-            }
-          }),
+        enabled: okay,
+        bgColor: widget.accentColor,
+        icon: Icons.arrow_forward,
+        onPressed: submit,
+      ),
     );
   }
 
@@ -204,7 +210,7 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
                     },
                   ),
                   Text(
-                    'I\'m more than 13 years old',
+                    "I'm more than 13 years old",
                     style: TextStyle(
                         fontWeight:
                             remindAge ? FontWeight.bold : FontWeight.normal),

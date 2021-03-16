@@ -29,17 +29,18 @@ Key splashAppKey = UniqueKey();
 void main() {
   runApp(
     WidgetsApp(
-      debugShowCheckedModeBanner: false,
       color: Colors.blue,
-      builder: (_, __) => SplashAppInternal(key: splashAppKey),
+      debugShowCheckedModeBanner: false,
+      home: SplashAppInternal(),
+      pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) {
+        return MaterialPageRoute(builder: builder, settings: settings);
+      },
     ),
   );
 }
 
 class SplashAppInternal extends StatefulWidget {
-  const SplashAppInternal({
-    Key key,
-  }) : super(key: key);
+  SplashAppInternal() : super(key: splashAppKey);
 
   @override
   _SplashAppInternalState createState() => _SplashAppInternalState();

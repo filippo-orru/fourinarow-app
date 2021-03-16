@@ -72,20 +72,30 @@ class _LoginPageState extends State<LoginPage> {
                         child: Center(
                           child: snapshot.hasData
                               ? Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 24),
                                   padding: EdgeInsets.symmetric(
                                       horizontal: 24, vertical: 18),
-                                  // height: 100,
-                                  width: 220,
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius:
                                         BorderRadius.all(Radius.circular(4)),
                                   ),
-                                  child: Text(
-                                    textFromStatuscode(snapshot.data),
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      snapshot.data == 200
+                                          ? Icon(Icons.check,
+                                              color: Colors.blue)
+                                          : Icon(Icons.close,
+                                              color: Colors.red),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        textFromStatuscode(snapshot.data),
+                                        style: TextStyle(
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 )
                               : snapshot.hasError
