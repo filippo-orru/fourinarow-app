@@ -126,6 +126,17 @@ class ChooseQuickchatEmojis extends StatefulWidget {
 class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
   Map<String, bool> emojiSelectState = {};
 
+  bool _allowSave() =>
+      emojiSelectState.values.where((selected) => selected).length ==
+      QUICKCHAT_EMOJI_COUNT;
+
+  List<String> get _selectedEmojis => emojiSelectState.entries
+      .where((entry) => entry.value)
+      .map((entry) => entry.key)
+      .toList();
+
+  String get _selectedEmojisString => _selectedEmojis.join(" ");
+
   @override
   void initState() {
     super.initState();
@@ -137,90 +148,141 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
 
   @override
   Widget build(BuildContext context) {
+    var mediaQ = MediaQuery.of(context);
     return OverlayDialog(
       true,
       hide: () => Navigator.of(context).pop(),
-      child: Container(
-        color: Colors.white,
-        height: MediaQuery.of(context).size.height - 64,
-        width: MediaQuery.of(context).size.width - 64,
-        padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
-        child: Column(
-          children: [
-            Text(
-              'Quick Chat Emojis',
-              style: TextStyle(
-                fontFamily: 'RobotoSlab',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Container(
-              height: 32,
-              width: 32,
-              color: Colors.green,
-            ),
-            Expanded(
-              child: CustomScrollView(shrinkWrap: true, slivers: <Widget>[
-                SliverGrid(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4),
-                  delegate: SliverChildListDelegate(
-                    ALLOWED_QUICKCHAT_EMOJIS.map<Widget>((emoji) {
-                      bool isSelected = emojiSelectState[emoji] ?? false;
-                      return Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(
-                                () => emojiSelectState[emoji] = !isSelected);
-                          },
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 150),
-                            decoration: BoxDecoration(
-                              color: (isSelected
-                                      ? Colors.blue.shade500
-                                      : Colors.blue.shade50)
-                                  .withOpacity(0.4),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            padding: const EdgeInsets.all(14),
-                            alignment: Alignment.center,
-                            child: FittedBox(
-                              fit: BoxFit.contain,
-                              child:
-                                  Text(emoji, style: TextStyle(fontSize: 300)),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
+      child: SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.white,
+          ),
+          height: mediaQ.size.height - 64,
+          width: mediaQ.size.width - 64,
+          padding: EdgeInsets.fromLTRB(12, 12, 12, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                child: Text(
+                  'Quick Chat Emojis',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontFamily: 'RobotoSlab',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                // SizedBox(height: 64),
-              ]),
-            ),
-            Container(
-              height: 32,
-              width: 32,
-              color: Colors.green,
-            ),
-            Container(
-              width: 64,
-              height: 32,
-              color: Colors.red,
-              child: Row(
-                children: [
-                  Text('lalalala'),
-                  TextButton(
-                    child: Text('Save'),
-                    style: TextButton.styleFrom(),
-                    onPressed: () {},
-                  ),
-                ],
               ),
-            ),
-          ],
+              Expanded(
+                child: CustomScrollView(shrinkWrap: true, slivers: <Widget>[
+                  SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 4),
+                    delegate: SliverChildListDelegate(
+                      ALLOWED_QUICKCHAT_EMOJIS.map<Widget>((emoji) {
+                        bool isSelected = emojiSelectState[emoji] ?? false;
+                        return Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(
+                                  () => emojiSelectState[emoji] = !isSelected);
+                            },
+                            child: AnimatedContainer(
+                              duration: Duration(milliseconds: 150),
+                              decoration: BoxDecoration(
+                                color: (isSelected
+                                        ? Colors.blue.shade500
+                                        : Colors.blue.shade50)
+                                    .withOpacity(0.4),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              padding: const EdgeInsets.all(14),
+                              alignment: Alignment.center,
+                              child: FittedBox(
+                                fit: BoxFit.contain,
+                                child: Text(emoji,
+                                    style: TextStyle(fontSize: 300)),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  // SizedBox(height: 64),
+                ]),
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: AnimatedSwitcher(
+                    duration: Duration(milliseconds: 200),
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          child: child,
+                          position: Tween<Offset>(
+                                  begin: Offset(0.1, 0), end: Offset(0.0, 0.0))
+                              .animate(animation),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      _selectedEmojisString,
+                      key: ValueKey(_selectedEmojis),
+                      style: Theme.of(context).textTheme.subtitle2!.copyWith(
+                            fontSize: 18,
+                          ),
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                height: 48,
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TweenAnimationBuilder(
+                      tween: ColorTween(
+                          begin: Colors.black54,
+                          end: _allowSave()
+                              ? Colors.black54
+                              : Colors.red.shade400),
+                      duration: Duration(milliseconds: 220),
+                      builder: (_, color, __) => Text(
+                        'Selected ${_selectedEmojis.length} of $QUICKCHAT_EMOJI_COUNT',
+                        style: Theme.of(context)
+                            .textTheme
+                            .subtitle1!
+                            .copyWith(color: (color as Color)),
+                      ),
+                    ),
+                    TextButton(
+                      child: Text('Save'),
+                      style: TextButton.styleFrom(),
+                      onPressed: _allowSave()
+                          ? () {
+                              FiarSharedPrefs.settingsQuickchatEmojis =
+                                  _selectedEmojis;
+                              Navigator.of(context).pop();
+                            }
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

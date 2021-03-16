@@ -7,13 +7,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/inherit/route.dart';
-import 'package:four_in_a_row/menu/common/overlay_dialog.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:four_in_a_row/util/constants.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
+import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
@@ -73,6 +73,8 @@ class _SplashAppInternalState extends State<SplashAppInternal>
 
       _initializeAsyncDependencies(skipAnimations: true);
     });
+
+    SystemUiStyle.mainMenu();
   }
 
   @override

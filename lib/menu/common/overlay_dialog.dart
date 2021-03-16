@@ -43,7 +43,6 @@ class _OverlayDialogState extends State<OverlayDialog>
   @override
   void initState() {
     super.initState();
-    show = widget.show;
 
     animCtrl = AnimationController(
       vsync: this,
@@ -53,6 +52,8 @@ class _OverlayDialogState extends State<OverlayDialog>
     offsetAnim = Tween(begin: Offset(0, 30), end: Offset.zero)
         .chain(CurveTween(curve: Curves.easeInOut))
         .animate(animCtrl);
+
+    if (widget.show) _show();
   }
 
   @override

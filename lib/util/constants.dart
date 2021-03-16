@@ -26,6 +26,8 @@ const int PROTOCOL_VERSION = 3;
 
 const int STARTUP_DELAY_MS = 500;
 
+const int QUICKCHAT_EMOJI_COUNT = 4;
+
 const List<String> ALLOWED_QUICKCHAT_EMOJIS = [
   "😀",
   "😁",

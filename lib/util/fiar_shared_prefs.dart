@@ -142,12 +142,14 @@ class FiarSharedPrefs {
 
   static _SharedPrefPair _settingsQuickchatEmojis = _SharedPrefPair(
       "settingsQuickchatEmojis", String,
-      defaultValue: () => "😐🤔👏😄");
-  static String get settingsQuickchatEmojis =>
-      _sharedPrefs.getString(_settingsQuickchatEmojis.key) ??
-      _settingsQuickchatEmojis.defaultValue();
-  static set settingsQuickchatEmojis(String i) =>
-      _sharedPrefs.setString(_settingsQuickchatEmojis.key, i);
+      defaultValue: () => "😐#🤔#👏#😄");
+  static List<String> get settingsQuickchatEmojis =>
+      (_sharedPrefs.getString(_settingsQuickchatEmojis.key) ??
+              _settingsQuickchatEmojis.defaultValue() as String)
+          .split("#")
+          .toList();
+  static set settingsQuickchatEmojis(List<String> i) =>
+      _sharedPrefs.setString(_settingsQuickchatEmojis.key, i.join("#"));
 }
 
 class _SharedPrefPair<T> {
