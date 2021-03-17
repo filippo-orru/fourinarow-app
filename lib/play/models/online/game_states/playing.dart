@@ -36,6 +36,11 @@ class PlayingState extends GameState {
   Timer? toastTimer;
   OpponentInfo opponentInfo = OpponentInfo();
 
+  void setMuteState(bool mute) {
+    opponentInfo.muted = mute;
+    notifyListeners();
+  }
+
   bool showRatingDialog = false;
 
   @override
@@ -123,11 +128,13 @@ class PlayingState extends GameState {
     if (response.statusCode == 200) {
       this.opponentInfo.user = PublicUser.fromMap(jsonDecode(response.body));
 
-      if (gsm.userInfo.user?.friends
-              .any((friend) => friend.id == opponentInfo.user?.id) ==
-          true) {
-        opponentInfo.isFriend = true;
+      for (var friend in gsm.userInfo.user?.friends ?? <PublicUser>[]) {
+        if (friend.id == opponentInfo.user!.id) {
+          opponentInfo.user!.friendState = friend.friendState;
+          break;
+        }
       }
+
       notifyListeners();
     }
   }
@@ -191,7 +198,7 @@ class PlayingState extends GameState {
 class OpponentInfo {
   PublicUser? user;
   bool hasLeft = false;
-  bool? isFriend;
+  bool muted = false;
 
-  OpponentInfo({this.user, this.isFriend});
+  OpponentInfo();
 }

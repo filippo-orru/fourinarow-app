@@ -396,14 +396,13 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _resetReliabilityLayer({required bool reconnect}) {
-    //debugPrintStack();
-
     this._playerMsgIndex = 0;
     this._serverMsgIndex = 0;
 
     this._serverMsgStreamCtrl.add(MsgReset());
 
     if (reconnect) {
+      debugPrintStack();
       this._playerMsgQ.clear();
       this._serverMsgQ.clear();
 

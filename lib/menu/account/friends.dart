@@ -904,6 +904,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
       for (var friend in widget.userInfo.user?.friends ?? <PublicUser>[]) {
         if (friend.id == publicUser.id) {
           publicUser.friendState = friend.friendState;
+          return;
         }
       }
     });

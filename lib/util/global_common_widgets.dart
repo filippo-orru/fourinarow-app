@@ -11,14 +11,14 @@ class FiarBottomSheet extends StatefulWidget {
   final List<Widget> topChildren;
   final ColorSwatch<int> color;
   final double expandedHeight;
-  final bool disabled;
+  final bool onlyOpenUsingButton;
 
   const FiarBottomSheet({
     required this.topChildren,
     required this.children,
     required this.color,
     this.expandedHeight = DEFAULT_EXPANDED_HEIGHT,
-    this.disabled = false,
+    this.onlyOpenUsingButton = false,
     Key? key,
   }) : super(key: key);
 
@@ -181,7 +181,7 @@ class _FiarBottomSheetState extends State<FiarBottomSheet>
                               highlightShape: BoxShape.rectangle,
                               borderRadius:
                                   BorderRadius.all(Radius.circular(24)),
-                              onTap: widget.disabled
+                              onTap: widget.onlyOpenUsingButton
                                   ? null
                                   : () {
                                       if (expanded)
@@ -208,14 +208,15 @@ class _FiarBottomSheetState extends State<FiarBottomSheet>
                                         RotationTransition(
                                           turns: rotateAnim,
                                           child: IconButton(
-                                            onPressed: widget.disabled
-                                                ? () {
-                                                    if (expanded)
-                                                      hide();
-                                                    else
-                                                      show();
-                                                  }
-                                                : null,
+                                            onPressed:
+                                                widget.onlyOpenUsingButton
+                                                    ? () {
+                                                        if (expanded)
+                                                          hide();
+                                                        else
+                                                          show();
+                                                      }
+                                                    : null,
                                             icon: Icon(Icons.arrow_drop_up,
                                                 color: Colors.black87),
                                           ),

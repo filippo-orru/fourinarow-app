@@ -292,6 +292,40 @@ extension FriendStateExtension on FriendState {
         throw new UnimplementedError();
     }
   }
+
+  String title(String name) {
+    switch (this) {
+      case FriendState.IsFriend:
+        return "You're already friends with $name";
+      case FriendState.IsRequestedByMe:
+        return "Waiting for $name to accept your friend request...";
+      case FriendState.HasRequestedMe:
+        return "$name wants to be your friend";
+      case FriendState.None:
+        return 'Add $name as friend';
+      case FriendState.Loading:
+        return "Loading...";
+      default:
+        throw new UnimplementedError();
+    }
+  }
+
+  String? subTitle() {
+    switch (this) {
+      case FriendState.IsFriend:
+        return null;
+      case FriendState.IsRequestedByMe:
+        return "Wait for them to accept your request";
+      case FriendState.HasRequestedMe:
+        return 'Tap to accept their request';
+      case FriendState.None:
+        return 'You will become friends once they accept your request';
+      case FriendState.Loading:
+        return "...";
+      default:
+        throw new UnimplementedError();
+    }
+  }
 }
 
 class PublicUser {

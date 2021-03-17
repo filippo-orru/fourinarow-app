@@ -72,11 +72,6 @@ class PlayingViewer extends AbstractGameStateViewer {
                       dropChip: _playingState.dropChip),
                 ),
               ),
-              // Align(
-              //   alignment: Alignment.centerRight,
-              //   child: LeaveOnlineButton(() {}),
-              // ),
-              // LeaveOnlineButton(() => {}),
             ],
           ),
         ),
@@ -84,16 +79,19 @@ class PlayingViewer extends AbstractGameStateViewer {
           bottom: FiarBottomSheet.HEIGHT,
           left: 24,
           right: 24,
-          child: Consumer<ChatState>(
-            builder: (_, chatState, __) => ScrollingChatMiniview(
-              messages: chatState.ingameMessages
-                  .map(
-                    (chatMessage) => MiniviewMessage(
-                        chatMessage.sender is SenderMe, chatMessage.content),
-                  )
-                  .toList(),
-            ),
-          ),
+          child: _playingState.opponentInfo.muted
+              ? SizedBox()
+              : Consumer<ChatState>(
+                  builder: (_, chatState, __) => ScrollingChatMiniview(
+                    messages: chatState.ingameMessages
+                        .map(
+                          (chatMessage) => MiniviewMessage(
+                              chatMessage.sender is SenderMe,
+                              chatMessage.content),
+                        )
+                        .toList(),
+                  ),
+                ),
         ),
         Positioned(
           top: 32 + 16,
@@ -105,7 +103,9 @@ class PlayingViewer extends AbstractGameStateViewer {
           right: 24,
           child: _ThreeDotMenu(),
         ),
-        _BottomSheetWidget(_playingState.opponentInfo.user),
+        _BottomSheetWidget(_playingState.opponentInfo, toggleMuteState: () {
+          _playingState.setMuteState(!_playingState.opponentInfo.muted);
+        }),
         WinnerOverlay(
           winDetails,
           playerNames: (p) => p.playerWord,
@@ -162,9 +162,10 @@ class _ThreeDotMenuState extends State<_ThreeDotMenu> {
 }
 
 class _BottomSheetWidget extends StatefulWidget {
-  final PublicUser? user;
+  final OpponentInfo opponentInfo;
+  final VoidCallback toggleMuteState;
 
-  _BottomSheetWidget(this.user);
+  _BottomSheetWidget(this.opponentInfo, {required this.toggleMuteState});
 
   @override
   _BottomSheetState createState() => _BottomSheetState();
@@ -175,17 +176,22 @@ enum ReportedState { None, Loading, Reported }
 class _BottomSheetState extends State<_BottomSheetWidget> {
   ReportedState reported = ReportedState.None;
 
-  bool errorAdding = false;
-
   bool reactionPickerOpen = false;
 
   @override
   Widget build(BuildContext context) {
+    bool iAmLoggedIn = context.read<GameStateManager>().userInfo.loggedIn;
+
+    String? listTileSubtitle = widget.opponentInfo.user?.friendState.subTitle();
+    Widget leadingIcon = Icon(Icons.person_add_disabled_outlined);
+    if (iAmLoggedIn && widget.opponentInfo.user != null) {
+      leadingIcon = widget.opponentInfo.user!.friendState.icon();
+    }
+
     return FiarBottomSheet(
-      disabled: reactionPickerOpen,
+      onlyOpenUsingButton: !widget.opponentInfo.muted && reactionPickerOpen,
       color: Colors.blueAccent,
-      expandedHeight:
-          widget.user == null ? 120 : 170, // only one option if logged out
+      expandedHeight: 232,
       topChildren: [
         Expanded(
           child: Stack(
@@ -193,7 +199,7 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
             children: [
               Row(
                 children: [
-                  PlayerIcon(widget.user),
+                  PlayerIcon(widget.opponentInfo.user),
                   SizedBox(width: 12),
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -201,19 +207,19 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        widget.user?.name ?? "Player",
+                        widget.opponentInfo.user?.name ?? "Player",
                         style: TextStyle(
                           fontSize: 20,
                           fontFamily: 'RobotoSlab',
-                          color: widget.user == null
-                              ? Colors.black.withOpacity(0.65)
+                          color: widget.opponentInfo.user == null
+                              ? Colors.black.withOpacity(0.50)
                               : Colors.black87,
                         ),
                       ),
                       SizedBox(width: 6),
-                      widget.user != null
+                      widget.opponentInfo.user != null
                           ? Text(
-                              "${widget.user!.gameInfo.skillRating} SR",
+                              "${widget.opponentInfo.user!.gameInfo.skillRating} SR",
                               style: TextStyle(
                                 fontSize: 17,
                                 fontFamily: 'RobotoSlab',
@@ -225,60 +231,86 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
                   ),
                 ],
               ),
-              ReactionPicker(
-                open: reactionPickerOpen,
-                onOpen: () {
-                  setState(() => reactionPickerOpen = true);
-                },
-                onClose: () {
-                  setState(() => reactionPickerOpen = false);
-                },
-                onChoose: (reaction) {
-                  reactionPickerOpen = false;
-                  context
-                      .read<ChatState>()
-                      .sendMessage(reaction, ingameMessage: true);
-                },
-              ),
+              widget.opponentInfo.muted
+                  ? SizedBox()
+                  : ReactionPicker(
+                      open: reactionPickerOpen,
+                      onOpen: () {
+                        setState(() => reactionPickerOpen = true);
+                      },
+                      onClose: () {
+                        setState(() => reactionPickerOpen = false);
+                      },
+                      onChoose: (reaction) {
+                        reactionPickerOpen = false;
+                        context
+                            .read<ChatState>()
+                            .sendMessage(reaction, ingameMessage: true);
+                      },
+                    ),
             ],
           ),
         ),
       ],
       children: [
-        widget.user == null
-            ? SizedBox()
-            : ListTile(
-                leading: Icon(Icons.group_add),
-                title: Text('Add ${widget.user!.name} as friend'),
-                subtitle: Text(
-                    'You will become friends once they accept your request'),
-              ),
         ListTile(
-            leading: Icon(Icons.report_gmailerrorred_outlined),
-            title: Text(reported == ReportedState.None
-                ? 'Report'
-                : reported == ReportedState.Loading
-                    ? "Sending report..."
-                    : "User was reported"),
-            enabled: reported == ReportedState.None,
-            onTap: reported == ReportedState.None
-                ? () async {
-                    setState(() => reported = ReportedState.Loading);
-                    await Future.delayed(Duration(milliseconds: 600));
-                    setState(() => reported = ReportedState.Reported);
+          leading: leadingIcon,
+          title: Text(widget.opponentInfo.user?.friendState
+                  .title(widget.opponentInfo.user!.name) ??
+              "Add friend"),
+          subtitle: !iAmLoggedIn
+              ? Text("Cant add as friend, you are not logged in")
+              : widget.opponentInfo.user == null
+                  ? Text("Cant add as friend, they are not logged in")
+                  : listTileSubtitle != null
+                      ? Text(listTileSubtitle)
+                      : null,
+          enabled: iAmLoggedIn && widget.opponentInfo.user != null,
+          onTap: () {
+            if (widget.opponentInfo.user == null || !iAmLoggedIn) return;
 
-                    if (widget.user == null)
-                      return; // Can't report anon users for now
-                    Map body = {
-                      "content": "Reported user: \"${widget.user!.id}\""
-                    };
-                    var userMe = context.read<GameStateManager>().userInfo.user;
-                    if (userMe != null) {
-                      body["user_id"] = userMe.id;
-                    }
-                    await FeedbackDialog.sendRequest(body);
+            context
+                .read<GameStateManager>()
+                .userInfo
+                .addFriend(widget.opponentInfo.user!.id);
+          },
+        ),
+        ListTile(
+          leading: Icon(Icons.report_gmailerrorred_outlined),
+          title: Text(reported == ReportedState.None
+              ? 'Report'
+              : reported == ReportedState.Loading
+                  ? "Sending report..."
+                  : "User was reported"),
+          enabled: reported == ReportedState.None,
+          onTap: reported == ReportedState.None
+              ? () async {
+                  setState(() => reported = ReportedState.Loading);
+                  await Future.delayed(Duration(milliseconds: 600));
+                  setState(() => reported = ReportedState.Reported);
+
+                  if (widget.opponentInfo.user == null)
+                    return; // Can't report anon users for now
+
+                  Map body = {
+                    "content":
+                        "Reported user: \"${widget.opponentInfo.user!.id}\""
+                  };
+                  var userMe = context.read<GameStateManager>().userInfo.user;
+                  if (userMe != null) {
+                    body["user_id"] = userMe.id;
                   }
-                : null),
+                  await FeedbackDialog.sendRequest(body);
+                }
+              : null,
+        ),
+        ListTile(
+          leading: Icon(widget.opponentInfo.muted
+              ? Icons.volume_off_outlined
+              : Icons.volume_up_outlined),
+          title: Text(widget.opponentInfo.muted ? "Unmute chat" : "Mute chat"),
+          onTap: widget.toggleMuteState,
+        ),
       ],
 
       //   ),
