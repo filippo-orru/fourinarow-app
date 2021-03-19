@@ -73,16 +73,6 @@ flutter:
     - assets/lottie/main_menu/images/
 
   fonts:
-    - family: Arvo
-      fonts:
-        - asset: assets/fonts/Arvo/Arvo-Regular.ttf
-        - asset: assets/fonts/Arvo/Arvo-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Arvo/Arvo-Italic.ttf
-          style: italic
-        - asset: assets/fonts/Arvo/Arvo-BoldItalic.ttf
-          style: italic
-          weight: 700
     - family: RobotoSlab
       fonts:
         - asset: assets/fonts/RobotoSlab/RobotoSlab-Regular.ttf

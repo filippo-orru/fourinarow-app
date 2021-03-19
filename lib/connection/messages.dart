@@ -274,7 +274,8 @@ enum MsgErrorType {
   LobbyNotFound,
   InvalidColumn,
   IncorrectCredentials,
-  AlreadyLoggedIn
+  AlreadyLoggedIn,
+  UserNotPlaying
 }
 
 extension MsgErrorTypeExt on MsgErrorType {
@@ -297,6 +298,8 @@ extension MsgErrorTypeExt on MsgErrorType {
       return MsgErrorType.IncorrectCredentials;
     else if (str == "AlreadyLoggedIn")
       return MsgErrorType.AlreadyLoggedIn;
+    else if (str == "UserNotPlaying")
+      return MsgErrorType.UserNotPlaying;
     else
       return null;
   }

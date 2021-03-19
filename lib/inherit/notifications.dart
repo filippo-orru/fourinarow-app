@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:four_in_a_row/menu/account/friends.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 
 class NotificationsProvider extends StatefulWidget {
@@ -99,6 +100,22 @@ class NotificationsProviderState extends State<NotificationsProvider> {
     this.flutterNotifications.cancel(FiarNotifications.searchingGame);
   }
 
+  void battleRequest(String name) {
+    if (!shouldNotify) return;
+
+    this.flutterNotifications.cancel(FiarNotifications.battleRequest);
+    this.flutterNotifications.show(
+          FiarNotifications.battleRequest,
+          '$name wants to play a round of Four in a Row!',
+          'Tap to join them!',
+          FiarNotifications.battleRequestSpecifics,
+        );
+  }
+
+  void cancelBattleRequest() {
+    this.flutterNotifications.cancel(FiarNotifications.battleRequest);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -133,7 +150,7 @@ class FiarNotifications {
   static const allNotificationIds = [battleRequest, gameFound, searchingGame];
 
   static const battleRequest = 1;
-  static const battleRequestSpecifics = NotificationDetails(
+  static final battleRequestSpecifics = NotificationDetails(
     android: AndroidNotificationDetails(
       '1',
       'Battle Requests',
@@ -141,6 +158,7 @@ class FiarNotifications {
       category: 'CATEGORY_MESSAGE',
       importance: Importance.max,
       priority: Priority.max,
+      timeoutAfter: BattleRequestDialog.TIMEOUT.inMilliseconds,
     ),
     iOS: IOSNotificationDetails(),
   );

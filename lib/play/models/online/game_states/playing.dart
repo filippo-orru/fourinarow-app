@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/util/vibration.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
-import 'package:four_in_a_row/util/constants.dart' as constants;
 import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/inherit/user.dart';
 import 'package:four_in_a_row/util/toast.dart';
@@ -94,7 +91,7 @@ class PlayingState extends GameState {
     } else if (msg is MsgError && msg.maybeErr == MsgErrorType.NotInLobby) {
       var field = this.field;
       if (field is FieldFinished && field.waitingToPlayAgain) {
-        // TODO close
+        this.gsm.hideViewer = true;
       }
       // TODO: do I need this? maybe just pop / dialog
 
@@ -109,34 +106,12 @@ class PlayingState extends GameState {
   // StatelessWidget Function(GameState) get viewer => (s) => PlayingViewer(s);
 
   void _loadOpponentInfo({String? opponentId}) async {
-    if (opponentId == null) {
-      if (this.opponentInfo.user != null) {
-        opponentId = this.opponentInfo.user!.id;
-      } else {
-        return;
-      }
-    }
+    opponentId = opponentId ?? opponentInfo.user?.id;
+    if (opponentId == null) return;
 
-    late final response;
-    try {
-      response = await http
-          .get(Uri.parse("${constants.HTTP_URL}/api/users/$opponentId"))
-          .timeout(Duration(seconds: 4));
-    } on Exception {
-      return;
-    }
-    if (response.statusCode == 200) {
-      this.opponentInfo.user = PublicUser.fromMap(jsonDecode(response.body));
-
-      for (var friend in gsm.userInfo.user?.friends ?? <PublicUser>[]) {
-        if (friend.id == opponentInfo.user!.id) {
-          opponentInfo.user!.friendState = friend.friendState;
-          break;
-        }
-      }
-
-      notifyListeners();
-    }
+    var maybeOpponent = await gsm.userInfo.getUserInfo(userId: opponentId);
+    opponentInfo.user = maybeOpponent;
+    notifyListeners();
   }
 
   void _maybeShowRatingDialog() async {
@@ -188,8 +163,9 @@ class PlayingState extends GameState {
 
   void showPopup(String s, {bool angery = false}) {
     toastState = ToastState("Opponent left", angery: angery, onComplete: () {
-      super.gsm.hideViewer = true;
-      notifyListeners();
+      if (angery) {
+        super.gsm.hideViewer = true;
+      }
     });
     notifyListeners();
   }

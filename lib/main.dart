@@ -11,6 +11,7 @@ import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
+import 'package:four_in_a_row/util/battle_req_popup.dart';
 import 'package:four_in_a_row/util/constants.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
@@ -392,6 +393,30 @@ class _FiarAppState extends State<FiarApp> {
                                       SearchingGameNotification(gsm.connected),
                                 );
                               }),
+                        ),
+                        Positioned(
+                          top: MediaQuery.of(ctx).padding.top,
+                          left: 0,
+                          right: 0,
+                          child: Selector<GameStateManager, BattleRequestState>(
+                            selector: (_, gsm) => gsm.incomingBattleRequest,
+                            builder: (_, battleRequestState, __) =>
+                                battleRequestState != null
+                                    ? BattleRequestPopup(
+                                        username: battleRequestState.user.name,
+                                        joinCallback: () =>
+                                            context.read<GameStateManager>()
+                                              ..startGame(
+                                                ORqLobbyJoin(
+                                                    battleRequestState.lobbyId),
+                                              )
+                                              ..cancelIncomingBattleReq(),
+                                        leaveCallback: () => context
+                                            .read<GameStateManager>()
+                                            .cancelIncomingBattleReq(),
+                                      )
+                                    : SizedBox(),
+                          ),
                         ),
                         Selector<ServerConnection, bool>(
                           selector: (_, connection) =>

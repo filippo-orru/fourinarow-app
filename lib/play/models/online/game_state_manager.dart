@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
 import 'package:four_in_a_row/inherit/lifecycle.dart';
 import 'package:four_in_a_row/inherit/notifications.dart';
 import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/util/battle_req_popup.dart';
 
 import 'game_login_state.dart';
 import 'game_states/game_state.dart';
@@ -84,6 +87,9 @@ class GameStateManager with ChangeNotifier {
     }
   }
 
+  BattleRequestState? incomingBattleRequest;
+  Timer? incomingBattleRequestTimer;
+
   GameStateManager(this._serverConnection) {
     _serverConnection.addListener(() {
       notifyListeners();
@@ -114,6 +120,7 @@ class GameStateManager with ChangeNotifier {
     } else {
       _hideViewer = s;
     }
+    notifyListeners();
   }
 
   bool isViewing = false;
@@ -128,6 +135,12 @@ class GameStateManager with ChangeNotifier {
     _showViewer = false;
     _hideViewer = false;
     Future.delayed(Duration(milliseconds: 350), () => leave());
+  }
+
+  void cancelIncomingBattleReq() {
+    incomingBattleRequestTimer?.cancel();
+    incomingBattleRequest = null;
+    notifyListeners();
   }
 
   Future<bool> startGame(OnlineRequest req) async {
@@ -206,12 +219,30 @@ class GameStateManager with ChangeNotifier {
       }
     } else if (msg is MsgReset) {
       hideViewer = true;
+    } else if (msg is MsgGameOver) {
+      userInfo.refresh();
+    } else if (msg is MsgBattleReq) {
+      userInfo.getUserInfo(userId: msg.userId).then((loadedUserInfo) {
+        if (loadedUserInfo == null) return;
+        incomingBattleRequestTimer?.cancel();
+        incomingBattleRequest =
+            BattleRequestState(loadedUserInfo, msg.lobbyCode);
+        incomingBattleRequestTimer =
+            Timer(BattleRequestPopup.DURATION, cancelIncomingBattleReq);
+        notifyListeners();
+
+        if (lifecycle!.state != AppLifecycleState.resumed) {
+          notifications!.battleRequest(loadedUserInfo.name);
+        }
+      });
     } else if (msg is MsgHello) {
       if (userInfo.loggedIn == true) {
         // On startup / first connection
         _sendLoginMsg();
       }
     }
+    // TODO: cancel outgoing battlerequest if err
+    //else if (msg is MsgError && msg.maybeErr == MsgErrorType.UserNotPlaying)
   }
 
   void _handlePlayerMessage(PlayerMessage msg) {}
@@ -228,6 +259,13 @@ class GameStateManager with ChangeNotifier {
   String toString() {
     return "GameStateManger(cgs=$currentGameState, gls=$currentLoginState, connected=$connected)";
   }
+}
+
+class BattleRequestState {
+  final PublicUser user;
+  final String lobbyId;
+
+  BattleRequestState(this.user, this.lobbyId);
 }
 
 abstract class OnlineRequest {

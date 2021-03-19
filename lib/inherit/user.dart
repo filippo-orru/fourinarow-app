@@ -217,18 +217,26 @@ class UserInfo with ChangeNotifier {
   }
 
   Future<PublicUser?> getUserInfo({required String userId}) async {
+    var response;
     try {
-      var resp = await _client
-          .get(Uri.parse("${constants.HTTP_URL}/api/users/$userId"));
-      if (resp.statusCode == 200) {
-        return PublicUser.fromMap(jsonDecode(resp.body));
-      } else {
-        throw HttpException("Not found");
+      response = await http
+          .get(Uri.parse("${constants.HTTP_URL}/api/users/$userId"))
+          .timeout(Duration(seconds: 4));
+      if (response.statusCode == 200) {
+        var loadedUser = PublicUser.fromMap(jsonDecode(response.body));
+        for (var friend in user?.friends ?? <PublicUser>[]) {
+          if (friend.id == loadedUser!.id) {
+            loadedUser.friendState = friend.friendState;
+            break;
+          }
+        }
+        return loadedUser;
       }
     } on Exception {
       print("Error trying to get user info");
-      return null;
     }
+
+    return null;
   }
 }
 

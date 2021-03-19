@@ -182,7 +182,7 @@ class ServerConnection with ChangeNotifier {
     Future.delayed(Duration(milliseconds: 4000), () {
       if (this._sessionState is SessionStateWaiting) {
         print("   (reconnecting)");
-        _connect(force: true);
+        _resetReliabilityLayer(reconnect: true);
       }
     });
 
@@ -344,7 +344,7 @@ class ServerConnection with ChangeNotifier {
             1000)
         .toInt();
     print(
-        "   #DONE# (retry in ${(timeoutMs.toDouble() / 1000.0).toStringAsFixed(2)})");
+        "   #DONE# (retry in ${(timeoutMs.toDouble() / 1000.0).toStringAsFixed(2)})\n");
     var sessionState = this._sessionState;
     if (sessionState is SessionStateConnected) {
       this._sessionState = SessionStateDisconnected(sessionState.identifier);

@@ -51,22 +51,22 @@ class _MenuContentPlayOnlineState extends State<MenuContentPlayOnline> {
         // LimitedBox(
         //     maxHeight: 48,
         //     child:
-        Container(
-          height: 24,
-        ),
+        // Container(
+        //   height: 24,
+        // ),
         // Flexible(
         //     flex: 5,
         //     child:
-        Transform.scale(
-          scale: MediaQuery.of(context).devicePixelRatio < 2 ? 0.5 : 1,
-          // child:
-          // FittedBox(
-          child: Container(
-            // height: 150,
-            width: 250,
-            child: JoinLobbyButtons(),
-          ),
-        ),
+        // Transform.scale(
+        //   scale: MediaQuery.of(context).devicePixelRatio < 2 ? 0.5 : 1,
+        //   // child:
+        //   // FittedBox(
+        //   child: Container(
+        //     // height: 150,
+        //     width: 250,
+        //     child: JoinLobbyButtons(),
+        //   ),
+        // ),
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [

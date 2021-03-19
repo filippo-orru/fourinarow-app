@@ -40,7 +40,7 @@ class _ToastState extends State<Toast> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     opacityCtrl = AnimationController(
-        vsync: this, duration: widget.toastState.duration * 0.2);
+        vsync: this, duration: widget.toastState.duration * 0.15);
     opacity = Tween<double>(begin: 0, end: 1)
         .chain(CurveTween(curve: Curves.easeInOut))
         .animate(opacityCtrl);
@@ -49,8 +49,8 @@ class _ToastState extends State<Toast> with TickerProviderStateMixin {
     });
 
     wiggleCtrl = AnimationController(
-        vsync: this, value: 0.5, duration: Duration(milliseconds: 50));
-    wiggle = Tween<Offset>(begin: Offset(-4, 0), end: Offset(4, 0))
+        vsync: this, value: 0.5, duration: Duration(milliseconds: 60));
+    wiggle = Tween<Offset>(begin: Offset(-3, 0), end: Offset(3, 0))
         .animate(wiggleCtrl);
 
     opacityCtrl.forward();
@@ -79,34 +79,38 @@ class _ToastState extends State<Toast> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment:
-          widget.toastState.angery ? Alignment.center : Alignment.bottomCenter,
-      child: AnimatedBuilder(
-        animation: wiggle,
-        builder: (ctx, child) => Transform.translate(
-          offset: wiggle.value,
-          child: child,
-        ),
-        child: FadeTransition(
-          opacity: opacity,
-          child: Container(
-            margin: EdgeInsets.only(bottom: widget.toastState.angery ? 0 : 64),
-            padding: EdgeInsets.all(widget.toastState.angery ? 24 : 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(
-                color:
-                    widget.toastState.angery ? Colors.red : Colors.grey[600]!,
-                width: widget.toastState.angery ? 4 : 1,
-              ),
-              borderRadius: BorderRadius.all(
-                  Radius.circular(widget.toastState.angery ? 8 : 4)),
+    Widget child = AnimatedBuilder(
+      animation: wiggle,
+      builder: (ctx, child) => Transform.translate(
+        offset: wiggle.value,
+        child: child,
+      ),
+      child: FadeTransition(
+        opacity: opacity,
+        child: Container(
+          margin: EdgeInsets.only(bottom: widget.toastState.angery ? 0 : 64),
+          padding: EdgeInsets.all(widget.toastState.angery ? 24 : 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(
+              color: widget.toastState.angery ? Colors.red : Colors.grey[600]!,
+              width: widget.toastState.angery ? 4 : 1,
             ),
-            child: Text(widget.toastState.text),
+            borderRadius: BorderRadius.all(
+                Radius.circular(widget.toastState.angery ? 8 : 4)),
           ),
+          child: Text(widget.toastState.text),
         ),
       ),
     );
+
+    return widget.toastState.angery
+        ? AbsorbPointer(
+            child: Container(
+                constraints: BoxConstraints.expand(),
+                color: Colors.black26,
+                child: Align(alignment: Alignment.center, child: child)),
+          )
+        : Align(alignment: Alignment.bottomCenter, child: child);
   }
 }
