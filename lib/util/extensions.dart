@@ -4,6 +4,12 @@ extension ListExtension<T> on List<T?> {
   }
 }
 
+extension ListExtension2<T> on List<T> {
+  List<T?> toNullable() {
+    return this.map<T?>((e) => e).toList();
+  }
+}
+
 extension StreamExtension<T> on Stream<T> {
   Stream<T?> toNullable() {
     return this.map<T?>((e) => e);

@@ -403,7 +403,8 @@ class _FiarAppState extends State<FiarApp> {
                             builder: (_, battleRequestState, __) =>
                                 battleRequestState != null
                                     ? BattleRequestPopup(
-                                        username: battleRequestState.user.name,
+                                        username:
+                                            battleRequestState.user.username,
                                         joinCallback: () =>
                                             context.read<GameStateManager>()
                                               ..startGame(

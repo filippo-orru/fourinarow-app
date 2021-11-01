@@ -5,6 +5,7 @@ import 'package:flutter/material.dart' hide BottomSheet;
 import 'package:flutter/scheduler.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/menu/settings.dart';
+import 'package:four_in_a_row/util/toast.dart';
 import 'package:http/http.dart' as http;
 import 'package:share/share.dart';
 
@@ -535,7 +536,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        widget.friend.name,
+                        widget.friend.username,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         softWrap: false,
@@ -644,7 +645,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
                                     contentPadding: EdgeInsets.all(16),
                                     children: [
                                       Text(
-                                          'Do you really want to remove \"${widget.friend.name}\"?'),
+                                          'Do you really want to remove \"${widget.friend.username}\"?'),
                                       SizedBox(height: 24),
                                       Row(
                                         mainAxisAlignment:
@@ -854,6 +855,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
   int? addingFriend;
   String searchText = "";
   List<int> successfullyAdded = new List.empty();
+  String? errorMessage;
 
   void setSearchText(String text) {
     this.searchText = text;
@@ -861,6 +863,8 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
 
   void search() async {
     if (searchText.length < AddFriendDialog.MIN_SEARCH_LEN) {
+      setState(() => errorMessage =
+          "Enter at least ${AddFriendDialog.MIN_SEARCH_LEN} characters.");
       return;
     }
 
@@ -883,7 +887,8 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
       Map<int, PublicUser> temp = (jsonDecode(response.body) as List<dynamic>)
           .asMap()
           .map<int, PublicUser?>((i, dyn) {
-        PublicUser? user = PublicUser.fromMap(dyn as Map<String, dynamic>);
+        PublicUser? user = PublicUser.fromMapPublic(
+            widget.userInfo.user, dyn as Map<String, dynamic>);
         if (user == null) return MapEntry(i, null);
         return MapEntry(i, user);
       }).filterNotNull();
@@ -891,7 +896,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
 
       searchResults!.removeWhere((publicUser) => publicUser.id == widget.myId);
 
-      await setFriendStates();
+      setState(() => errorMessage = null);
     }
     setState(() {
       searching = false;
@@ -942,103 +947,113 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
   Widget build(BuildContext context) {
     var mediaQuery = MediaQuery.of(context);
 
-    return OverlayDialog(
-      widget.visible,
-      hide: () {
-        widget.searchbarFocusNode.unfocus();
-        widget.hide();
-      },
-      child: Container(
-        height: 232.0 +
-            (searchResults == null
-                ? 0
-                : (mediaQuery.viewInsets.bottom > 20 ? double.infinity : 350)),
-        margin: EdgeInsets.symmetric(vertical: 20),
-        width: max(200, min(450, mediaQuery.size.width * 0.85)),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 6,
-              color: Colors.black12,
-            )
-          ],
-        ),
-        child: Material(
-          type: MaterialType.transparency,
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Row(
+    return Stack(
+      children: [
+        OverlayDialog(
+          widget.visible,
+          hide: () {
+            widget.searchbarFocusNode.unfocus();
+            widget.hide();
+          },
+          child: Container(
+            // constraints: BoxConstraints(
+            //   minHeight: 100, maxHeight: 400),
+            //  232.0 +
+            //     (searchResults == null
+            //         ? 0
+            //         : (mediaQuery.viewInsets.bottom > 20
+            //             ? double.infinity
+            //             : 350)),
+            margin: EdgeInsets.symmetric(vertical: 20),
+            width: max(200, min(450, mediaQuery.size.width * 0.85)),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 6,
+                  color: Colors.black12,
+                )
+              ],
+            ),
+            child: Material(
+              type: MaterialType.transparency,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: Text(
-                        'Add friend',
-                        style: TextStyle(
-                          fontFamily: 'RobotoSlab',
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Add friend',
+                            style: TextStyle(
+                              fontFamily: 'RobotoSlab',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            color: Colors.purple.shade200,
+                          ),
+                          splashColor: Colors.purple.withOpacity(0.2),
+                          hoverColor: Colors.transparent,
+                          highlightColor:
+                              Colors.purple.shade100.withOpacity(0.2),
+                          onPressed: () => widget.hide(),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () => widget.searchbarFocusNode.requestFocus(),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          color: Colors.grey[100],
+                        ),
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(18, 8, 8, 8),
+                            child: Row(
+                              children: <Widget>[
+                                buildSearchfield(),
+                                buildSearchbutton(),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.close,
-                        color: Colors.purple.shade200,
+                    searchResults != null
+                        ? buildSearchresults(searchResults!)
+                        : SizedBox(),
+                    Container(
+                      height: 48,
+                      alignment: Alignment.center,
+                      child: TextButton.icon(
+                        style: TextButton.styleFrom(
+                            primary: Colors.purple.shade300),
+                        onPressed: shareInviteFriends,
+                        icon: Icon(Icons.share_rounded),
+                        label: Text('Invite friends'),
                       ),
-                      splashColor: Colors.purple.withOpacity(0.2),
-                      hoverColor: Colors.transparent,
-                      highlightColor: Colors.purple.shade100.withOpacity(0.2),
-                      onPressed: () => widget.hide(),
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
-                GestureDetector(
-                  onTap: () => widget.searchbarFocusNode.requestFocus(),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                      color: Colors.grey[100],
-                    ),
-                    margin: EdgeInsets.symmetric(vertical: 8),
-                    child: Material(
-                      type: MaterialType.transparency,
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(18, 8, 8, 8),
-                        child: Row(
-                          children: <Widget>[
-                            buildSearchfield(),
-                            buildSearchbutton(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                searchResults != null
-                    ? buildSearchresults(searchResults!)
-                    : SizedBox(),
-                Container(
-                  height: 48,
-                  alignment: Alignment.center,
-                  child: TextButton.icon(
-                    style:
-                        TextButton.styleFrom(primary: Colors.purple.shade300),
-                    onPressed: shareInviteFriends,
-                    icon: Icon(Icons.share_rounded),
-                    label: Text('Invite friends'),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -1060,6 +1075,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
         onSubmitted: (_) => search(),
         focusNode: widget.searchbarFocusNode,
         decoration: InputDecoration(
+          errorText: errorMessage,
           hintText: 'Search for users',
           border: InputBorder.none,
           counterText: null,
@@ -1071,30 +1087,34 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
   }
 
   Widget buildSearchresults(List<PublicUser> searchResults) {
-    return Expanded(
-      child: searchResults.isEmpty
-          ? Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                  child: Text("No users found for \"$searchText\"",
-                      style: TextStyle(
-                        color: Colors.black54,
-                        fontStyle: FontStyle.italic,
-                      ))),
-            )
-          : Scrollbar(
-              child: ListView.builder(
-                itemCount: searchResults.length,
-                itemBuilder: (_, index) {
-                  PublicUser? publicUser = searchResults[index];
-                  return FriendSearchResult(
-                      publicUser, addingFriend, index, addFriend);
-                },
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-              ),
-            ),
-    );
+    return
+        // Expanded(
+        //   child:
+        searchResults.isEmpty
+            ? Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                    child: Text("No users found for \"$searchText\"",
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontStyle: FontStyle.italic,
+                        ))),
+              )
+            : Flexible(
+                child: Scrollbar(
+                  child: ListView.builder(
+                    itemCount: searchResults.length,
+                    itemBuilder: (_, index) {
+                      PublicUser? publicUser = searchResults[index];
+                      return FriendSearchResult(
+                          publicUser, addingFriend, index, addFriend);
+                    },
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                  ),
+                  // ),
+                ),
+              );
   }
 }
 
@@ -1120,7 +1140,7 @@ class FriendSearchResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(publicUser.name),
+      title: Text(publicUser.username),
       subtitle: Text("${publicUser.gameInfo.skillRating} SR"),
       trailing: IconButton(
         splashColor: Colors.purple.shade500.withOpacity(0.2),

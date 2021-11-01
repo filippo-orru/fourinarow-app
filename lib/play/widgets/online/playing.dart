@@ -207,7 +207,7 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        widget.opponentInfo.user?.name ?? "Player",
+                        widget.opponentInfo.user?.username ?? "Player",
                         style: TextStyle(
                           fontSize: 20,
                           fontFamily: 'RobotoSlab',
@@ -256,7 +256,7 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
         ListTile(
           leading: leadingIcon,
           title: Text(widget.opponentInfo.user?.friendState
-                  .title(widget.opponentInfo.user!.name) ??
+                  .title(widget.opponentInfo.user!.username) ??
               "Add friend"),
           subtitle: !iAmLoggedIn
               ? Text("Cant add as friend, you are not logged in")

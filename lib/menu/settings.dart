@@ -7,6 +7,9 @@ import 'package:four_in_a_row/util/vibration.dart';
 import 'package:four_in_a_row/util/constants.dart';
 import 'package:provider/provider.dart';
 
+import 'account/onboarding/onboarding.dart';
+import 'main_menu.dart';
+
 class SettingsScreen extends StatefulWidget {
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
@@ -46,17 +49,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           Consumer<UserInfo>(
             builder: (_, userInfo, __) => ListTile(
-              leading: Container(
-                height: 64,
-                width: 32,
-                alignment: Alignment.center,
-                child: Icon(Icons.person_outline_rounded),
-              ),
-              title: Text('Account'),
-              subtitle:
-                  userInfo.loggedIn ? Text(userInfo.user!.username) : null,
-              enabled: userInfo.loggedIn,
-            ),
+                leading: Container(
+                  height: 64,
+                  width: 32,
+                  alignment: Alignment.center,
+                  child: Icon(Icons.person_outline_rounded),
+                ),
+                title: Text('Account'),
+                subtitle: Text(
+                  userInfo.loggedIn ? userInfo.user!.username : 'Log in',
+                ),
+                onTap: () {
+                  if (userInfo.loggedIn) {
+                    showDialog(
+                        context: context,
+                        builder: (_) => SimpleDialog(
+                              title: Text('Do you want to log out?'),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text('Cancel'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          context.read<UserInfo>().logOut();
+                                          Navigator.of(context).pop();
+                                          // TODO fix bug: when logging out here,
+                                          //  the user can go back and sees the
+                                          //  "something went wrong" friends list
+                                          //  screen
+                                        },
+                                        child: Text('Log out'),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ));
+                  } else {
+                    Navigator.of(context)
+                        .push(slideUpRoute(AccountOnboarding()));
+                  }
+                }),
           ),
           ListTile(
             leading: Container(
@@ -66,6 +109,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Icon(Icons.vibration_rounded),
             ),
             title: Text('Vibration'),
+            onTap: () {
+              setState(() => FiarSharedPrefs.settingsAllowVibrate = !vibrate);
+            },
             trailing: Switch(
               value: vibrate,
               onChanged: (shouldVibrate) {
@@ -87,6 +133,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: Text('Notifications'),
             subtitle: Text(
                 "Notify when a game was found or a friend wants to battle"),
+            onTap: () {
+              setState(() {
+                FiarSharedPrefs.settingsAllowNotifications = !showNotifications;
+              });
+            },
             trailing: Switch(
               value: showNotifications,
               onChanged: (shouldShowNotifications) {
@@ -110,6 +161,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () {
               showDialog(
                   context: context, builder: (_) => ChooseQuickchatEmojis());
+            },
+          ),
+          ListTile(
+            leading: Container(
+              height: 64,
+              width: 32,
+              alignment: Alignment.center,
+              child: Icon(Icons.feedback_outlined),
+            ),
+            title: Text('Feedback'),
+            onTap: () {
+              showFeedbackDialog(context);
             },
           ),
         ],

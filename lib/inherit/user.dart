@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
+import 'package:four_in_a_row/util/logger.dart';
 import 'package:http/http.dart' as http;
 import 'package:four_in_a_row/util/constants.dart' as constants;
 
@@ -60,7 +61,9 @@ class UserInfo with ChangeNotifier {
     });
   }
 
+  /// Return 200 if successful, 403 if credentials are wrong and 0 on network error.
   Future<int> login(String username, String password) {
+    Logger.i("Logging in...");
     Map<String, String> body = {
       "username": username,
       "password": password,
@@ -72,11 +75,12 @@ class UserInfo with ChangeNotifier {
       if (response.statusCode == 200) {
         String sessionToken = jsonDecode(response.body)['content']!;
         setCredentials(sessionToken);
+        Logger.i("Logged in!");
       }
       return response.statusCode;
-    }, onError: (_) {
-      print("Error logging in!");
-      return 0;
+    }, onError: (e) {
+      Logger.e("Error while logging in!", e);
+      return false;
     });
   }
 
@@ -89,8 +93,8 @@ class UserInfo with ChangeNotifier {
               headers: _headers()!)
           .toNullable()
           .timeout(Duration(seconds: 4), onTimeout: () => null)
-          .onError((_, __) {
-        print("Error logging out!");
+          .onError((e, __) {
+        Logger.e("Error logging out!", e);
       });
     }
     this.sessionToken = null;
@@ -223,14 +227,7 @@ class UserInfo with ChangeNotifier {
           .get(Uri.parse("${constants.HTTP_URL}/api/users/$userId"))
           .timeout(Duration(seconds: 4));
       if (response.statusCode == 200) {
-        var loadedUser = PublicUser.fromMap(jsonDecode(response.body));
-        for (var friend in user?.friends ?? <PublicUser>[]) {
-          if (friend.id == loadedUser!.id) {
-            loadedUser.friendState = friend.friendState;
-            break;
-          }
-        }
-        return loadedUser;
+        return PublicUser.fromMapPublic(user, jsonDecode(response.body));
       }
     } on Exception {
       print("Error trying to get user info");
@@ -338,27 +335,56 @@ extension FriendStateExtension on FriendState {
 
 class PublicUser {
   final String id;
-  final String name;
+  final String username;
   final GameInfo gameInfo;
   FriendState friendState;
   bool isPlaying;
 
-  PublicUser(this.id, this.name, this.gameInfo, this.friendState,
+  PublicUser(this.id, this.username, this.gameInfo, this.friendState,
       {this.isPlaying = false});
 
-  static PublicUser? fromMap(Map<String, dynamic> map) {
-    for (String key in ['username', 'game_info', 'id']) {
+  static PublicUser? fromMapPublic(User? me, Map<String, dynamic> map) {
+    for (String key in ['username', 'game_info', 'id', 'playing']) {
       if (!map.containsKey(key)) return null;
     }
+
     GameInfo? gameInfo = GameInfo.fromMap(map['game_info']);
     if (gameInfo == null) return null;
 
+    String userId = map['id'];
+    FriendState? friendState = me?.friends
+        .toNullable()
+        .firstWhere((friend) => friend?.id == userId, orElse: () => null)
+        ?.friendState;
+
     return PublicUser(
-      map['id'],
+      userId,
       map['username'],
       gameInfo,
-      FriendStateExtension.fromString(map['friend_state']),
+      friendState ?? FriendState.None,
       isPlaying: map['playing'] ?? false,
+    );
+  }
+
+  static PublicUser? fromMapFriends(Map<String, dynamic> map) {
+    for (String key in ['user', 'friend_state']) {
+      if (!map.containsKey(key)) return null;
+    }
+
+    Map<String, dynamic> userMap = map['user'];
+    for (String key in ['username', 'game_info', 'id', 'playing']) {
+      if (!userMap.containsKey(key)) return null;
+    }
+
+    GameInfo? gameInfo = GameInfo.fromMap(userMap['game_info']);
+    if (gameInfo == null) return null;
+
+    return PublicUser(
+      userMap['id'],
+      userMap['username'],
+      gameInfo,
+      FriendStateExtension.fromString(map['friend_state']),
+      isPlaying: userMap['playing'] ?? false,
     );
   }
 }
@@ -379,12 +405,19 @@ class User extends Equatable {
   final GameInfo gameInfo;
 
   static User? fromMap(Map<String, dynamic> map) {
-    for (String key in ['id', 'username', 'game_info', 'friends', 'email']) {
+    for (String key in [
+      'id',
+      'username',
+      'game_info',
+      'friendships',
+      'email'
+    ]) {
       if (!map.containsKey(key)) return null;
     }
-    List<PublicUser> friends = (map['friends'] as List<dynamic>)
+
+    List<PublicUser> friends = (map['friendships'] as List<dynamic>)
         .map((dynamic friendMap) =>
-            PublicUser.fromMap(friendMap as Map<String, dynamic>))
+            PublicUser.fromMapFriends(friendMap as Map<String, dynamic>))
         .toList()
         .filterNotNull();
 

@@ -38,7 +38,7 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
                   Center(child: Text('Hi!', style: TextStyle(fontSize: 48))),
                   SizedBox(height: 12),
                   Text(
-                    'To play ranked games, you need to create an account!',
+                    'To play ranked games, you need to create an account.',
                     style: TextStyle(fontSize: 16),
                   ),
                   SizedBox(height: 48),

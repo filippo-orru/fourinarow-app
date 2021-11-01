@@ -232,7 +232,7 @@ class GameStateManager with ChangeNotifier {
         notifyListeners();
 
         if (lifecycle!.state != AppLifecycleState.resumed) {
-          notifications!.battleRequest(loadedUserInfo.name);
+          notifications!.battleRequest(loadedUserInfo.username);
         }
       });
     } else if (msg is MsgHello) {
