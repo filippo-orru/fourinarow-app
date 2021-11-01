@@ -196,6 +196,8 @@ abstract class ServerMessage {
       return MsgLobbyClosing();
     } else if (str == "PONG") {
       return MsgPong();
+    } else if (str == "READY_TO_BATTLE_PING") {
+      return MsgReadyToBattlePing();
     } else if (str.startsWith("BATTLE_REQ")) {
       List<String> parts = str.split(":");
       if (parts.length == 3) {
@@ -251,6 +253,8 @@ class MsgOppLeft extends ServerMessage {}
 class MsgOppJoined extends ServerMessage {}
 
 class MsgPong extends ServerMessage {}
+
+class MsgReadyToBattlePing extends ServerMessage {}
 
 class MsgHello extends ServerMessage {}
 
@@ -374,6 +378,12 @@ class PlayerMsgLeave extends PlayerMessage {
 class PlayerMsgPing extends PlayerMessage {
   String serialize() {
     return "PING";
+  }
+}
+
+class PlayerMsgReadyToBattlePong extends PlayerMessage {
+  String serialize() {
+    return "READY_TO_BATTLE_PONG";
   }
 }
 

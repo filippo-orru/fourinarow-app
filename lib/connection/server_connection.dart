@@ -6,6 +6,8 @@ import 'dart:typed_data';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:four_in_a_row/util/logger_printer.dart';
+import 'package:logger/logger.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -18,6 +20,8 @@ const int CONNECTION_WAS_LOST_TIMEOUT_S = 30;
 
 class ServerConnection with ChangeNotifier {
   WebSocketChannel? _connection;
+
+  Logger logger = Logger(printer: CustomPrinter());
 
   Timer? _reconnectionTimer;
 
@@ -77,9 +81,6 @@ class ServerConnection with ChangeNotifier {
   }
 
   void send(PlayerMessage msg) {
-    // print("send: $msg");
-    // debugPrintStack();
-
     this._playerMsgStreamCtrl.add(msg);
   }
 
@@ -119,7 +120,7 @@ class ServerConnection with ChangeNotifier {
     }
 
     this._connectionTries += 1;
-    print("   #CONNECT# (${this._connectionTries}. try)");
+    logger.i("CONNECT (${this._connectionTries}. try)");
 
     tryingToConnect = true;
     notifyListeners();
@@ -129,7 +130,7 @@ class ServerConnection with ChangeNotifier {
     });
 
     if (await serverIsDown) {
-      print("           # Server is down.");
+      logger.w("Server is down");
       _websocketDone();
       return;
     }
@@ -181,7 +182,7 @@ class ServerConnection with ChangeNotifier {
 
     Future.delayed(Duration(milliseconds: 4000), () {
       if (this._sessionState is SessionStateWaiting) {
-        print("   (reconnecting)");
+        logger.i("   (reconnecting)");
         _resetReliabilityLayer(reconnect: true);
       }
     });
@@ -200,7 +201,8 @@ class ServerConnection with ChangeNotifier {
           .getUrl(Uri.parse(HTTP_PREFIX + "://$WS_PATH"))
           .timeout(Duration(seconds: 4))
           .then<HttpClientRequest?>((r) => r)
-          .catchError((_, __) {
+          .catchError((e, stack) {
+        logger.e("Error while making request to websocket server", e, stack);
         client.close(force: true);
         return null;
       });
@@ -231,7 +233,8 @@ class ServerConnection with ChangeNotifier {
           serverSide: false,
           pingInterval: Duration(seconds: 1),
         );
-      }).catchError((_, __) {
+      }).catchError((e, stack) {
+        logger.e("Error while converting socket to WebSocketChannel", e, stack);
         request.abort();
         return null;
       });
@@ -239,7 +242,7 @@ class ServerConnection with ChangeNotifier {
       var errCode = 0;
       if (e.osError?.errorCode != null) errCode = e.osError!.errorCode;
       if (![7, 101, 103].contains(errCode)) {
-        print("Unknown connection err: $e");
+        logger.e("Unknown connection err: $e");
       } else {
         // Network is unreachable / network err
       }
@@ -260,7 +263,7 @@ class ServerConnection with ChangeNotifier {
         cancelOnError: true,
       );
     } on Exception catch (e) {
-      print("exception handleWsIn: $e");
+      logger.e("Exception!", e, StackTrace.current);
       _websocketDone();
     }
   }
@@ -276,11 +279,11 @@ class ServerConnection with ChangeNotifier {
         }
 
         String msgStr = rPkt.serialize();
-        print("<< $msgStr");
+        logger.v("<< $msgStr");
         try {
           wsSink.add(msgStr);
         } on Exception catch (e) {
-          print("exception handleRPktOut: $e");
+          logger.e("Exception!", e, StackTrace.current);
           _websocketDone();
           return;
         }
@@ -307,12 +310,13 @@ class ServerConnection with ChangeNotifier {
 
   void _receivedWsMsg(dynamic msg) {
     if (msg is String) {
-      print(">> $msg");
+      logger.v(">> $msg");
       var rPkt = ReliablePacketIn.parse(msg);
       if (rPkt == null) return;
       this._receivedReliablePacket(rPkt);
     } else {
-      print(">> #OTR# \"$msg\"");
+      logger.v(">> \"$msg\"");
+      logger.w("Received message of unknown type! (${msg.runtimeType})");
     }
   }
 
@@ -329,7 +333,7 @@ class ServerConnection with ChangeNotifier {
         }
       }
     }
-    print("   #ERR# \"${err.toString()}\"");
+    logger.e("Unexpected websocket error", err);
   }
 
   void _websocketDone() async {
@@ -337,14 +341,11 @@ class ServerConnection with ChangeNotifier {
 
     // debugPrintStack();
 
-    int timeoutMs = (min(
-              24.0,
-              1 + pow(_connectionTries.toDouble(), 1.5),
-            ) *
-            1000)
-        .toInt();
-    print(
-        "   #DONE# (retry in ${(timeoutMs.toDouble() / 1000.0).toStringAsFixed(2)})\n");
+    int waitTimeMs =
+        (min(24.0, 1 + pow(_connectionTries.toDouble(), 1.5)) * 1000).toInt();
+    String waitTimeFormatted =
+        (waitTimeMs.toDouble() / 1000.0).toStringAsFixed(2);
+    logger.i("Done! (retry in $waitTimeFormatted)");
     var sessionState = this._sessionState;
     if (sessionState is SessionStateConnected) {
       this._sessionState = SessionStateDisconnected(sessionState.identifier);
@@ -357,7 +358,7 @@ class ServerConnection with ChangeNotifier {
 
     notifyListeners();
     var timeout = Duration(
-      milliseconds: timeoutMs,
+      milliseconds: waitTimeMs,
     );
     if (_connectionWasLostTimer?.isActive != true) {
       // only check connectivity if no timer is set. To prevent double firing _connect();
@@ -371,14 +372,15 @@ class ServerConnection with ChangeNotifier {
                   result == ConnectivityResult.mobile)
               .timeout(timeout, onTimeout: () => null);
           if (result != null) {
-            print("   #FORCE CNNCT# (${result.toString().split(".")[1]})");
+            logger.i("Force connect (${result.toString().split(".")[1]})");
             _connect();
           }
         }
       });
       _connectionWasLostTimer =
           Timer(Duration(seconds: CONNECTION_WAS_LOST_TIMEOUT_S), () {
-        if (_sessionState is SessionStateServerIsDown) return;
+        if (_sessionState is SessionStateServerIsDown ||
+            _sessionState is SessionStateFullyDisconnected) return;
 
         _serverMsgStreamCtrl.add(MsgReset());
         this._sessionState = SessionStateFullyDisconnected();
@@ -402,7 +404,8 @@ class ServerConnection with ChangeNotifier {
     this._serverMsgStreamCtrl.add(MsgReset());
 
     if (reconnect) {
-      debugPrintStack();
+      logger.w("Resetting reliability layer", null, StackTrace.current);
+
       this._playerMsgQ.clear();
       this._serverMsgQ.clear();
 
@@ -427,7 +430,7 @@ class ServerConnection with ChangeNotifier {
       } else if (rPkt.id > expectedId) {
         if (_missingMsgSince == null) {
           _missingMsgSince = Timer(Duration(milliseconds: 6500), () {
-            print("   #WARN# Message(id=$expectedId) missing");
+            logger.w("Message(id=$expectedId) missing");
             this._resetReliabilityLayer(reconnect: true);
           });
         }
@@ -442,13 +445,13 @@ class ServerConnection with ChangeNotifier {
       if (this._playerMsgQ.any((msg) => msg.id == rPkt.id)) {
         this._playerMsgQ.removeWhere((msg) => msg.id == rPkt.id);
       } else {
-        print("   #WARN# Got Ack for unknown message");
+        logger.w("Got Ack for unknown message");
         this._resetReliabilityLayer(reconnect: true);
       }
       // } else
     } else if (rPkt is ReliablePktHelloIn) {
       if (this._sessionState is! SessionStateWaiting) {
-        print("   #WARN# Got unexpected ReliablePktHelloIn");
+        logger.w("Got unexpected ReliablePktHelloIn");
         this._playerMsgQ.clear();
         this._serverMsgQ.clear();
         this._resetReliabilityLayer(reconnect: false);
@@ -463,7 +466,7 @@ class ServerConnection with ChangeNotifier {
     } else if (rPkt is ReliablePktHelloInOutDated) {
       this._sessionState = SessionStateOutDated();
     } else if (rPkt is ReliablePktErrIn) {
-      print("   #WARN# Got ReliablePktErrIn");
+      logger.w("Got ReliablePktErrIn");
 
       if (rPkt.error == ReliablePktErr.KillClient) {
         // Failsafe sent by server in case the client is fucking up bad.
@@ -483,7 +486,7 @@ class ServerConnection with ChangeNotifier {
       this._resetReliabilityLayer(reconnect: true);
       // this.retryConnection(force: true);
     } else if (rPkt is ReliablePktNotConnectedIn) {
-      print("   #WARN# Got ReliablePktNotConnectedIn");
+      logger.w("Got ReliablePktNotConnectedIn");
       this._resetReliabilityLayer(reconnect: true);
       // this.retryConnection(force: true);
     } else {

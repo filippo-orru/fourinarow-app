@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 const bool useLocalServer = true && kDebugMode;
 
-const HOST = useLocalServer ? "192.168.0.213" : "fourinarow.ml";
+const HOST = useLocalServer ? "192.168.0.186" : "fourinarow.ml";
 const PORT = useLocalServer ? 40146 : 80;
 const HOST_PORT = useLocalServer ? "$HOST:$PORT" : HOST;
 
@@ -22,7 +22,7 @@ const int QUEUE_RESEND_TIMEOUT_MS = 700;
 
 const int CHECK_CONN_INTERVAL_MS = 1000;
 
-const int PROTOCOL_VERSION = 3;
+const int PROTOCOL_VERSION = 4;
 
 const int STARTUP_DELAY_MS = 500;
 

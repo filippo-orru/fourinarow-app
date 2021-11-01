@@ -38,6 +38,7 @@ dependencies:
   stream_channel: ^2.1.0
   lottie: ^1.0.1
   share: ^2.0.1
+  logger: ^1.1.0
 
 dev_dependencies:
   flutter_test:
