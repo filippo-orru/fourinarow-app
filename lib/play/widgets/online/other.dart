@@ -23,8 +23,7 @@ class WaitingForWWOpponentViewer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String title = "Searching for opponent...";
-    String label =
-        "This may take some time. You will receive a notification when a game is found.";
+    String label = "This may take some time. You will receive a notification when a game is found.";
     return LoadingScreen(title: title, label: label);
   }
 }

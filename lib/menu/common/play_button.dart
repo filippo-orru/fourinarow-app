@@ -31,8 +31,7 @@ class PlayButton extends StatefulWidget {
   _PlayButtonState createState() => _PlayButtonState();
 }
 
-class _PlayButtonState extends State<PlayButton>
-    with TickerProviderStateMixin, RouteAware {
+class _PlayButtonState extends State<PlayButton> with TickerProviderStateMixin, RouteAware {
   late AnimationController sizeAnimController;
   late Animation<double> circleSize;
   late Animation<double> textSize;
@@ -70,15 +69,13 @@ class _PlayButtonState extends State<PlayButton>
   void initState() {
     super.initState();
     sizeAnimController = AnimationController(
-        duration: Duration(milliseconds: (GROW_ANIM_DURATION / 3).floor()),
-        vsync: this);
+        duration: Duration(milliseconds: (GROW_ANIM_DURATION / 3).floor()), vsync: this);
     final sizeCurvedAnimation = CurvedAnimation(
       parent: sizeAnimController,
       curve: Curves.easeOut,
       reverseCurve: Curves.easeIn,
     );
-    circleSize =
-        Tween<double>(begin: 1, end: 0.85).animate(sizeCurvedAnimation);
+    circleSize = Tween<double>(begin: 1, end: 0.85).animate(sizeCurvedAnimation);
     textSize = Tween<double>(begin: 1, end: 0.92).animate(sizeCurvedAnimation);
     // sizeAnimController.reset();
 
@@ -91,10 +88,9 @@ class _PlayButtonState extends State<PlayButton>
       curve: Curves.easeIn,
       // reverseCurve: Curves.easeOut,
     );
-    growSize =
-        Tween<double>(begin: 1, end: 13).animate(growSizeCurvedAnimation);
-    ceilOpacity = Tween<double>(begin: widget.color.opacity, end: 1)
-        .animate(growSizeCurvedAnimation);
+    growSize = Tween<double>(begin: 1, end: 13).animate(growSizeCurvedAnimation);
+    ceilOpacity =
+        Tween<double>(begin: widget.color.opacity, end: 1).animate(growSizeCurvedAnimation);
     growFade = Tween<double>(begin: 1, end: 0)
         .chain(CurveTween(curve: Curves.easeOutExpo))
         .animate(growSizeAnimController);
@@ -171,11 +167,7 @@ class _PlayButtonState extends State<PlayButton>
                           color: Colors.white,
                           fontFamily: 'RobotoSlab',
                           fontSize: 24 +
-                              28 /
-                                  (widget.loading
-                                          ? widget.loadingLabel
-                                          : widget.label)
-                                      .length,
+                              28 / (widget.loading ? widget.loadingLabel : widget.label).length,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1.8,
                         ),
@@ -195,10 +187,7 @@ class _PlayButtonState extends State<PlayButton>
 }
 
 class FadingRing extends StatefulWidget {
-  FadingRing(
-      {required this.child,
-      this.color = Colors.redAccent,
-      this.startingDiameter = 128});
+  FadingRing({required this.child, this.color = Colors.redAccent, this.startingDiameter = 128});
 
   final Widget child;
   final Color color;
@@ -208,8 +197,7 @@ class FadingRing extends StatefulWidget {
   _FadingRingState createState() => _FadingRingState();
 }
 
-class _FadingRingState extends State<FadingRing>
-    with SingleTickerProviderStateMixin {
+class _FadingRingState extends State<FadingRing> with SingleTickerProviderStateMixin {
   late AnimationController sizeAnimController;
   late Animation<double> size;
   late Animation<double> opacity;
@@ -223,9 +211,8 @@ class _FadingRingState extends State<FadingRing>
   @override
   void initState() {
     super.initState();
-    sizeAnimController =
-        AnimationController(duration: Duration(milliseconds: 900), vsync: this)
-          ..repeat();
+    sizeAnimController = AnimationController(duration: Duration(milliseconds: 900), vsync: this)
+      ..repeat();
     // sizeAnimController.addStatusListener((status) {
     //   if (status == AnimationStatus.completed) {
     //     Future.delayed(Duration(milliseconds: 330), () {
@@ -274,16 +261,14 @@ class LoadingIndicator extends StatefulWidget {
   _LoadingIndicatorState createState() => _LoadingIndicatorState();
 }
 
-class _LoadingIndicatorState extends State<LoadingIndicator>
-    with SingleTickerProviderStateMixin {
+class _LoadingIndicatorState extends State<LoadingIndicator> with SingleTickerProviderStateMixin {
   late final AnimationController rotateCtrl;
   late final Animation<double> rotateAnim;
 
   @override
   void initState() {
     super.initState();
-    rotateCtrl = AnimationController(
-        vsync: this, duration: Duration(milliseconds: 2300));
+    rotateCtrl = AnimationController(vsync: this, duration: Duration(milliseconds: 2300));
     rotateCtrl.repeat();
     rotateAnim = Tween(begin: 0.0, end: 2 * math.pi).animate(rotateCtrl);
   }
@@ -338,12 +323,8 @@ class MyPainter extends CustomPainter {
           -math.pi,
           math.pi,
           false)
-      ..arcTo(
-          Rect.fromCenter(
-              center: Offset(width - 10, height / 2), height: 5, width: 5),
-          0,
-          math.pi,
-          false)
+      ..arcTo(Rect.fromCenter(center: Offset(width - 10, height / 2), height: 5, width: 5), 0,
+          math.pi, false)
       ..arcTo(
           Rect.fromCenter(
             center: Offset(height / 2, width / 2),
@@ -353,11 +334,8 @@ class MyPainter extends CustomPainter {
           0,
           -math.pi,
           false)
-      ..arcTo(
-          Rect.fromCenter(center: Offset(10, height / 2), height: 5, width: 5),
-          math.pi,
-          -math.pi,
-          false);
+      ..arcTo(Rect.fromCenter(center: Offset(10, height / 2), height: 5, width: 5), math.pi,
+          -math.pi, false);
     canvas.drawPath(
       path,
       paint,

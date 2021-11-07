@@ -39,8 +39,7 @@ class _ToastState extends State<Toast> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    opacityCtrl = AnimationController(
-        vsync: this, duration: widget.toastState.duration * 0.15);
+    opacityCtrl = AnimationController(vsync: this, duration: widget.toastState.duration * 0.15);
     opacity = Tween<double>(begin: 0, end: 1)
         .chain(CurveTween(curve: Curves.easeInOut))
         .animate(opacityCtrl);
@@ -48,10 +47,8 @@ class _ToastState extends State<Toast> with TickerProviderStateMixin {
       if (this.mounted) opacityCtrl.reverse();
     });
 
-    wiggleCtrl = AnimationController(
-        vsync: this, value: 0.5, duration: Duration(milliseconds: 60));
-    wiggle = Tween<Offset>(begin: Offset(-3, 0), end: Offset(3, 0))
-        .animate(wiggleCtrl);
+    wiggleCtrl = AnimationController(vsync: this, value: 0.5, duration: Duration(milliseconds: 60));
+    wiggle = Tween<Offset>(begin: Offset(-3, 0), end: Offset(3, 0)).animate(wiggleCtrl);
 
     opacityCtrl.forward();
     startWiggle();
@@ -96,8 +93,7 @@ class _ToastState extends State<Toast> with TickerProviderStateMixin {
               color: widget.toastState.angery ? Colors.red : Colors.grey[600]!,
               width: widget.toastState.angery ? 4 : 1,
             ),
-            borderRadius: BorderRadius.all(
-                Radius.circular(widget.toastState.angery ? 8 : 4)),
+            borderRadius: BorderRadius.all(Radius.circular(widget.toastState.angery ? 8 : 4)),
           ),
           child: Text(widget.toastState.text),
         ),

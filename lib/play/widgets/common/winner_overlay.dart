@@ -114,8 +114,8 @@ class _WinnerOverlayState extends State<WinnerOverlay> {
                     // SizedBox(height: 64),
 
                     ConstrainedBox(
-                      constraints: BoxConstraints.expand(
-                          height: MediaQuery.of(context).size.height * 0.2),
+                      constraints:
+                          BoxConstraints.expand(height: MediaQuery.of(context).size.height * 0.2),
                       child: FittedBox(
                         child: (winDetails is WinDetailsDraw)
                             ? Text(
@@ -142,9 +142,7 @@ class _WinnerOverlayState extends State<WinnerOverlay> {
                                       ),
                                       SizedBox(height: 8),
                                       Text(
-                                        widget
-                                            .playerNames(winDetails.winner)
-                                            .toUpperCase(),
+                                        widget.playerNames(winDetails.winner).toUpperCase(),
                                         style: TextStyle(
                                           fontSize: 98,
                                           fontWeight: FontWeight.w900,
@@ -154,14 +152,11 @@ class _WinnerOverlayState extends State<WinnerOverlay> {
                                       ),
                                       widget.ranked
                                           ? TweenAnimationBuilder(
-                                              tween:
-                                                  IntTween(begin: 1, end: 25),
+                                              tween: IntTween(begin: 1, end: 25),
                                               curve: Curves.easeInOutQuart,
-                                              duration:
-                                                  Duration(milliseconds: 1800),
+                                              duration: Duration(milliseconds: 1800),
                                               builder: (ctx, int value, child) {
-                                                if (value % 3 == 0)
-                                                  Vibrations.tiny();
+                                                if (value % 3 == 0) Vibrations.tiny();
                                                 return Text(
                                                   (winDetails.me ? "+" : "-") +
                                                       value.toString() +
@@ -178,8 +173,7 @@ class _WinnerOverlayState extends State<WinnerOverlay> {
                                           : SizedBox()
                                     ],
                                   )
-                                : throw UnimplementedError(
-                                    "Another WinDetails class?"),
+                                : throw UnimplementedError("Another WinDetails class?"),
                       ),
                     ),
                     // Expanded(child: Container()),

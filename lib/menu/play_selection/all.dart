@@ -73,8 +73,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
     if (shownDialogCount <= 2) {
       await showDialog(
         context: context,
-        builder: (ctx) =>
-            OnlineInfoDialog(howManyMoreTimes: 2 - shownDialogCount),
+        builder: (ctx) => OnlineInfoDialog(howManyMoreTimes: 2 - shownDialogCount),
       );
       FiarSharedPrefs.shownOnlineDialogCount = shownDialogCount + 1;
     }
@@ -175,8 +174,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
         Stack(
           children: [
             Selector<GameStateManager, bool>(
-              selector: (_, gsm) =>
-                  gsm.currentGameState is WaitingForWWOpponentState,
+              selector: (_, gsm) => gsm.currentGameState is WaitingForWWOpponentState,
               builder: (_, isInQueue, __) => PlaySelectionScreen(
                 index: 0,
                 title: 'Online',
@@ -196,8 +194,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
               showTransition: true,
               description: 'Two players, one device!',
               offset: offset,
-              pushRoute: () =>
-                  Navigator.of(context).push(fadeRoute(PlayingLocal())),
+              pushRoute: () => Navigator.of(context).push(fadeRoute(PlayingLocal())),
               bgColor: Colors.blueAccent,
             ),
             PlaySelectionScreen(
@@ -207,8 +204,8 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
               showTransition: true,
               description: 'You against the machine!',
               offset: offset,
-              pushRoute: () => Navigator.of(context)
-                  .push(fadeRoute(PlayingCPU(difficulty: _selectedDificulty))),
+              pushRoute: () =>
+                  Navigator.of(context).push(fadeRoute(PlayingCPU(difficulty: _selectedDificulty))),
               bgColor: Colors.blueAccent,
             ),
           ],
@@ -338,11 +335,9 @@ class SwitchPageButton extends StatelessWidget {
           onPressed: () {
             forward
                 ? pageCtrl.nextPage(
-                    duration: Duration(milliseconds: 600),
-                    curve: Curves.easeOutQuart)
+                    duration: Duration(milliseconds: 600), curve: Curves.easeOutQuart)
                 : pageCtrl.previousPage(
-                    duration: Duration(milliseconds: 600),
-                    curve: Curves.easeOutQuart);
+                    duration: Duration(milliseconds: 600), curve: Curves.easeOutQuart);
           }),
     );
   }
@@ -367,8 +362,7 @@ class _WavesState extends State<Waves> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    offsetAnim =
-        new AnimationController(duration: Duration(seconds: 12), vsync: this);
+    offsetAnim = new AnimationController(duration: Duration(seconds: 12), vsync: this);
     offsetTween = Tween(
       begin: Offset(0, viewHeight / 128 + 4),
       end: Offset(0, -1),
@@ -385,8 +379,7 @@ class _WavesState extends State<Waves> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        offsetAnim.animateTo(offsetAnim.value + 0.3,
-            duration: Duration(milliseconds: 200));
+        offsetAnim.animateTo(offsetAnim.value + 0.3, duration: Duration(milliseconds: 200));
       },
       child: SlideTransition(
         position: offsetAnim.drive(offsetTween),
@@ -450,8 +443,7 @@ class SwipeDialog extends StatefulWidget {
   _SwipeDialogState createState() => _SwipeDialogState();
 }
 
-class _SwipeDialogState extends State<SwipeDialog>
-    with SingleTickerProviderStateMixin {
+class _SwipeDialogState extends State<SwipeDialog> with SingleTickerProviderStateMixin {
   late AnimationController tooltipAnimCtrl;
 
   bool _show = false;
@@ -514,10 +506,8 @@ class _SwipeDialogState extends State<SwipeDialog>
                         // height:
                         //
                         // ),
-                        width:
-                            min(MediaQuery.of(context).size.width * 0.8, 256),
-                        height:
-                            min(MediaQuery.of(context).size.height * 0.4, 130),
+                        width: min(MediaQuery.of(context).size.width * 0.8, 256),
+                        height: min(MediaQuery.of(context).size.height * 0.4, 130),
                         // height: double.infinity,
                         // width: double.infinity,
                         decoration: BoxDecoration(
@@ -573,20 +563,17 @@ class _SwipeDialogState extends State<SwipeDialog>
                         Spacer(flex: 1),
                         AnimatedBuilder(
                           animation: tooltipAnimCtrl,
-                          builder: (ctx, child) => Opacity(
-                              child: child, opacity: tooltipAnimCtrl.value),
+                          builder: (ctx, child) =>
+                              Opacity(child: child, opacity: tooltipAnimCtrl.value),
                           child: Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 18, vertical: 14),
+                            padding: EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                             // width: 190,
                             decoration: BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(6)),
+                              borderRadius: BorderRadius.all(Radius.circular(6)),
                               color: Colors.white.withOpacity(0.82),
                             ),
                             child: Text('Try swiping from side to side!',
-                                style: TextStyle(
-                                    fontSize: 16, color: Colors.black87)),
+                                style: TextStyle(fontSize: 16, color: Colors.black87)),
                           ),
                         ),
                         Spacer(flex: 2),
@@ -610,27 +597,25 @@ class SlideIndicator extends StatefulWidget {
   _SlideIndicatorState createState() => _SlideIndicatorState();
 }
 
-class _SlideIndicatorState extends State<SlideIndicator>
-    with SingleTickerProviderStateMixin {
+class _SlideIndicatorState extends State<SlideIndicator> with SingleTickerProviderStateMixin {
   late AnimationController animCtrl;
   late CurveTween fade;
 
   @override
   void initState() {
     super.initState();
-    animCtrl =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 1400))
-          ..forward()
-          ..addStatusListener((status) {
-            if (status == AnimationStatus.completed) {
-              Future.delayed(Duration(milliseconds: 500), () {
-                if (mounted) {
-                  animCtrl.reset();
-                  animCtrl.forward();
-                }
-              });
+    animCtrl = AnimationController(vsync: this, duration: Duration(milliseconds: 1400))
+      ..forward()
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          Future.delayed(Duration(milliseconds: 500), () {
+            if (mounted) {
+              animCtrl.reset();
+              animCtrl.forward();
             }
           });
+        }
+      });
     fade = CurveTween(curve: Curves.easeOutCubic);
 
     // moveLeft = Tween<double>(begin: 0, )
@@ -666,9 +651,7 @@ class _SlideIndicatorState extends State<SlideIndicator>
               opacity: 1 - animCtrl.value,
               child: Transform.translate(
                 offset: Offset(
-                  MediaQuery.of(context).size.width *
-                      0.5 *
-                      (1 - fade.animate(animCtrl).value),
+                  MediaQuery.of(context).size.width * 0.5 * (1 - fade.animate(animCtrl).value),
                   0,
                 ),
                 child: child,

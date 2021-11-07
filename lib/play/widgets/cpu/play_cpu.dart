@@ -129,8 +129,7 @@ class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.info_outline,
-                            color: Colors.grey.shade600),
+                        icon: Icon(Icons.info_outline, color: Colors.grey.shade600),
                         iconSize: 20,
                         onPressed: () {
                           showDialog(

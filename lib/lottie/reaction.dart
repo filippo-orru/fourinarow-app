@@ -18,8 +18,7 @@ class LottieReaction extends StatefulWidget {
   _LottieReactionState createState() => _LottieReactionState();
 }
 
-class _LottieReactionState extends State<LottieReaction>
-    with SingleTickerProviderStateMixin {
+class _LottieReactionState extends State<LottieReaction> with SingleTickerProviderStateMixin {
   bool active = false;
 
   late final AnimationController _controller;

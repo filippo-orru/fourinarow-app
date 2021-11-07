@@ -11,18 +11,15 @@ class WinningGameChip extends StatefulWidget {
   _WinningGameChipState createState() => _WinningGameChipState();
 }
 
-class _WinningGameChipState extends State<WinningGameChip>
-    with SingleTickerProviderStateMixin {
+class _WinningGameChipState extends State<WinningGameChip> with SingleTickerProviderStateMixin {
   late Animation<double> animation;
   late AnimationController animController;
 
   @override
   initState() {
     super.initState();
-    animController =
-        AnimationController(duration: Duration(milliseconds: 700), vsync: this);
-    animation =
-        CurvedAnimation(curve: Curves.easeInOutQuint, parent: animController);
+    animController = AnimationController(duration: Duration(milliseconds: 700), vsync: this);
+    animation = CurvedAnimation(curve: Curves.easeInOutQuint, parent: animController);
 
     // Future.delayed(Duration(milliseconds: 200), () {
     animController.forward();
@@ -60,8 +57,7 @@ class GameChip extends StatefulWidget {
   _GameChipState createState() => _GameChipState();
 }
 
-class _GameChipState extends State<GameChip>
-    with SingleTickerProviderStateMixin {
+class _GameChipState extends State<GameChip> with SingleTickerProviderStateMixin {
   late Animation<double> animation;
   late AnimationController animController;
 
@@ -77,8 +73,7 @@ class _GameChipState extends State<GameChip>
       vsync: this,
     );
 
-    animation =
-        CurvedAnimation(curve: Curves.easeOutSine, parent: animController);
+    animation = CurvedAnimation(curve: Curves.easeOutSine, parent: animController);
 
     animController.forward();
   }

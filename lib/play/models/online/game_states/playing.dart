@@ -83,9 +83,7 @@ class PlayingState extends GameState {
         showPopup("Opponent left");
       }
       // return Idle(widget.sink);
-    } else if (msg is MsgLobbyClosing &&
-        !this.leaving &&
-        !this.opponentInfo.hasLeft) {
+    } else if (msg is MsgLobbyClosing && !this.leaving && !this.opponentInfo.hasLeft) {
       return IdleState(gsm);
       // TODO: do I need this?
 

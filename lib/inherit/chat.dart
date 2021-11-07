@@ -28,8 +28,7 @@ class ChatState with ChangeNotifier {
             unread += 1;
           }
         } else {
-          ingameMessages
-              .add(ChatMessage(SenderOther(msg.senderName), msg.content));
+          ingameMessages.add(ChatMessage(SenderOther(msg.senderName), msg.content));
         }
         notifyListeners();
       } else if (msg is MsgChatRead) {
@@ -57,15 +56,12 @@ class ChatState with ChangeNotifier {
     (ingameMessage ? ingameMessages : messages).add(msg);
 
     await Future.delayed(Duration(milliseconds: 85));
-    var success =
-        await _serverConnection.send(PlayerMsgChatMessage(msg.content));
+    var success = await _serverConnection.send(PlayerMsgChatMessage(msg.content));
 
     if (success) {
-      (ingameMessage ? ingameMessages : messages).last.state =
-          ConfirmationState.Received;
+      (ingameMessage ? ingameMessages : messages).last.state = ConfirmationState.Received;
     } else {
-      (ingameMessage ? ingameMessages : messages).last.state =
-          ConfirmationState.Error;
+      (ingameMessage ? ingameMessages : messages).last.state = ConfirmationState.Error;
     }
     notifyListeners();
     return success;

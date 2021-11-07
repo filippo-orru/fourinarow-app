@@ -60,19 +60,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               title: Text('Do you want to log out?'),
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
                                   child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       TextButton(
                                         style: TextButton.styleFrom(
                                           primary: Colors.black87,
                                         ),
                                         child: Text('Cancel'),
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(),
+                                        onPressed: () => Navigator.of(context).pop(),
                                       ),
                                       OutlinedButton(
                                         style: OutlinedButton.styleFrom(
@@ -94,8 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ],
                             ));
                   } else {
-                    Navigator.of(context)
-                        .push(slideUpRoute(AccountOnboarding()));
+                    Navigator.of(context).push(slideUpRoute(AccountOnboarding()));
                   }
                 }),
           ),
@@ -107,9 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Icon(Icons.vibration_rounded),
             ),
             title: Text('Vibration'),
-            subtitle: _canVibrate == false
-                ? Text('Your device does not support vibration')
-                : null,
+            subtitle: _canVibrate == false ? Text('Your device does not support vibration') : null,
             onTap: () {
               setState(() => FiarSharedPrefs.settingsAllowVibrate = !vibrate);
             },
@@ -117,8 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: vibrate,
               onChanged: _canVibrate == true
                   ? (shouldVibrate) {
-                      setState(() =>
-                          FiarSharedPrefs.settingsAllowVibrate = shouldVibrate);
+                      setState(() => FiarSharedPrefs.settingsAllowVibrate = shouldVibrate);
                     }
                   : null,
             ),
@@ -134,8 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   : Icons.notifications_none_rounded),
             ),
             title: Text('Notifications'),
-            subtitle: Text(
-                "Notify when a game was found or a friend wants to battle"),
+            subtitle: Text("Notify when a game was found or a friend wants to battle"),
             onTap: () {
               setState(() {
                 FiarSharedPrefs.settingsAllowNotifications = !showNotifications;
@@ -145,8 +137,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: showNotifications,
               onChanged: (shouldShowNotifications) {
                 setState(() {
-                  FiarSharedPrefs.settingsAllowNotifications =
-                      shouldShowNotifications;
+                  FiarSharedPrefs.settingsAllowNotifications = shouldShowNotifications;
                 });
               },
             ),
@@ -161,8 +152,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: Text('Quick Chat Emojis'),
             subtitle: Text("Communicate with your opponent"),
             onTap: () {
-              showDialog(
-                  context: context, builder: (_) => ChooseQuickchatEmojis());
+              showDialog(context: context, builder: (_) => ChooseQuickchatEmojis());
             },
           ),
           ListTile(
@@ -192,13 +182,10 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
   Map<String, bool> emojiSelectState = {};
 
   bool _allowSave() =>
-      emojiSelectState.values.where((selected) => selected).length ==
-      QUICKCHAT_EMOJI_COUNT;
+      emojiSelectState.values.where((selected) => selected).length == QUICKCHAT_EMOJI_COUNT;
 
-  List<String> get _selectedEmojis => emojiSelectState.entries
-      .where((entry) => entry.value)
-      .map((entry) => entry.key)
-      .toList();
+  List<String> get _selectedEmojis =>
+      emojiSelectState.entries.where((entry) => entry.value).map((entry) => entry.key).toList();
 
   String get _selectedEmojisString => _selectedEmojis.join(" ");
 
@@ -206,9 +193,8 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
   void initState() {
     super.initState();
 
-    emojiSelectState = ALLOWED_QUICKCHAT_EMOJIS.asMap().map((_, emoji) =>
-        MapEntry(
-            emoji, FiarSharedPrefs.settingsQuickchatEmojis.contains(emoji)));
+    emojiSelectState = ALLOWED_QUICKCHAT_EMOJIS.asMap().map(
+        (_, emoji) => MapEntry(emoji, FiarSharedPrefs.settingsQuickchatEmojis.contains(emoji)));
   }
 
   @override
@@ -231,8 +217,7 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
             mainAxisSize: MainAxisSize.max,
             children: [
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                 child: Text(
                   'Quick Chat Emojis',
                   style: TextStyle(
@@ -246,8 +231,7 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
               Expanded(
                 child: CustomScrollView(shrinkWrap: true, slivers: <Widget>[
                   SliverGrid(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4),
                     delegate: SliverChildListDelegate(
                       ALLOWED_QUICKCHAT_EMOJIS.map<Widget>((emoji) {
                         bool isSelected = emojiSelectState[emoji] ?? false;
@@ -255,15 +239,12 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
                           padding: const EdgeInsets.all(4),
                           child: GestureDetector(
                             onTap: () {
-                              setState(
-                                  () => emojiSelectState[emoji] = !isSelected);
+                              setState(() => emojiSelectState[emoji] = !isSelected);
                             },
                             child: AnimatedContainer(
                               duration: Duration(milliseconds: 150),
                               decoration: BoxDecoration(
-                                color: (isSelected
-                                        ? Colors.blue.shade500
-                                        : Colors.blue.shade50)
+                                color: (isSelected ? Colors.blue.shade500 : Colors.blue.shade50)
                                     .withOpacity(0.4),
                                 borderRadius: BorderRadius.circular(4),
                               ),
@@ -271,8 +252,7 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
                               alignment: Alignment.center,
                               child: FittedBox(
                                 fit: BoxFit.contain,
-                                child: Text(emoji,
-                                    style: TextStyle(fontSize: 300)),
+                                child: Text(emoji, style: TextStyle(fontSize: 300)),
                               ),
                             ),
                           ),
@@ -289,14 +269,12 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: AnimatedSwitcher(
                     duration: Duration(milliseconds: 200),
-                    transitionBuilder:
-                        (Widget child, Animation<double> animation) {
+                    transitionBuilder: (Widget child, Animation<double> animation) {
                       return FadeTransition(
                         opacity: animation,
                         child: SlideTransition(
                           child: child,
-                          position: Tween<Offset>(
-                                  begin: Offset(0.1, 0), end: Offset(0.0, 0.0))
+                          position: Tween<Offset>(begin: Offset(0.1, 0), end: Offset(0.0, 0.0))
                               .animate(animation),
                         ),
                       );
@@ -334,8 +312,7 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
                           child: Text('Save'),
                           onPressed: _allowSave()
                               ? () {
-                                  FiarSharedPrefs.settingsQuickchatEmojis =
-                                      _selectedEmojis;
+                                  FiarSharedPrefs.settingsQuickchatEmojis = _selectedEmojis;
                                   Navigator.of(context).pop();
                                 }
                               : null,
@@ -345,9 +322,7 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
                     TweenAnimationBuilder(
                       tween: ColorTween(
                           begin: Colors.black54,
-                          end: _allowSave()
-                              ? Colors.black54
-                              : Colors.red.shade400),
+                          end: _allowSave() ? Colors.black54 : Colors.red.shade400),
                       duration: Duration(milliseconds: 220),
                       builder: (_, color, __) => Text(
                         'Selected ${_selectedEmojis.length} of $QUICKCHAT_EMOJI_COUNT',

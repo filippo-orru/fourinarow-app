@@ -43,16 +43,14 @@ class _BattleRequestPopupState extends State<BattleRequestPopup>
   Future<void> hide() async {
     if (!mounted) return;
 
-    await animCtrl.animateTo(1.0,
-        duration: slideDuration, curve: Curves.easeIn);
+    await animCtrl.animateTo(1.0, duration: slideDuration, curve: Curves.easeIn);
   }
 
   @override
   void initState() {
     super.initState();
     animCtrl = AnimationController(vsync: this, duration: slideDuration);
-    slideAnim = Tween<Offset>(begin: Offset(0.5, 0), end: Offset(-0.5, 0))
-        .animate(animCtrl);
+    slideAnim = Tween<Offset>(begin: Offset(0.5, 0), end: Offset(-0.5, 0)).animate(animCtrl);
     animCtrl.animateTo(0.5, curve: Curves.easeOut);
 
     Future.delayed(BattleRequestPopup.DURATION - slideDuration, hide);
@@ -87,9 +85,7 @@ class _BattleRequestPopupState extends State<BattleRequestPopup>
       builder: (ctx, Widget? child) {
         // print("slideAnim.value: ${slideAnim.value}");
         return Opacity(
-          opacity: animCtrl.value <= 0.5
-              ? 2 * animCtrl.value
-              : 2 - 2 * animCtrl.value,
+          opacity: animCtrl.value <= 0.5 ? 2 * animCtrl.value : 2 - 2 * animCtrl.value,
           child: Transform.translate(
             offset: slideAnim.value * 150,
             child: child,
@@ -162,8 +158,7 @@ class _BattleRequestPopupState extends State<BattleRequestPopup>
               ),
             ),
             CountDownBar(
-                value: remaining!.inMilliseconds /
-                    BattleRequestPopup.DURATION.inMilliseconds),
+                value: remaining!.inMilliseconds / BattleRequestPopup.DURATION.inMilliseconds),
           ],
         ),
       ),

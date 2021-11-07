@@ -55,8 +55,8 @@ class _InLobbyReadyViewerState extends State<InLobbyReadyViewer> {
   initState() {
     super.initState();
     Vibrations.gameFound();
-    longerThanExpectedTimer = Timer(
-        Duration(seconds: 3), () => setState(() => longerThanExpected = true));
+    longerThanExpectedTimer =
+        Timer(Duration(seconds: 3), () => setState(() => longerThanExpected = true));
   }
 
   @override
@@ -82,8 +82,7 @@ class _InLobbyReadyViewerState extends State<InLobbyReadyViewer> {
                   return Opacity(
                     opacity: 2 * opacity,
                     child: Transform.translate(
-                      offset:
-                          Offset.lerp(Offset(-100, 0), Offset(100, 0), value)!,
+                      offset: Offset.lerp(Offset(-100, 0), Offset(100, 0), value)!,
                       child: child,
                     ),
                   );

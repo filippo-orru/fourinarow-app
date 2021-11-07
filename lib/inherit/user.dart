@@ -89,8 +89,7 @@ class UserInfo with ChangeNotifier {
 
     if (sessionToken != null) {
       http
-          .post(Uri.parse("${constants.HTTP_URL}/api/users/logout"),
-              headers: _headers()!)
+          .post(Uri.parse("${constants.HTTP_URL}/api/users/logout"), headers: _headers()!)
           .toNullable()
           .timeout(Duration(seconds: 4), onTimeout: () => null)
           .onError((e, __) {
@@ -133,8 +132,7 @@ class UserInfo with ChangeNotifier {
     var headers = _headers();
     if (headers == null) return false;
 
-    var response = await _client.delete(
-        Uri.parse("${constants.HTTP_URL}/api/users/me/friends/$id"),
+    var response = await _client.delete(Uri.parse("${constants.HTTP_URL}/api/users/me/friends/$id"),
         headers: headers);
     if (response.statusCode == 200) {
       if (callback != null) {
@@ -187,8 +185,7 @@ class UserInfo with ChangeNotifier {
         this.user = user;
       } else if (response?.statusCode == 403) {
         // incorrect credentials
-        debugPrint(
-            "Logging out. Session token $sessionToken seems to have expired");
+        debugPrint("Logging out. Session token $sessionToken seems to have expired");
         this.logOut();
       }
       offline = false;
@@ -280,17 +277,14 @@ extension FriendStateExtension on FriendState {
       case FriendState.IsRequestedByMe:
         return Icon(Icons.outgoing_mail, color: color ?? Colors.black45);
       case FriendState.HasRequestedMe:
-        return Icon(Icons.move_to_inbox_rounded,
-            color: color ?? Colors.black45);
+        return Icon(Icons.move_to_inbox_rounded, color: color ?? Colors.black45);
       case FriendState.None:
         return Icon(Icons.person_add, color: color ?? Colors.black45);
       case FriendState.Loading:
         return Container(
           width: 24,
           height: 24,
-          child: Theme(
-              data: ThemeData(accentColor: color),
-              child: CircularProgressIndicator()),
+          child: Theme(data: ThemeData(accentColor: color), child: CircularProgressIndicator()),
         );
       default:
         throw new UnimplementedError();
@@ -339,8 +333,7 @@ class PublicUser {
   FriendState friendState;
   bool isPlaying;
 
-  PublicUser(this.id, this.username, this.gameInfo, this.friendState,
-      {this.isPlaying = false});
+  PublicUser(this.id, this.username, this.gameInfo, this.friendState, {this.isPlaying = false});
 
   static PublicUser? fromMapPublic(User? me, Map<String, dynamic> map) {
     for (String key in ['username', 'game_info', 'id', 'playing']) {
@@ -404,19 +397,12 @@ class User extends Equatable {
   final GameInfo gameInfo;
 
   static User? fromMap(Map<String, dynamic> map) {
-    for (String key in [
-      'id',
-      'username',
-      'game_info',
-      'friendships',
-      'email'
-    ]) {
+    for (String key in ['id', 'username', 'game_info', 'friendships', 'email']) {
       if (!map.containsKey(key)) return null;
     }
 
     List<PublicUser> friends = (map['friendships'] as List<dynamic>)
-        .map((dynamic friendMap) =>
-            PublicUser.fromMapFriends(friendMap as Map<String, dynamic>))
+        .map((dynamic friendMap) => PublicUser.fromMapFriends(friendMap as Map<String, dynamic>))
         .toList()
         .filterNotNull();
 

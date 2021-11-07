@@ -21,9 +21,8 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<int>? registerFuture;
 
   void onPressed() async {
-    registerFuture = context
-        .read<UserInfo>()
-        .register(widget.usernameCtrl.text, widget.pwCtrl.text);
+    registerFuture =
+        context.read<UserInfo>().register(widget.usernameCtrl.text, widget.pwCtrl.text);
 
     setState(() {});
     if (await registerFuture == 200) {
@@ -69,14 +68,12 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Center(
                           child: snapshot.hasData
                               ? Container(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 24, vertical: 18),
+                                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 18),
                                   // height: 100,
                                   width: 220,
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(4)),
+                                    borderRadius: BorderRadius.all(Radius.circular(4)),
                                   ),
                                   child: Text(
                                     textFromStatuscode(snapshot.data),
@@ -89,8 +86,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ? Container(
                                       color: Colors.white,
                                       padding: EdgeInsets.all(12),
-                                      child:
-                                          Text("${snapshot.error}\nTry again!"),
+                                      child: Text("${snapshot.error}\nTry again!"),
                                     )
                                   : CircularProgressIndicator(),
                         ),

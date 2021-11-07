@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
@@ -12,15 +13,12 @@ class Vibrations {
       try {
         if (await Vibrate.canVibrate) {
           _canVibrate = true;
-
-          return true;
         }
-      } catch (MissingPluginException) {}
-      _canVibrate = false;
-      return false;
-    } else {
-      return _canVibrate!;
+      } on MissingPluginException {
+        _canVibrate = false;
+      }
     }
+    return _canVibrate!;
   }
 
   static FutureOr<bool> get shouldVibrate async {

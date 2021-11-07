@@ -21,9 +21,7 @@ class LifecycleProvider extends StatefulWidget {
   LifecycleProviderState createState() => LifecycleProviderState();
 
   static LifecycleProviderState? of(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<_LifecycleInherit>()
-        ?.state;
+    return context.dependOnInheritedWidgetOfExactType<_LifecycleInherit>()?.state;
   }
 }
 

@@ -39,9 +39,7 @@ class EasyCpu extends Cpu {
       final fieldCopy = FieldPlaying.from(field.clone());
       fieldCopy.dropChipNamed(col, cpu, vibrate: false);
       var winDetails = fieldCopy.checkWin();
-      if (winDetails != null &&
-          winDetails is WinDetailsWinner &&
-          winDetails.winner == cpu.other) {
+      if (winDetails != null && winDetails is WinDetailsWinner && winDetails.winner == cpu.other) {
         foundColumn = false;
       }
       tries += 1;
@@ -80,8 +78,7 @@ class HardCpu extends MediumCpu {
     final List<double> scores = List.filled(Field.size, 0);
 
     //await Future.delayed(Duration(seconds: 2 + _random.nextInt(2)));
-    return await compute(
-        _compute, ComputeDetails(cpu, field, 0, 3, scores, _random));
+    return await compute(_compute, ComputeDetails(cpu, field, 0, 3, scores, _random));
   }
 
   @override
@@ -99,8 +96,7 @@ class ComputeDetails {
   final List<double?> scores;
   final Random random;
 
-  ComputeDetails(this.cpuPlayer, this.field, this.step, this.deepness,
-      this.scores, this.random);
+  ComputeDetails(this.cpuPlayer, this.field, this.step, this.deepness, this.scores, this.random);
 }
 
 int _compute(ComputeDetails details) {
@@ -129,19 +125,13 @@ int _compute(ComputeDetails details) {
       fieldCopy.dropChipNamed(j, details.cpuPlayer, vibrate: false);
       if (fieldCopy.checkWin() != null) {
         var score = details.scores[i];
-        details.scores[i] =
-            (score ?? 0) - details.deepness / (details.step + 1);
+        details.scores[i] = (score ?? 0) - details.deepness / (details.step + 1);
         continue;
       }
 
       if (details.step + 1 < details.deepness) {
-        ComputeDetails newDetails = ComputeDetails(
-            details.cpuPlayer,
-            details.field,
-            details.step + 1,
-            details.deepness,
-            details.scores,
-            details.random);
+        ComputeDetails newDetails = ComputeDetails(details.cpuPlayer, details.field,
+            details.step + 1, details.deepness, details.scores, details.random);
         _compute(newDetails);
       }
     }

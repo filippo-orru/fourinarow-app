@@ -32,8 +32,7 @@ class RateTheGameDialog extends StatefulWidget {
   _RateTheGameDialogState createState() => _RateTheGameDialogState();
 }
 
-class _RateTheGameDialogState extends State<RateTheGameDialog>
-    with SingleTickerProviderStateMixin {
+class _RateTheGameDialogState extends State<RateTheGameDialog> with SingleTickerProviderStateMixin {
   RateDialogState state = RDSIdle();
 
   void highRating() {
@@ -55,9 +54,7 @@ class _RateTheGameDialogState extends State<RateTheGameDialog>
             TextSpan(
                 text:
                     "My name's Filippo and I develop this game in my free time. Help me make it even better by donating or "),
-            TextSpan(
-                text: "rating the game",
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: "rating the game", style: TextStyle(fontWeight: FontWeight.bold)),
           ]),
           style: TextStyle(
             fontSize: 18,
@@ -99,8 +96,7 @@ class _RateTheGameDialogState extends State<RateTheGameDialog>
     } else if (state is RDSHighRating) {
       return [
         FiveStarsPicker(number: state.number),
-        Text(
-            'Thanks!\nWould you also rate on the Google Play Store?\nIt helps me a lot! 🙂'),
+        Text('Thanks!\nWould you also rate on the Google Play Store?\nIt helps me a lot! 🙂'),
         SizedBox(height: 32),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -109,8 +105,7 @@ class _RateTheGameDialogState extends State<RateTheGameDialog>
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child:
-                  Text('No thanks', style: TextStyle(color: Colors.grey[500])),
+              child: Text('No thanks', style: TextStyle(color: Colors.grey[500])),
             ),
             ElevatedButton(
               child: Text('Rate!'),
@@ -171,8 +166,7 @@ class FiveStarsPicker extends StatefulWidget {
   _FiveStarsPickerState createState() => _FiveStarsPickerState();
 }
 
-class _FiveStarsPickerState extends State<FiveStarsPicker>
-    with SingleTickerProviderStateMixin {
+class _FiveStarsPickerState extends State<FiveStarsPicker> with SingleTickerProviderStateMixin {
   final Duration perStarDuration = Duration(milliseconds: 150);
 
   Timer? selectedDelay;
@@ -268,8 +262,7 @@ class _FiveStarsPickerState extends State<FiveStarsPicker>
                         }).toList(),
                       ),
                       child: AnimatedBuilder(
-                        animation: changeSelectionAnim
-                            .drive(CurveTween(curve: Curves.easeInOut)),
+                        animation: changeSelectionAnim.drive(CurveTween(curve: Curves.easeInOut)),
                         builder: (_, __) => Container(
                           width: ((changeSelectionAnim.value) / 5) * 150,
                           height: 24,
@@ -287,15 +280,12 @@ class _FiveStarsPickerState extends State<FiveStarsPicker>
                               var onPick = widget.onPick;
                               if (onPick != null) {
                                 // print("ONTAP: $i");
-                                animSelectionGoalDelta =
-                                    i - changeSelectionAnim.value.ceil();
+                                animSelectionGoalDelta = i - changeSelectionAnim.value.ceil();
                                 checkAnimation();
 
                                 selectedDelay?.cancel();
                                 selectedDelay = Timer(
-                                    perStarDuration *
-                                        (animSelectionGoalDelta.abs() + 2.5),
-                                    () {
+                                    perStarDuration * (animSelectionGoalDelta.abs() + 2.5), () {
                                   onPick(i);
                                 });
                               }
@@ -352,11 +342,9 @@ class _BounceWidgetState extends State<BounceWidget> {
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder(
-      tween: Tween<double>(
-          begin: 1, end: widget.active ? widget.maxScaleFactor : 1),
+      tween: Tween<double>(begin: 1, end: widget.active ? widget.maxScaleFactor : 1),
       duration: Duration(milliseconds: widget.duration),
-      builder: (ctx, value, child) =>
-          Transform.scale(scale: value as double, child: child),
+      builder: (ctx, value, child) => Transform.scale(scale: value as double, child: child),
       child: widget.child,
     );
   }
@@ -384,8 +372,7 @@ class RenderWidgetMask extends RenderStack {
 
     final paintContent = (PaintingContext context, Offset offset) {
       // Paint all but the first child
-      RenderBox? child =
-          (firstChild!.parentData as StackParentData?)?.nextSibling;
+      RenderBox? child = (firstChild!.parentData as StackParentData?)?.nextSibling;
       while (child != null) {
         final childParentData = child.parentData as StackParentData;
         context.paintChild(lastChild!, offset + childParentData.offset);
@@ -394,14 +381,12 @@ class RenderWidgetMask extends RenderStack {
     };
 
     final paintMask = (PaintingContext context, Offset offset) {
-      context.paintChild(firstChild!,
-          offset + (firstChild!.parentData as StackParentData).offset);
+      context.paintChild(firstChild!, offset + (firstChild!.parentData as StackParentData).offset);
     };
 
     final paintEverything = (PaintingContext context, Offset offset) {
       paintContent(context, offset);
-      context.canvas
-          .saveLayer(offset & size, Paint()..blendMode = BlendMode.dstIn);
+      context.canvas.saveLayer(offset & size, Paint()..blendMode = BlendMode.dstIn);
       paintMask(context, offset);
       context.canvas.restore();
     };

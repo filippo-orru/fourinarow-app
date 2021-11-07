@@ -18,8 +18,7 @@ class OverlayDialog extends StatefulWidget {
   _OverlayDialogState createState() => _OverlayDialogState();
 }
 
-class _OverlayDialogState extends State<OverlayDialog>
-    with SingleTickerProviderStateMixin {
+class _OverlayDialogState extends State<OverlayDialog> with SingleTickerProviderStateMixin {
   static const Duration DURATION = Duration(milliseconds: 200);
   late AnimationController animCtrl;
   late Animation<double> opacityAnim;
@@ -82,8 +81,7 @@ class _OverlayDialogState extends State<OverlayDialog>
       children: [
         AnimatedBuilder(
           animation: animCtrl,
-          builder: (ctx, child) =>
-              Opacity(opacity: opacityAnim.value, child: child),
+          builder: (ctx, child) => Opacity(opacity: opacityAnim.value, child: child),
           child: this.show
               ? GestureDetector(
                   onTap: () => _hide(true),
@@ -110,8 +108,7 @@ class _OverlayDialogState extends State<OverlayDialog>
             margin: MediaQuery.of(context).viewInsets,
             child: AnimatedBuilder(
               animation: animCtrl,
-              builder: (ctx, child) =>
-                  Opacity(opacity: opacityAnim.value, child: child),
+              builder: (ctx, child) => Opacity(opacity: opacityAnim.value, child: child),
               child: this.show
                   ? GestureDetector(
                       behavior: HitTestBehavior.opaque,

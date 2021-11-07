@@ -11,8 +11,7 @@ abstract class Field {
 
   Field({List<List<Player?>>? array}) {
     this._array = array ??
-        List.generate(
-            Field.size, (_) => List.filled(Field.size, null, growable: false),
+        List.generate(Field.size, (_) => List.filled(Field.size, null, growable: false),
             growable: false);
   }
 
@@ -22,10 +21,8 @@ abstract class Field {
 
   List<List<Player?>> clone() {
     return array
-        .map((col) => col
-            .map((p) =>
-                p == null ? null : (p == Player.One ? Player.One : Player.Two))
-            .toList())
+        .map((col) =>
+            col.map((p) => p == null ? null : (p == Player.One ? Player.One : Player.Two)).toList())
         .toList();
   }
 }
@@ -34,8 +31,7 @@ class FieldFinished extends Field {
   final WinDetails winDetails;
   bool waitingToPlayAgain = false;
 
-  FieldFinished(this.winDetails, List<List<Player?>> array)
-      : super(array: array);
+  FieldFinished(this.winDetails, List<List<Player?>> array) : super(array: array);
 }
 
 class FieldPlaying extends Field {
@@ -51,8 +47,7 @@ class FieldPlaying extends Field {
   FieldPlaying.from(List<List<Player?>>? array) : super(array: array);
 
   void reset() {
-    _array = List.generate(
-        Field.size, (_) => List.filled(Field.size, null, growable: false),
+    _array = List.generate(Field.size, (_) => List.filled(Field.size, null, growable: false),
         growable: false);
     turn = Player.One;
     lastPlacedChip = null;
@@ -67,9 +62,7 @@ class FieldPlaying extends Field {
   }
 
   void dropChipNamed(int column, Player p, {bool vibrate = true}) {
-    if (column < Field.size &&
-        column >= 0 &&
-        _array[column].any((c) => c == null)) {
+    if (column < Field.size && column >= 0 && _array[column].any((c) => c == null)) {
       if (vibrate) this.vibrate();
       int len = _array[column].length;
       for (var i = 0; i <= len; i++) {
@@ -162,9 +155,7 @@ class FieldPlaying extends Field {
         combo += 1;
         if (combo >= 4) {
           // print("won in second block");
-          return WinDetailsWinner(
-              lastPlayer,
-              Point(i + r + (combo - 1), realY - (combo - 1)),
+          return WinDetailsWinner(lastPlayer, Point(i + r + (combo - 1), realY - (combo - 1)),
               Point(-1, 1)); //- (combo - 1)
           // return WinDetails(
           //     lastPlayer, Point(i + r + range, i + range), Point(i + r, i));
@@ -193,8 +184,7 @@ class FieldPlaying extends Field {
         lastPlayer = cell;
         if (combo >= 4) {
           // print("won in y block");
-          return WinDetailsWinner(
-              lastPlayer, Point(x, max(0, y - combo + 1)), Point(0, 1));
+          return WinDetailsWinner(lastPlayer, Point(x, max(0, y - combo + 1)), Point(0, 1));
         }
 
         if (cell != xPlayer[y]) {
@@ -204,8 +194,7 @@ class FieldPlaying extends Field {
         xPlayer[y] = lastPlayer;
         if (xCombo[y] >= 4) {
           // print("won in x block");
-          return WinDetailsWinner(
-              lastPlayer, Point(max(0, x - xCombo[y] + 1), y), Point(1, 0));
+          return WinDetailsWinner(lastPlayer, Point(max(0, x - xCombo[y] + 1), y), Point(1, 0));
         }
       }
     }
@@ -227,8 +216,7 @@ class WinDetailsWinner extends WinDetails {
   final Point<int> start;
   final Point<int> delta;
 
-  WinDetailsWinner(this.winner, this.start, this.delta)
-      : this.me = winner == Player.One;
+  WinDetailsWinner(this.winner, this.start, this.delta) : this.me = winner == Player.One;
 
   @override
   String toString() {

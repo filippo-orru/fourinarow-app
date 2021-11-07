@@ -26,8 +26,7 @@ class FiarBottomSheet extends StatefulWidget {
   _FiarBottomSheetState createState() => _FiarBottomSheetState();
 }
 
-class _FiarBottomSheetState extends State<FiarBottomSheet>
-    with SingleTickerProviderStateMixin {
+class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProviderStateMixin {
   late AnimationController animCtrl;
   late Animation<double> moveUpAnim;
   late Animation<double> rotateAnim;
@@ -52,8 +51,7 @@ class _FiarBottomSheetState extends State<FiarBottomSheet>
 
     animCtrl = AnimationController(
       vsync: this,
-      duration:
-          Duration(milliseconds: (widget.expandedHeight * 0.3).toInt() + 140),
+      duration: Duration(milliseconds: (widget.expandedHeight * 0.3).toInt() + 140),
     );
 
     moveUpAnim = Tween<double>(begin: 0, end: 1)
@@ -94,9 +92,7 @@ class _FiarBottomSheetState extends State<FiarBottomSheet>
           children: [
             expanded
                 ? GestureDetector(
-                    behavior: expanded
-                        ? HitTestBehavior.opaque
-                        : HitTestBehavior.translucent,
+                    behavior: expanded ? HitTestBehavior.opaque : HitTestBehavior.translucent,
                     onTap: () {
                       if (expanded) hide();
                     },
@@ -115,8 +111,7 @@ class _FiarBottomSheetState extends State<FiarBottomSheet>
                 alignment: Alignment.topCenter,
                 size: Size(
                   double.infinity,
-                  FiarBottomSheet._CONT_HEIGHT +
-                      moveUpAnim.value * widget.expandedHeight,
+                  FiarBottomSheet._CONT_HEIGHT + moveUpAnim.value * widget.expandedHeight,
                 ),
                 child: child,
               ),
@@ -179,8 +174,7 @@ class _FiarBottomSheetState extends State<FiarBottomSheet>
                                 InkResponse(
                               containedInkWell: true,
                               highlightShape: BoxShape.rectangle,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(24)),
+                              borderRadius: BorderRadius.all(Radius.circular(24)),
                               onTap: widget.onlyOpenUsingButton
                                   ? null
                                   : () {
@@ -190,35 +184,30 @@ class _FiarBottomSheetState extends State<FiarBottomSheet>
                                         show();
                                     },
                               splashColor:
-                                  (widget.color[300] ?? widget.color[200]!)
-                                      .withOpacity(0.5),
+                                  (widget.color[300] ?? widget.color[200]!).withOpacity(0.5),
                               // focusColor: Colors.blue,
-                              highlightColor:
-                                  widget.color[100]!.withOpacity(0.5),
+                              highlightColor: widget.color[100]!.withOpacity(0.5),
                               // hoverColor: Colors.green,
                               child: Padding(
                                 padding: EdgeInsets.only(left: 24, right: 24),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: widget.topChildren +
                                       [
                                         RotationTransition(
                                           turns: rotateAnim,
                                           child: IconButton(
-                                            onPressed:
-                                                widget.onlyOpenUsingButton
-                                                    ? () {
-                                                        if (expanded)
-                                                          hide();
-                                                        else
-                                                          show();
-                                                      }
-                                                    : null,
-                                            icon: Icon(Icons.arrow_drop_up,
-                                                color: Colors.black87),
+                                            onPressed: widget.onlyOpenUsingButton
+                                                ? () {
+                                                    if (expanded)
+                                                      hide();
+                                                    else
+                                                      show();
+                                                  }
+                                                : null,
+                                            icon: Icon(Icons.arrow_drop_up, color: Colors.black87),
                                           ),
                                         ),
                                       ],

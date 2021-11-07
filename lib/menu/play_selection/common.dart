@@ -30,8 +30,8 @@ class PlaySelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     double viewWidth = MediaQuery.of(context).size.width;
     return ClipRect(
-      clipper: PageClipper(max(index * viewWidth - offset, 0),
-          max((index + 1) * viewWidth - offset, 0)),
+      clipper:
+          PageClipper(max(index * viewWidth - offset, 0), max((index + 1) * viewWidth - offset, 0)),
       child: PlaySelectionContent(
         title: title,
         description: description,
@@ -69,8 +69,7 @@ class PlaySelectionContent extends StatelessWidget {
     return SafeArea(
       child: Container(
         constraints: BoxConstraints.expand(),
-        padding:
-            EdgeInsets.all(min(MediaQuery.of(context).size.width * 0.08, 36)),
+        padding: EdgeInsets.all(min(MediaQuery.of(context).size.width * 0.08, 36)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,

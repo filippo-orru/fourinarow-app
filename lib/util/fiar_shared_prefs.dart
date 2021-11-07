@@ -51,10 +51,8 @@ class FiarSharedPrefs {
     _settingsAllowVibrate
   ];
 
-  static _SharedPrefPair _sessionToken =
-      _SharedPrefPair("sessionToken", String, defaultValue: () {
-    if (_sharedPrefs.containsKey("username") &&
-        _sharedPrefs.containsKey("password")) {
+  static _SharedPrefPair _sessionToken = _SharedPrefPair("sessionToken", String, defaultValue: () {
+    if (_sharedPrefs.containsKey("username") && _sharedPrefs.containsKey("password")) {
       String username = _sharedPrefs.getString("username")!;
       String password = _sharedPrefs.getString("password")!;
       _sharedPrefs.remove("username");
@@ -83,21 +81,17 @@ class FiarSharedPrefs {
   static _SharedPrefPair _shownRatingDialog =
       _SharedPrefPair("ShownRatingDialog", int, defaultValue: () => 0);
   static DateTime get shownRatingDialog => DateTime.fromMillisecondsSinceEpoch(
-      _sharedPrefs.getInt(_shownRatingDialog.key) ??
-          _shownRatingDialog.defaultValue());
+      _sharedPrefs.getInt(_shownRatingDialog.key) ?? _shownRatingDialog.defaultValue());
   static set shownRatingDialog(DateTime val) =>
       _sharedPrefs.setInt(_shownRatingDialog.key, val.millisecondsSinceEpoch);
   static bool get shouldShowRatingDialog =>
-      shownRatingDialog.difference(DateTime.now()).inHours >
-      24 * 30 * 4; // >4 months ago
+      shownRatingDialog.difference(DateTime.now()).inHours > 24 * 30 * 4; // >4 months ago
 
   static _SharedPrefPair _shownOnlineDialogCount =
       _SharedPrefPair("ShownOnlineDialogCount", int, defaultValue: () => 0);
   static int get shownOnlineDialogCount =>
-      _sharedPrefs.getInt(_shownOnlineDialogCount.key) ??
-      _shownOnlineDialogCount.defaultValue();
-  static set shownOnlineDialogCount(int i) =>
-      _sharedPrefs.setInt(_shownOnlineDialogCount.key, i);
+      _sharedPrefs.getInt(_shownOnlineDialogCount.key) ?? _shownOnlineDialogCount.defaultValue();
+  static set shownOnlineDialogCount(int i) => _sharedPrefs.setInt(_shownOnlineDialogCount.key, i);
 
   static _SharedPrefPair _shownSwipeDialog =
       _SharedPrefPair("shownSwipeDialog", bool, defaultValue: () {
@@ -110,39 +104,31 @@ class FiarSharedPrefs {
     }
   });
   static bool get shownSwipeDialog =>
-      _sharedPrefs.getBool(_shownSwipeDialog.key) ??
-      _shownSwipeDialog.defaultValue();
-  static set shownSwipeDialog(bool i) =>
-      _sharedPrefs.setBool(_shownSwipeDialog.key, i);
+      _sharedPrefs.getBool(_shownSwipeDialog.key) ?? _shownSwipeDialog.defaultValue();
+  static set shownSwipeDialog(bool i) => _sharedPrefs.setBool(_shownSwipeDialog.key, i);
 
   static _SharedPrefPair _hasAcceptedChat =
       _SharedPrefPair("hasAcceptedChat", bool, defaultValue: () => false);
   static bool get hasAcceptedChat =>
-      _sharedPrefs.getBool(_hasAcceptedChat.key) ??
-      _hasAcceptedChat.defaultValue();
-  static set hasAcceptedChat(bool i) =>
-      _sharedPrefs.setBool(_hasAcceptedChat.key, i);
+      _sharedPrefs.getBool(_hasAcceptedChat.key) ?? _hasAcceptedChat.defaultValue();
+  static set hasAcceptedChat(bool i) => _sharedPrefs.setBool(_hasAcceptedChat.key, i);
 
   static _SharedPrefPair _settingsAllowVibrate =
       _SharedPrefPair("settingsAllowVibrate", bool, defaultValue: () => true);
   static bool get settingsAllowVibrate =>
-      _sharedPrefs.getBool(_settingsAllowVibrate.key) ??
-      _settingsAllowVibrate.defaultValue();
-  static set settingsAllowVibrate(bool i) =>
-      _sharedPrefs.setBool(_settingsAllowVibrate.key, i);
+      _sharedPrefs.getBool(_settingsAllowVibrate.key) ?? _settingsAllowVibrate.defaultValue();
+  static set settingsAllowVibrate(bool i) => _sharedPrefs.setBool(_settingsAllowVibrate.key, i);
 
-  static _SharedPrefPair _settingsAllowNotifications = _SharedPrefPair(
-      "settingsAllowNotifications", bool,
-      defaultValue: () => true);
+  static _SharedPrefPair _settingsAllowNotifications =
+      _SharedPrefPair("settingsAllowNotifications", bool, defaultValue: () => true);
   static bool get settingsAllowNotifications =>
       _sharedPrefs.getBool(_settingsAllowNotifications.key) ??
       _settingsAllowNotifications.defaultValue();
   static set settingsAllowNotifications(bool i) =>
       _sharedPrefs.setBool(_settingsAllowNotifications.key, i);
 
-  static _SharedPrefPair _settingsQuickchatEmojis = _SharedPrefPair(
-      "settingsQuickchatEmojis", String,
-      defaultValue: () => "😐#🤔#👏#😄");
+  static _SharedPrefPair _settingsQuickchatEmojis =
+      _SharedPrefPair("settingsQuickchatEmojis", String, defaultValue: () => "😐#🤔#👏#😄");
   static List<String> get settingsQuickchatEmojis =>
       (_sharedPrefs.getString(_settingsQuickchatEmojis.key) ??
               _settingsQuickchatEmojis.defaultValue() as String)

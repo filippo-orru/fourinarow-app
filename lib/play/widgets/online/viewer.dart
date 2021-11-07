@@ -166,8 +166,7 @@ class _ReconnectingState extends State<Reconnecting> {
                   onPressed: (s > 5) ? () => Navigator.of(context).pop() : null,
                   child: Text(
                     'Leave',
-                    style: TextStyle(
-                        color: s > 5 ? Colors.black87 : Colors.black45),
+                    style: TextStyle(color: s > 5 ? Colors.black87 : Colors.black45),
                   ),
                 ),
               ),

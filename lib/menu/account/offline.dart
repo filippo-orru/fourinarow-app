@@ -33,8 +33,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
 
     await Future.delayed(Duration(milliseconds: 600)); // Better UX
 
-    if (await (widget.refreshCheckAction ?? _defaultRefreshCheckAction)() ==
-        true) {
+    if (await (widget.refreshCheckAction ?? _defaultRefreshCheckAction)() == true) {
       Navigator.of(context).pop();
     } else {
       setState(() => hasRetried = true);

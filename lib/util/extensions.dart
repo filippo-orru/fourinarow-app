@@ -33,8 +33,7 @@ extension MapExtension<K, V> on Map<K, V?> {
 
 extension RangeExtension on int {
   /// Excluding max
-  List<int> to(int maxInclusive) =>
-      [for (int i = this; i <= maxInclusive; i++) i];
+  List<int> to(int maxInclusive) => [for (int i = this; i <= maxInclusive; i++) i];
 }
 
 extension NumberStrings on int {

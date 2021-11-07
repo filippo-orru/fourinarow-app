@@ -63,8 +63,7 @@ class ServerConnection with ChangeNotifier {
   bool tryingToConnect = false;
 
   Future<bool> get serverIsDown async =>
-      _sessionState is SessionStateServerIsDown &&
-      await _serverIsDownState.isDown;
+      _sessionState is SessionStateServerIsDown && await _serverIsDownState.isDown;
 
   ServerIsDownState _serverIsDownState = ServerIsDownState();
 
@@ -95,11 +94,8 @@ class ServerConnection with ChangeNotifier {
         })
         .then((_) => true)
         .timeout(Duration(milliseconds: 1000), onTimeout: () => false);
-    connectionWasReset = this
-        ._serverMsgStreamCtrl
-        .stream
-        .any((msg) => msg is MsgReset)
-        .then((_) => false);
+    connectionWasReset =
+        this._serverMsgStreamCtrl.stream.any((msg) => msg is MsgReset).then((_) => false);
 
     this._reliablePktOutStreamCtrl.add(ReliablePktMsgOut(messageId, msg));
     this._playerMsgStreamCtrl.add(msg);
@@ -129,8 +125,7 @@ class ServerConnection with ChangeNotifier {
   void _connect({bool force = false, bool reset = false}) async {
     if (catastrophicFailure) return;
 
-    if ((_sessionState is SessionStateOutDated ||
-            _sessionState is SessionStateConnected) &&
+    if ((_sessionState is SessionStateOutDated || _sessionState is SessionStateConnected) &&
         !force) {
       return;
     }
@@ -179,16 +174,11 @@ class ServerConnection with ChangeNotifier {
     } else {
       var sessionState = this._sessionState;
       if (sessionState is SessionStateDisconnected) {
-        _reliablePktOutStreamCtrl
-            .add(ReliablePktHelloOut(sessionState.identifier));
-        this._sessionState =
-            SessionStateWaiting(identifier: sessionState.identifier);
-      } else if (sessionState is SessionStateWaiting &&
-          sessionState.identifier != null) {
-        _reliablePktOutStreamCtrl
-            .add(ReliablePktHelloOut(sessionState.identifier!));
-        this._sessionState =
-            SessionStateWaiting(identifier: sessionState.identifier!);
+        _reliablePktOutStreamCtrl.add(ReliablePktHelloOut(sessionState.identifier));
+        this._sessionState = SessionStateWaiting(identifier: sessionState.identifier);
+      } else if (sessionState is SessionStateWaiting && sessionState.identifier != null) {
+        _reliablePktOutStreamCtrl.add(ReliablePktHelloOut(sessionState.identifier!));
+        this._sessionState = SessionStateWaiting(identifier: sessionState.identifier!);
       } else if (sessionState is! SessionStateConnected) {
         _reliablePktOutStreamCtrl.add(ReliablePktHelloOut());
         this._sessionState = SessionStateWaiting();
@@ -332,13 +322,11 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _websocketErr(dynamic? err) {
-    if (err is WebSocketChannelException &&
-        err.inner is WebSocketChannelException) {
+    if (err is WebSocketChannelException && err.inner is WebSocketChannelException) {
       var inner = err.inner as WebSocketChannelException;
       if (inner.inner is SocketException) {
         var innerInner = inner.inner as SocketException;
-        if (innerInner.osError?.errorCode == 7 ||
-            innerInner.osError?.errorCode == 111) {
+        if (innerInner.osError?.errorCode == 7 || innerInner.osError?.errorCode == 111) {
           // Network error (no connection)
           return;
         }
@@ -352,16 +340,13 @@ class ServerConnection with ChangeNotifier {
 
     // debugPrintStack();
 
-    int waitTimeMs =
-        (min(24.0, 1 + pow(_connectionTries.toDouble(), 1.5)) * 1000).toInt();
-    String waitTimeFormatted =
-        (waitTimeMs.toDouble() / 1000.0).toStringAsFixed(2);
+    int waitTimeMs = (min(24.0, 1 + pow(_connectionTries.toDouble(), 1.5)) * 1000).toInt();
+    String waitTimeFormatted = (waitTimeMs.toDouble() / 1000.0).toStringAsFixed(2);
     Logger.i("Connection closed (retry in $waitTimeFormatted)");
     var sessionState = this._sessionState;
     if (sessionState is SessionStateConnected) {
       this._sessionState = SessionStateDisconnected(sessionState.identifier);
-    } else if (sessionState is SessionStateWaiting &&
-        sessionState.identifier != null) {
+    } else if (sessionState is SessionStateWaiting && sessionState.identifier != null) {
       this._sessionState = SessionStateDisconnected(sessionState.identifier!);
     } else {
       this._sessionState = SessionStateFullyDisconnected();
@@ -379,8 +364,7 @@ class ServerConnection with ChangeNotifier {
               .onConnectivityChanged
               .toNullable()
               .firstWhere((result) =>
-                  result == ConnectivityResult.wifi ||
-                  result == ConnectivityResult.mobile)
+                  result == ConnectivityResult.wifi || result == ConnectivityResult.mobile)
               .timeout(timeout, onTimeout: () => null);
           if (result != null) {
             Logger.i("Force connect (${result.toString().split(".")[1]})");
@@ -388,8 +372,7 @@ class ServerConnection with ChangeNotifier {
           }
         }
       });
-      _connectionWasLostTimer =
-          Timer(Duration(seconds: CONNECTION_WAS_LOST_TIMEOUT_S), () {
+      _connectionWasLostTimer = Timer(Duration(seconds: CONNECTION_WAS_LOST_TIMEOUT_S), () {
         if (_sessionState is SessionStateServerIsDown ||
             _sessionState is SessionStateFullyDisconnected) return;
 
@@ -401,8 +384,7 @@ class ServerConnection with ChangeNotifier {
       if (!connected) _connect();
     });
 
-    if (_sessionState is SessionStateFullyDisconnected &&
-        await _serverIsDownState.isDown) {
+    if (_sessionState is SessionStateFullyDisconnected && await _serverIsDownState.isDown) {
       _sessionState = SessionStateServerIsDown();
       _serverMsgStreamCtrl.add(MsgReset());
     }
@@ -560,17 +542,14 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _resendQueued() {
-    DateTime threshold = DateTime.now()
-        .subtract(Duration(milliseconds: QUEUE_RESEND_TIMEOUT_MS));
+    DateTime threshold = DateTime.now().subtract(Duration(milliseconds: QUEUE_RESEND_TIMEOUT_MS));
     int offset = 0;
     [...this._playerMsgQ].asMap().entries.forEach((MapEntry entry) {
       int index = entry.key;
       QueuedMessage<PlayerMessage> queuedMessage = entry.value;
 
       if (queuedMessage.sent.isBefore(threshold)) {
-        this
-            ._reliablePktOutStreamCtrl
-            .add(ReliablePktMsgOut(queuedMessage.id, queuedMessage.msg));
+        this._reliablePktOutStreamCtrl.add(ReliablePktMsgOut(queuedMessage.id, queuedMessage.msg));
         this._playerMsgQ.removeAt(index - offset);
         offset += 1;
       }
@@ -617,19 +596,16 @@ class ServerIsDownState {
     // Check device connection
     if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
       _serverIsDown = false;
-    } else if (DateTime.now().difference(_serverIsDownCheckDate) >
-        Duration(seconds: 40)) {
+    } else if (DateTime.now().difference(_serverIsDownCheckDate) > Duration(seconds: 40)) {
       // Check if server is down
 
       bool firstOkay = false;
       try {
-        Socket socket =
-            await Socket.connect("1.1.1.1", 53, timeout: Duration(seconds: 2));
+        Socket socket = await Socket.connect("1.1.1.1", 53, timeout: Duration(seconds: 2));
         socket.destroy();
         firstOkay = true;
 
-        socket =
-            await Socket.connect(HOST, PORT, timeout: Duration(seconds: 2));
+        socket = await Socket.connect(HOST, PORT, timeout: Duration(seconds: 2));
         socket.destroy();
         _serverIsDown = false;
       } on SocketException {

@@ -13,8 +13,7 @@ class MyScrollBehavior extends ScrollBehavior {
   MyScrollBehavior({required this.color});
 
   @override
-  Widget buildViewportChrome(
-      BuildContext context, Widget child, AxisDirection axisDirection) {
+  Widget buildViewportChrome(BuildContext context, Widget child, AxisDirection axisDirection) {
     // When modifying this function, consider modifying the implementation in
     // _MaterialScrollBehavior as well.
     switch (getPlatform(context)) {

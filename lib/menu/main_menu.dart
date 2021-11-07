@@ -26,8 +26,7 @@ class MainMenu extends StatefulWidget {
   _MainMenuState createState() => _MainMenuState();
 
   static PageRouteBuilder route() {
-    final opacityTween =
-        Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.ease));
+    final opacityTween = Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.ease));
     // final sizeTween =
     //     Tween<double>(begin: 0.9, end: 1).chain(CurveTween(curve: Curves.ease));
     return PageRouteBuilder(
@@ -44,8 +43,8 @@ class MainMenu extends StatefulWidget {
 }
 
 PageRouteBuilder slideUpRoute(Widget content) {
-  final offset = Tween<Offset>(begin: Offset(0, 0.25), end: Offset.zero)
-      .chain(CurveTween(curve: Curves.ease));
+  final offset =
+      Tween<Offset>(begin: Offset(0, 0.25), end: Offset.zero).chain(CurveTween(curve: Curves.ease));
 
   final opacity = Tween<double>(begin: 0, end: 1).chain(
     CurveTween(curve: Curves.easeInOut),
@@ -228,8 +227,7 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
                             borderRadius: BorderRadius.all(Radius.circular(32)),
                           ),
                           alignment: Alignment.center,
-                          child: Text(unread.toString(),
-                              style: TextStyle(color: Colors.white)),
+                          child: Text(unread.toString(), style: TextStyle(color: Colors.white)),
                         ))
                     : SizedBox(),
               ]),
@@ -314,8 +312,7 @@ class SmallColorButton extends StatefulWidget {
   _SmallColorButtonState createState() => _SmallColorButtonState();
 }
 
-class _SmallColorButtonState extends State<SmallColorButton>
-    with SingleTickerProviderStateMixin {
+class _SmallColorButtonState extends State<SmallColorButton> with SingleTickerProviderStateMixin {
   late AnimationController animCtrl;
 
   bool expanded = false;
@@ -352,8 +349,7 @@ class _SmallColorButtonState extends State<SmallColorButton>
           children: [
             Transform.scale(scale: 1 + animCtrl.value / 4, child: child),
             Transform.scale(
-                scale: 1 + animCtrl.value / 8,
-                child: Icon(widget.icon, color: Colors.white)),
+                scale: 1 + animCtrl.value / 8, child: Icon(widget.icon, color: Colors.white)),
           ],
         ),
         child: Container(
@@ -376,8 +372,7 @@ class SearchingGameNotification extends StatefulWidget {
   const SearchingGameNotification(this.connected, {Key? key}) : super(key: key);
 
   @override
-  _SearchingGameNotificationState createState() =>
-      _SearchingGameNotificationState();
+  _SearchingGameNotificationState createState() => _SearchingGameNotificationState();
 }
 
 class _SearchingGameNotificationState extends State<SearchingGameNotification> {
@@ -386,8 +381,8 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
   @override
   Widget build(BuildContext context) {
     return Theme(
-      data: Theme.of(context).copyWith(
-          accentColor: Colors.white70, colorScheme: ColorScheme.light()),
+      data:
+          Theme.of(context).copyWith(accentColor: Colors.white70, colorScheme: ColorScheme.light()),
       child: Container(
         margin: EdgeInsets.all(12).copyWith(top: 24),
         child: AnimatedSwitcher(
@@ -431,15 +426,12 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
                                     SizedBox(
                                       height: 32,
                                       width: 32,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2),
+                                      child: CircularProgressIndicator(strokeWidth: 2),
                                     ),
                                     Container(
                                       padding: EdgeInsets.all(8),
                                       child: Icon(
-                                        collapsed
-                                            ? Icons.arrow_downward
-                                            : Icons.arrow_upward,
+                                        collapsed ? Icons.arrow_downward : Icons.arrow_upward,
                                         size: 16,
                                         color: Colors.white70,
                                       ),
@@ -480,15 +472,12 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
                                           SizedBox(
                                             height: 32,
                                             width: 32,
-                                            child: CircularProgressIndicator(
-                                                strokeWidth: 2),
+                                            child: CircularProgressIndicator(strokeWidth: 2),
                                           ),
                                           Container(
                                             padding: EdgeInsets.all(8),
                                             child: Icon(
-                                              collapsed
-                                                  ? Icons.arrow_downward
-                                                  : Icons.arrow_upward,
+                                              collapsed ? Icons.arrow_downward : Icons.arrow_upward,
                                               size: 16,
                                               color: Colors.white70,
                                             ),
@@ -507,23 +496,18 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
                                         clipBehavior: Clip.antiAlias,
                                         color: Colors.black87,
                                         child: InkWell(
-                                          onTap: () => context
-                                              .read<GameStateManager>()
-                                              .leave(),
+                                          onTap: () => context.read<GameStateManager>().leave(),
                                           splashColor: Colors.white70,
                                           child: Container(
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 12, horizontal: 8),
+                                            padding:
+                                                EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                                             decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                              border: Border.all(
-                                                  color: Colors.white60),
+                                              borderRadius: BorderRadius.circular(6),
+                                              border: Border.all(color: Colors.white60),
                                             ),
                                             child: Text(
                                               'Cancel',
-                                              style: TextStyle(
-                                                  color: Colors.white70),
+                                              style: TextStyle(color: Colors.white70),
                                             ),
                                           ),
                                         ),
@@ -624,12 +608,10 @@ class _ChatAcceptDialogState extends State<ChatAcceptDialog> {
               style: TextButton.styleFrom(
                 backgroundColor: Colors.blueAccent.withOpacity(1),
               ),
-              onPressed:
-                  !oldEnough ? null : () => Navigator.of(context).pop(true),
+              onPressed: !oldEnough ? null : () => Navigator.of(context).pop(true),
               child: Text(
                 'ACCEPT',
-                style:
-                    TextStyle(color: oldEnough ? Colors.white : Colors.black45),
+                style: TextStyle(color: oldEnough ? Colors.white : Colors.black45),
               ),
             ),
           ],

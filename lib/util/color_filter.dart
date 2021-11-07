@@ -4,8 +4,7 @@ class ColorFilterGenerator {
   static List<double> hueAdjustMatrix({required double value}) {
     value = value * pi;
 
-    if (value == 0)
-      return [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0];
+    if (value == 0) return [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0];
 
     double cosVal = cos(value);
     double sinVal = sin(value);
@@ -43,41 +42,20 @@ class ColorFilterGenerator {
     else
       value = value * 100;
 
-    if (value == 0)
-      return [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0];
+    if (value == 0) return [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0];
 
-    return List<double>.from(<double>[
-      1,
-      0,
-      0,
-      0,
-      value,
-      0,
-      1,
-      0,
-      0,
-      value,
-      0,
-      0,
-      1,
-      0,
-      value,
-      0,
-      0,
-      0,
-      1,
-      0
-    ]).map((i) => i.toDouble()).toList();
+    return List<double>.from(
+            <double>[1, 0, 0, 0, value, 0, 1, 0, 0, value, 0, 0, 1, 0, value, 0, 0, 0, 1, 0])
+        .map((i) => i.toDouble())
+        .toList();
   }
 
   static List<double> saturationAdjustMatrix({required double value}) {
     value = value * 100;
 
-    if (value == 0)
-      return [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0];
+    if (value == 0) return [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0];
 
-    double x =
-        ((1 + ((value > 0) ? ((3 * value) / 100) : (value / 100)))).toDouble();
+    double x = ((1 + ((value > 0) ? ((3 * value) / 100) : (value / 100)))).toDouble();
     double lumR = 0.3086;
     double lumG = 0.6094;
     double lumB = 0.082;

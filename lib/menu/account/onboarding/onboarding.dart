@@ -17,8 +17,7 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
     Future.delayed(Duration(milliseconds: 1500), () {
       Navigator.of(context)
         ..pop()
-        ..pushReplacement(MaterialPageRoute(
-            builder: (BuildContext context) => FriendsList()));
+        ..pushReplacement(MaterialPageRoute(builder: (BuildContext context) => FriendsList()));
     });
   }
 
@@ -30,8 +29,7 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
           Center(
             child: Container(
               margin: EdgeInsets.all(48),
-              width: min(
-                  (MediaQuery.of(context).size.height * 0.8).toDouble(), 400),
+              width: min((MediaQuery.of(context).size.height * 0.8).toDouble(), 400),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -52,8 +50,7 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
                               LoginPage(callback: successfullyLoggedIn)));
                       // .push(PageRouteBuilder(pageBuilder: () => RegisterPage())());
                     },
-                    child: Text('Log in'.toUpperCase(),
-                        style: TextStyle(color: Colors.white)),
+                    child: Text('Log in'.toUpperCase(), style: TextStyle(color: Colors.white)),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -64,8 +61,7 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
                           builder: (BuildContext context) =>
                               RegisterPage(callback: successfullyLoggedIn)));
                     },
-                    child: Text('Register'.toUpperCase(),
-                        style: TextStyle(color: Colors.white)),
+                    child: Text('Register'.toUpperCase(), style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -80,8 +76,7 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
                 style: TextButton.styleFrom(
                   primary: Colors.blue,
                 ),
-                onPressed: () =>
-                    Navigator.of(context).push(slideUpRoute(SettingsScreen())),
+                onPressed: () => Navigator.of(context).push(slideUpRoute(SettingsScreen())),
               ),
             ),
           ),

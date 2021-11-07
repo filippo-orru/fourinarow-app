@@ -14,38 +14,33 @@ class NotificationsProvider extends StatefulWidget {
   createState() => NotificationsProviderState();
 
   static NotificationsProviderState? of(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<_NotificationsProviderInherit>()
-        ?.state;
+    return context.dependOnInheritedWidgetOfExactType<_NotificationsProviderInherit>()?.state;
   }
 }
 
 class NotificationsProviderState extends State<NotificationsProvider> {
   late final FlutterLocalNotificationsPlugin flutterNotifications;
 
-  final StreamController<String> _selectedStreamCtrl =
-      StreamController.broadcast();
+  final StreamController<String> _selectedStreamCtrl = StreamController.broadcast();
 
   Stream<String> get selectedStream => _selectedStreamCtrl.stream;
 
   bool get canNotify => !kIsWeb;
-  bool get shouldNotify =>
-      canNotify && FiarSharedPrefs.settingsAllowNotifications;
+  bool get shouldNotify => canNotify && FiarSharedPrefs.settingsAllowNotifications;
 
   void initialize() async {
     if (!shouldNotify) return;
 
     flutterNotifications = FlutterLocalNotificationsPlugin();
-    var androidSettings =
-        AndroidInitializationSettings('mipmap/ic_launcher_notification');
+    var androidSettings = AndroidInitializationSettings('mipmap/ic_launcher_notification');
     var iosSettings = IOSInitializationSettings(
       requestSoundPermission: false,
       requestBadgePermission: false,
       requestAlertPermission: true,
     );
-    await flutterNotifications.initialize(
-        InitializationSettings(android: androidSettings, iOS: iosSettings),
-        onSelectNotification: (str) {
+    await flutterNotifications
+        .initialize(InitializationSettings(android: androidSettings, iOS: iosSettings),
+            onSelectNotification: (str) {
       if (str != null) {
         _selectedStreamCtrl.add(str);
       }
