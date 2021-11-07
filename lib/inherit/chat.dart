@@ -57,9 +57,8 @@ class ChatState with ChangeNotifier {
     (ingameMessage ? ingameMessages : messages).add(msg);
 
     await Future.delayed(Duration(milliseconds: 85));
-    _serverConnection.send(PlayerMsgChatMessage(msg.content));
-
-    bool success = await _serverConnection.waitForOkay();
+    var success =
+        await _serverConnection.send(PlayerMsgChatMessage(msg.content));
 
     if (success) {
       (ingameMessage ? ingameMessages : messages).last.state =

@@ -35,10 +35,12 @@ class GameLoginWaitingForResponse extends GameLoginState {
 
   @override
   GameLoginState? handleServerMessage(ServerMessage msg) {
-    if (msg is MsgOkay) {
-      return GameLoginLoggedIn(gsm);
-    } else if (msg is MsgError) {
-      return GameLoginError(gsm);
+    if (msg is MsgLoginResponse) {
+      if (msg.success) {
+        return GameLoginLoggedIn(gsm);
+      } else {
+        return GameLoginError(gsm);
+      }
     } else {
       messagesSinceListening += 1;
       if (messagesSinceListening > 2) {

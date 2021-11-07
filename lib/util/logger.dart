@@ -5,7 +5,10 @@ import 'logger_printer.dart';
 class Logger {
   Logger._();
 
-  static final lib.Logger _logger = lib.Logger(printer: CustomPrinter());
+  static final lib.Logger _logger = lib.Logger(
+    filter: lib.DevelopmentFilter(),
+    printer: CustomPrinter(),
+  );
 
   /// Log a message at level [lib.Level.verbose].
   static void v(dynamic message, [dynamic error, StackTrace? stackTrace]) {
@@ -35,5 +38,16 @@ class Logger {
   /// Log a message at level [lib.Level.wtf].
   static void wtf(dynamic message, [dynamic error, StackTrace? stackTrace]) {
     _logger.log(lib.Level.wtf, message, error, stackTrace);
+  }
+}
+
+class CustomFilter extends lib.LogFilter {
+  @override
+  bool shouldLog(lib.LogEvent event) {
+    if (event.level.index >= level!.index) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

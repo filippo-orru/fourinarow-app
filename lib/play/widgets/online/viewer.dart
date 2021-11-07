@@ -29,8 +29,6 @@ class _GameStateViewerState extends State<GameStateViewer> with RouteAware {
       return InLobbyViewer(cgs);
     } else if (cgs is InLobbyReadyState) {
       return InLobbyReadyViewer(cgs);
-    } else if (cgs is WaitingForWWOkayState) {
-      return WaitingForWWOkayViewer(cgs);
     } else if (cgs is WaitingForLobbyInfoState) {
       return WaitingForLobbyInfoViewer(cgs);
     } else if (cgs is WaitingForWWOpponentState) {

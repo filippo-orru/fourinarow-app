@@ -1,3 +1,5 @@
+import 'dart:async';
+
 extension ListExtension<T> on List<T?> {
   List<T> filterNotNull() {
     return this.where((e) => e != null).toList() as List<T>;
@@ -56,4 +58,16 @@ extension StringTransform on String {
   String capitalize() {
     return this[0].toUpperCase() + this.substring(1);
   }
+}
+
+Future<T> waitAny<T>(Iterable<Future<T>> futures) {
+  var completer = new Completer<T>();
+  for (var f in futures) {
+    f.then((v) {
+      if (!completer.isCompleted) completer.complete(v);
+    }, onError: (e, s) {
+      if (!completer.isCompleted) completer.completeError(e, s);
+    });
+  }
+  return completer.future;
 }

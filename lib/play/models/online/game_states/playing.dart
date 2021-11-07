@@ -65,9 +65,6 @@ class PlayingState extends GameState {
       this._reset(msg.myTurn);
     } else if (msg is MsgGameOver && msg.iWon) {
       _maybeShowRatingDialog();
-    } else if (msg.isConfirmation) {
-      //awaitingConfirmation = false;
-      //notifyListeners();
     } else if (msg is MsgOppLeft) {
       opponentInfo.hasLeft = true;
       notifyListeners();

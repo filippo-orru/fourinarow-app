@@ -13,7 +13,7 @@ class IdleState extends GameState {
     } else if (msg is PlayerMsgLobbyRequest) {
       return WaitingForLobbyInfoState(super.gsm);
     } else if (msg is PlayerMsgWorldwideRequest) {
-      return WaitingForWWOkayState(super.gsm);
+      return WaitingForWWOpponentState(super.gsm);
     } else if (msg is PlayerMsgBattleRequest) {
       return InLobbyState(super.gsm, null);
     }

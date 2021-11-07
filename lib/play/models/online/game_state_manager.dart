@@ -143,11 +143,10 @@ class GameStateManager with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> startGame(OnlineRequest req) async {
+  Future<void> startGame(OnlineRequest req) async {
     if (currentGameState is! IdleState) {
       // throw UnimplementedError("Maybe this should never occur");
       _serverConnection.send(PlayerMsgLeave());
-      _serverConnection.waitForOkay(duration: Duration(milliseconds: 400));
     }
 
     notifyListeners();
@@ -160,9 +159,6 @@ class GameStateManager with ChangeNotifier {
     if (req is! ORqWorldwide && req is! ORqBattle) {
       showViewer = true;
     }
-    return this
-        ._serverConnection
-        .waitForOkay(duration: Duration(milliseconds: 400));
   }
 
   void leave() {

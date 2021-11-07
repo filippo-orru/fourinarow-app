@@ -16,18 +16,6 @@ class WaitingForLobbyInfoViewer extends StatelessWidget {
   }
 }
 
-class WaitingForWWOkayViewer extends StatelessWidget {
-  final WaitingForWWOkayState state;
-
-  const WaitingForWWOkayViewer(this.state, {Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    String title = "Contacting Server...";
-    return LoadingScreen(title: title);
-  }
-}
-
 class WaitingForWWOpponentViewer extends StatelessWidget {
   final WaitingForWWOpponentState state;
 

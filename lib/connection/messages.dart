@@ -166,9 +166,7 @@ class QueuedMessage<T> {
 abstract class ServerMessage {
   static ServerMessage? parse(String str) {
     // str = str.toUpperCase();
-    if (str == "OKAY") {
-      return MsgOkay();
-    } else if (str.startsWith("LOBBY_ID")) {
+    if (str.startsWith("LOBBY_ID")) {
       var parts = str.split(':');
       if (parts.length == 2) {
         return MsgLobbyResponse(parts[1]);
@@ -217,6 +215,11 @@ abstract class ServerMessage {
       if (parts.length == 3) {
         return MsgBattleReq(parts[1], parts[2]);
       }
+    } else if (str.startsWith("LOGIN_RESPONSE")) {
+      List<String> parts = str.split(":");
+      if (parts.length == 2) {
+        return MsgLoginResponse(parts[1] == "true");
+      }
     } else if (str.startsWith("CURRENT_SERVER_STATE")) {
       List<String> parts = str.split(":");
       if (parts.length == 3) {
@@ -243,10 +246,6 @@ abstract class ServerMessage {
     }
 
     return null;
-  }
-
-  bool get isConfirmation {
-    return this is MsgOkay || this is MsgLobbyResponse || this is MsgError;
   }
 
   @override
@@ -281,6 +280,11 @@ class MsgBattleReq extends ServerMessage {
   final String userId;
   final String lobbyCode;
   MsgBattleReq(this.userId, this.lobbyCode);
+}
+
+class MsgLoginResponse extends ServerMessage {
+  final bool success;
+  MsgLoginResponse(this.success);
 }
 
 class MsgError extends ServerMessage {
@@ -327,8 +331,6 @@ extension MsgErrorTypeExt on MsgErrorType {
       return null;
   }
 }
-
-class MsgOkay extends ServerMessage {}
 
 class MsgLobbyResponse extends ServerMessage {
   final String code;

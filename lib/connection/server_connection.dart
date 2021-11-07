@@ -29,12 +29,17 @@ class ServerConnection with ChangeNotifier {
   Stream<ServerMessage> get serverMsgStream => _serverMsgStreamCtrl.stream;
   // StreamSubscription? _serverMsgSub;
 
-  // Stays open for the entire app life
+  // Stays open for the app's lifetime.
   // ignore: close_sinks
   StreamController<PlayerMessage> _playerMsgStreamCtrl =
       StreamController<PlayerMessage>.broadcast();
   Stream<PlayerMessage> get playerMsgStream => _playerMsgStreamCtrl.stream;
   StreamSubscription? _playerMsgSub;
+
+  // Stays open for the app's lifetime.
+  // ignore: close_sinks
+  StreamController<ReliablePacketIn> _reliablePktInStreamCtrl =
+      StreamController<ReliablePacketIn>.broadcast();
 
   StreamController<ReliablePacketOut> _reliablePktOutStreamCtrl =
       StreamController<ReliablePacketOut>.broadcast();
@@ -78,21 +83,30 @@ class ServerConnection with ChangeNotifier {
     _startListening();
   }
 
-  void send(PlayerMessage msg) {
+  /// Returns future that completes when the message was acknowledged by the server.
+  /// In case connection was lost, the future will complete with false.
+  Future<bool> send(PlayerMessage msg) async {
+    this._playerMsgIndex += 1;
+    int messageId = _playerMsgIndex;
+    Future<bool> connectionWasReset;
+    Future<bool> packetWasAcknowledged =
+        this._reliablePktInStreamCtrl.stream.any((rPkt) {
+      return rPkt is ReliablePktAckIn && rPkt.id == messageId;
+    }).then((_) => true);
+    connectionWasReset = this
+        ._serverMsgStreamCtrl
+        .stream
+        .any((msg) => msg is MsgReset)
+        .then((_) => false);
+
+    this._reliablePktOutStreamCtrl.add(ReliablePktMsgOut(messageId, msg));
     this._playerMsgStreamCtrl.add(msg);
+
+    return waitAny([packetWasAcknowledged, connectionWasReset]);
   }
 
   void retryConnection({bool force = false, bool reset = false}) {
     _connect(force: force, reset: reset);
-  }
-
-  Future<bool> waitForOkay(
-      {Duration duration = const Duration(milliseconds: 500)}) {
-    var map = serverMsgStream
-        .map<ServerMessage?>((e) => e)
-        .firstWhere((serverMsg) => serverMsg is MsgOkay)
-        .timeout(duration, onTimeout: () => null);
-    return map.then((maybeOkay) => maybeOkay is MsgOkay);
   }
 
   void close() {
@@ -153,8 +167,6 @@ class ServerConnection with ChangeNotifier {
     _wsInSub = _handleWsIn(_connection!.stream);
     this._reliablePktOutSub?.cancel();
     _reliablePktOutSub = _handleReliablePktOut(_connection!.sink);
-    this._playerMsgSub?.cancel();
-    _playerMsgSub = _handlePlayerMsg();
 
     if (reset) {
       _reliablePktOutStreamCtrl.add(ReliablePktHelloOut());
@@ -288,20 +300,6 @@ class ServerConnection with ChangeNotifier {
       },
       onError: this._websocketErr,
       onDone: this._websocketDone,
-      cancelOnError: true,
-    );
-  }
-
-  StreamSubscription _handlePlayerMsg() {
-    return this._playerMsgStreamCtrl.stream.listen(
-      (msg) {
-        this._playerMsgIndex += 1;
-        this
-            ._reliablePktOutStreamCtrl
-            .add(ReliablePktMsgOut(this._playerMsgIndex, msg));
-      },
-      onError: this._websocketErr,
-      onDone: this._connect,
       cancelOnError: true,
     );
   }

@@ -83,9 +83,8 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
     if (gsm.outdated) {
       Navigator.of(context).push(slideUpRoute(OutDatedDialog()));
     } else if (gsm.connected) {
-      if (!await gsm.startGame(ORqWorldwide())) {
-        Navigator.of(context).push(slideUpRoute(OfflineScreen()));
-      }
+      await gsm.startGame(ORqWorldwide());
+      // Navigator.of(context).push(slideUpRoute(OfflineScreen()));
       // Navigator.of(context).push(fadeRoute(GameStateViewer()));
     } else {
       Navigator.of(context).push(slideUpRoute(OfflineScreen()));
