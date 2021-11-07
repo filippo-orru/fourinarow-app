@@ -46,8 +46,8 @@ android {
     defaultConfig {
         applicationId "ml.fourinarow"
         minSdkVersion 16
-        targetSdkVersion 29
-        compileSdkVersion 29
+        targetSdkVersion 30
+        compileSdkVersion 30
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
