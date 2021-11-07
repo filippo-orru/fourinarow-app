@@ -21,9 +21,6 @@ class WaitingForLobbyInfoState extends GameState {
     }
     return super.handleServerMessage(msg);
   }
-
-  // @override
-  // AbstractGameStateViewer get viewer => (s) => WaitingForLobbyInfoViewer(s);
 }
 
 class WaitingForWWOpponentState extends GameState {
@@ -41,7 +38,4 @@ class WaitingForWWOpponentState extends GameState {
     }
     return super.handleServerMessage(msg);
   }
-
-  // @override
-  // AbstractGameStateViewer get viewer => (s) => WaitingForWWOpponentViewer(s);
 }

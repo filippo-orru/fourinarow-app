@@ -19,9 +19,6 @@ class InLobbyState extends GameState {
     }
     return super.handleServerMessage(msg);
   }
-
-  // @override
-  // AbstractGameStateViewer get viewer => (s) => InLobbyViewer(s);
 }
 
 class InLobbyReadyState extends GameState {
@@ -43,7 +40,4 @@ class InLobbyReadyState extends GameState {
     }
     return super.handleServerMessage(msg);
   }
-
-  // @override
-  // AbstractGameStateViewer get viewer => (s) => InLobbyReadyViewer(s);
 }

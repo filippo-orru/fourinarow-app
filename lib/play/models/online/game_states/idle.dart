@@ -28,7 +28,4 @@ class IdleState extends GameState {
     }
     return super.handleServerMessage(msg);
   }
-
-  // @override
-  // AbstractGameStateViewer get viewer => (s) => IdleViewer(s);
 }

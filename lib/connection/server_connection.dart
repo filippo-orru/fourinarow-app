@@ -27,14 +27,12 @@ class ServerConnection with ChangeNotifier {
   StreamController<ServerMessage> _serverMsgStreamCtrl =
       StreamController<ServerMessage>.broadcast();
   Stream<ServerMessage> get serverMsgStream => _serverMsgStreamCtrl.stream;
-  // StreamSubscription? _serverMsgSub;
 
   // Stays open for the app's lifetime.
   // ignore: close_sinks
   StreamController<PlayerMessage> _playerMsgStreamCtrl =
       StreamController<PlayerMessage>.broadcast();
   Stream<PlayerMessage> get playerMsgStream => _playerMsgStreamCtrl.stream;
-  StreamSubscription? _playerMsgSub;
 
   // Stays open for the app's lifetime.
   // ignore: close_sinks

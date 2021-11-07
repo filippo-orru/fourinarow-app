@@ -5,7 +5,6 @@ import 'package:flutter/material.dart' hide BottomSheet;
 import 'package:flutter/scheduler.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/menu/settings.dart';
-import 'package:four_in_a_row/util/toast.dart';
 import 'package:http/http.dart' as http;
 import 'package:share/share.dart';
 
