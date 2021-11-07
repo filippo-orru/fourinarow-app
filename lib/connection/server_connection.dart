@@ -89,10 +89,14 @@ class ServerConnection with ChangeNotifier {
     this._playerMsgIndex += 1;
     int messageId = _playerMsgIndex;
     Future<bool> connectionWasReset;
-    Future<bool> packetWasAcknowledged =
-        this._reliablePktInStreamCtrl.stream.any((rPkt) {
-      return rPkt is ReliablePktAckIn && rPkt.id == messageId;
-    }).then((_) => true);
+    Future<bool> packetWasAcknowledged = this
+        ._reliablePktInStreamCtrl
+        .stream
+        .any((rPkt) {
+          return rPkt is ReliablePktAckIn && rPkt.id == messageId;
+        })
+        .then((_) => true)
+        .timeout(Duration(milliseconds: 1000), onTimeout: () => false);
     connectionWasReset = this
         ._serverMsgStreamCtrl
         .stream
@@ -125,6 +129,8 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _connect({bool force = false, bool reset = false}) async {
+    if (catastrophicFailure) return;
+
     if ((_sessionState is SessionStateOutDated ||
             _sessionState is SessionStateConnected) &&
         !force) {
@@ -155,6 +161,7 @@ class ServerConnection with ChangeNotifier {
     } else {
       this._connection = await _connectDevice();
       if (_connection == null) {
+        Logger.w("Connection is null after trying to connect");
         _websocketDone();
         return;
       }
@@ -269,7 +276,10 @@ class ServerConnection with ChangeNotifier {
       return wsStream.listen(
         this._receivedWsMsg,
         onError: this._websocketErr,
-        onDone: this._websocketDone,
+        onDone: () {
+          Logger.w("wsStream was closed");
+          _websocketDone();
+        },
         cancelOnError: true,
       );
     } on Exception catch (e) {
@@ -280,28 +290,31 @@ class ServerConnection with ChangeNotifier {
 
   StreamSubscription _handleReliablePktOut(StreamSink<dynamic> wsSink) {
     return this._reliablePktOutStreamCtrl.stream.listen(
-      (rPkt) {
-        if (rPkt is ReliablePktMsgOut) {
-          this._playerMsgQ.add(QueuedMessage(rPkt.id, rPkt.msg));
-          if (!connected) {
-            return;
-          }
-        }
+          (rPkt) {
+            if (rPkt is ReliablePktMsgOut) {
+              this._playerMsgQ.add(QueuedMessage(rPkt.id, rPkt.msg));
+              if (!connected) {
+                return;
+              }
+            }
 
-        String msgStr = rPkt.serialize();
-        Logger.v("<< $msgStr");
-        try {
-          wsSink.add(msgStr);
-        } on Exception catch (e) {
-          Logger.e("Exception!", e, StackTrace.current);
-          _websocketDone();
-          return;
-        }
-      },
-      onError: this._websocketErr,
-      onDone: this._websocketDone,
-      cancelOnError: true,
-    );
+            String msgStr = rPkt.serialize();
+            Logger.v("<< $msgStr");
+            try {
+              wsSink.add(msgStr);
+            } on Exception catch (e) {
+              Logger.e("Exception!", e, StackTrace.current);
+              _websocketDone();
+              return;
+            }
+          },
+          onError: this._websocketErr,
+          onDone: () {
+            Logger.w("reliablePktOutStream was closed");
+            this._websocketDone();
+          },
+          cancelOnError: true,
+        );
   }
 
   void _receivedWsMsg(dynamic msg) {
@@ -416,7 +429,8 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _receivedReliablePacket(ReliablePacketIn rPkt) {
-    // Logger.d("Received reliable packet: $rPkt");
+    _reliablePktInStreamCtrl.add(rPkt);
+
     if (rPkt is ReliablePktMsgIn) {
       final int expectedId = this._serverMsgIndex + 1;
       if (rPkt.id == expectedId) {

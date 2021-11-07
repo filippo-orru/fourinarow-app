@@ -234,13 +234,16 @@ class _FeedbackDialogState extends State<FeedbackDialog>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       TextButton(
+                        style: TextButton.styleFrom(
+                          primary: Colors.black87,
+                        ),
                         child: Text('Cancel'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
-                      ElevatedButton(
-                        child: Text('Send'),
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          primary: Colors.blue,
+                        ),
                         onPressed: () async {
                           Map<String, String> body = {
                             "content": controller.text,
@@ -257,6 +260,7 @@ class _FeedbackDialogState extends State<FeedbackDialog>
                             if (mounted) Navigator.of(context).pop();
                           });
                         },
+                        child: Text('Send'),
                       ),
                     ],
                   ),

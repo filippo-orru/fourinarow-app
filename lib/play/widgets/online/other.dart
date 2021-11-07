@@ -9,8 +9,7 @@ class WaitingForLobbyInfoViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String title =
-        state.code == null ? "Contacting Server..." : "Joining Lobby...";
+    String title = "Joining Lobby...";
     String label = "This may take some time";
     return LoadingScreen(title: title, label: label);
   }

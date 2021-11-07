@@ -154,9 +154,9 @@ class FiarNotifications {
     android: AndroidNotificationDetails(
       '1',
       'Battle Requests',
-      'Shown when someone requests a battle.',
+      'Shown when someone wants to battle with you.',
       category: 'CATEGORY_MESSAGE',
-      importance: Importance.max,
+      importance: Importance.high,
       priority: Priority.max,
       timeoutAfter: BattleRequestDialog.TIMEOUT.inMilliseconds,
     ),
@@ -181,7 +181,7 @@ class FiarNotifications {
     android: AndroidNotificationDetails(
       '3',
       'Searching Game',
-      'Shown persistently while searching for a game',
+      'Shown persistently while searching for a game.',
       category: 'CATEGORY_SERVICE',
       importance: Importance.low,
       priority: Priority.low,

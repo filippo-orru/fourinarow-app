@@ -37,14 +37,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: FiarAppBar(
         title: "Settings",
-        threeDots: [
-          FiarThreeDotItem(
-            'Feedback',
-            onTap: () {
-              showFeedbackDialog(context);
-            },
-          ),
-        ],
       ),
       body: ListView(
         children: [
@@ -75,12 +67,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
+                                        style: TextButton.styleFrom(
+                                          primary: Colors.black87,
+                                        ),
                                         child: Text('Cancel'),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
                                       ),
-                                      ElevatedButton(
+                                      OutlinedButton(
+                                        style: OutlinedButton.styleFrom(
+                                          primary: Colors.blue,
+                                        ),
                                         onPressed: () {
                                           context.read<UserInfo>().logOut();
                                           Navigator.of(context).pop();
@@ -324,15 +321,17 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         TextButton(
+                          style: TextButton.styleFrom(
+                            primary: Colors.black87,
+                          ),
                           child: Text('Cancel'),
-                          style: TextButton.styleFrom(primary: Colors.blueGrey),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
-                        TextButton(
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            primary: Colors.blue,
+                          ),
                           child: Text('Save'),
-                          style: TextButton.styleFrom(),
                           onPressed: _allowSave()
                               ? () {
                                   FiarSharedPrefs.settingsQuickchatEmojis =

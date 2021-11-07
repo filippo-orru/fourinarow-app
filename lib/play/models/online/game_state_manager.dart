@@ -138,6 +138,7 @@ class GameStateManager with ChangeNotifier {
   }
 
   void cancelIncomingBattleReq() {
+    // TODO communicate that it was declined
     incomingBattleRequestTimer?.cancel();
     incomingBattleRequest = null;
     notifyListeners();
@@ -146,7 +147,7 @@ class GameStateManager with ChangeNotifier {
   Future<void> startGame(OnlineRequest req) async {
     if (currentGameState is! IdleState) {
       // throw UnimplementedError("Maybe this should never occur");
-      _serverConnection.send(PlayerMsgLeave());
+      await leave();
     }
 
     notifyListeners();
@@ -161,11 +162,11 @@ class GameStateManager with ChangeNotifier {
     }
   }
 
-  void leave() {
-    this._serverConnection.send(PlayerMsgLeave());
+  Future<bool> leave() async {
+    return await this._serverConnection.send(PlayerMsgLeave());
   }
 
-  void Function(PlayerMessage) get sendPlayerMessage =>
+  Future<bool> Function(PlayerMessage) get sendPlayerMessage =>
       this._serverConnection.send;
 
   void _didGameStateChange(GameState oldState, GameState newState) {

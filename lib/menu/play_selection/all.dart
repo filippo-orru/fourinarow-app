@@ -252,11 +252,14 @@ class FiarSimpleDialog extends StatelessWidget {
         showOkay
             ? Align(
                 alignment: Alignment.centerRight,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(primary: Colors.lightBlue),
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    primary: Colors.blue,
+                  ),
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text('Okay'),
-                ))
+                ),
+              )
             : SizedBox(),
       ],
     );

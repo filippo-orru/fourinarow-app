@@ -9,7 +9,7 @@ class IdleState extends GameState {
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
     if (msg is PlayerMsgLobbyJoin) {
-      return WaitingForLobbyInfoState(super.gsm, code: msg.code);
+      return InLobbyState(super.gsm, msg.code);
     } else if (msg is PlayerMsgLobbyRequest) {
       return WaitingForLobbyInfoState(super.gsm);
     } else if (msg is PlayerMsgWorldwideRequest) {

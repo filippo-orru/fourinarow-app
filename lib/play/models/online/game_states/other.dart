@@ -4,12 +4,7 @@ import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'game_state.dart';
 
 class WaitingForLobbyInfoState extends GameState {
-  final String? code;
-
-  WaitingForLobbyInfoState(
-    GameStateManager gsm, {
-    this.code,
-  }) : super(gsm);
+  WaitingForLobbyInfoState(GameStateManager gsm) : super(gsm);
 
   @override
   GameState? handlePlayerMessage(PlayerMessage msg) {
