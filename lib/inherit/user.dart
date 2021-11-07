@@ -37,7 +37,7 @@ class UserInfo with ChangeNotifier {
 
   Map<String, String>? _headers() {
     if (sessionToken == null) return null;
-    return {"session_token": sessionToken!};
+    return {"SessionToken": sessionToken!};
   }
 
   Future<int> register(String username, String password) {
