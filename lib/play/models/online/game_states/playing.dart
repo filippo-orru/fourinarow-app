@@ -32,6 +32,12 @@ class PlayingState extends GameState {
   ToastState? toastState;
   Timer? toastTimer;
   OpponentInfo opponentInfo = OpponentInfo();
+  void setOpponentUser(PublicUser? opponent) {
+    if (this.opponentInfo.user != opponent) {
+      opponentInfo.user = opponent;
+      notifyListeners();
+    }
+  }
 
   void setMuteState(bool mute) {
     opponentInfo.muted = mute;
@@ -106,9 +112,7 @@ class PlayingState extends GameState {
     opponentId = opponentId ?? opponentInfo.user?.id;
     if (opponentId == null) return;
 
-    var maybeOpponent = await gsm.userInfo.getUserInfo(userId: opponentId);
-    opponentInfo.user = maybeOpponent;
-    notifyListeners();
+    setOpponentUser(await gsm.userInfo.getUserInfo(userId: opponentId));
   }
 
   void _maybeShowRatingDialog() async {

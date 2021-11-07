@@ -108,8 +108,8 @@ class UserInfo with ChangeNotifier {
     _loadInfo();
   }
 
-  Future<bool> addFriend(String id, [VoidCallback? callback]) async {
-    if (!loggedIn) return false;
+  Future<PublicUser?> addFriend(String id, [VoidCallback? callback]) async {
+    if (!loggedIn) return null;
 
     var response = await _client
         .post(
@@ -122,11 +122,10 @@ class UserInfo with ChangeNotifier {
         callback();
       }
       await _loadInfo();
-      // _friends.firstWhere((u) => u.id == id)?.isFriend = true;
-      return true;
+      return this.user!.friends.firstWhere((u) => u.id == id);
     } else {
       _loadInfo();
-      return false;
+      return null;
     }
   }
 

@@ -16,7 +16,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _canVibrate = true;
+  bool? _canVibrate;
 
   @override
   void initState() {
@@ -25,7 +25,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _setCanVibrate() async {
-    _canVibrate = await Vibrations.canVibrate;
+    bool canVibrate = await Vibrations.canVibrate;
+    setState(() => _canVibrate = canVibrate);
   }
 
   @override
@@ -109,17 +110,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Icon(Icons.vibration_rounded),
             ),
             title: Text('Vibration'),
+            subtitle: _canVibrate == false
+                ? Text('Your device does not support vibration')
+                : null,
             onTap: () {
               setState(() => FiarSharedPrefs.settingsAllowVibrate = !vibrate);
             },
             trailing: Switch(
               value: vibrate,
-              onChanged: (shouldVibrate) {
-                setState(
-                    () => FiarSharedPrefs.settingsAllowVibrate = shouldVibrate);
-              },
+              onChanged: _canVibrate == true
+                  ? (shouldVibrate) {
+                      setState(() =>
+                          FiarSharedPrefs.settingsAllowVibrate = shouldVibrate);
+                    }
+                  : null,
             ),
-            enabled: _canVibrate,
+            enabled: _canVibrate == true,
           ),
           ListTile(
             leading: Container(
@@ -147,7 +153,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 });
               },
             ),
-            enabled: _canVibrate,
           ),
           ListTile(
             leading: Container(

@@ -103,9 +103,13 @@ class PlayingViewer extends AbstractGameStateViewer {
           right: 24,
           child: _ThreeDotMenu(),
         ),
-        _BottomSheetWidget(_playingState.opponentInfo, toggleMuteState: () {
-          _playingState.setMuteState(!_playingState.opponentInfo.muted);
-        }),
+        _BottomSheetWidget(
+          _playingState.opponentInfo,
+          setOpponentUser: _playingState.setOpponentUser,
+          toggleMuteState: () {
+            _playingState.setMuteState(!_playingState.opponentInfo.muted);
+          },
+        ),
         WinnerOverlay(
           winDetails,
           playerNames: (p) => p.playerWord,
@@ -163,9 +167,14 @@ class _ThreeDotMenuState extends State<_ThreeDotMenu> {
 
 class _BottomSheetWidget extends StatefulWidget {
   final OpponentInfo opponentInfo;
+  final void Function(PublicUser?) setOpponentUser;
   final VoidCallback toggleMuteState;
 
-  _BottomSheetWidget(this.opponentInfo, {required this.toggleMuteState});
+  _BottomSheetWidget(
+    this.opponentInfo, {
+    required this.setOpponentUser,
+    required this.toggleMuteState,
+  });
 
   @override
   _BottomSheetState createState() => _BottomSheetState();
@@ -266,13 +275,14 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
                       ? Text(listTileSubtitle)
                       : null,
           enabled: iAmLoggedIn && widget.opponentInfo.user != null,
-          onTap: () {
+          onTap: () async {
             if (widget.opponentInfo.user == null || !iAmLoggedIn) return;
 
-            context
+            PublicUser? opponent = await context
                 .read<GameStateManager>()
                 .userInfo
                 .addFriend(widget.opponentInfo.user!.id);
+            widget.setOpponentUser(opponent);
           },
         ),
         ListTile(
