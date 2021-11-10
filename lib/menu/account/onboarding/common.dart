@@ -39,8 +39,7 @@ class AccountTextField extends StatelessWidget {
       focusNode: focusNode,
       obscureText: this.password,
       keyboardType: TextInputType.visiblePassword,
-      textInputAction:
-          nextFocus == null ? TextInputAction.done : TextInputAction.next,
+      textInputAction: nextFocus == null ? TextInputAction.done : TextInputAction.next,
       decoration: InputDecoration(
         hintText: hint,
         border: OutlineInputBorder(
@@ -51,8 +50,7 @@ class AccountTextField extends StatelessWidget {
           borderSide: BorderSide(color: borderColor, width: 2),
           borderRadius: BorderRadius.circular(2),
         ),
-        contentPadding:
-            EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
+        contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
       ),
     );
   }
@@ -95,14 +93,11 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
   bool showPwHint = true;
 
   void _checkInputs() {
-    showUsernameHint = widget.usernameCtrl.text.length < 4 ||
-        widget.usernameCtrl.text.length > 16;
+    showUsernameHint = widget.usernameCtrl.text.length < 4 || widget.usernameCtrl.text.length > 16;
 
     showPwHint = widget.pwCtrl.text.length < 8 ||
         widget.pwCtrl.text.length > 64 ||
-        !widget.pwCtrl.text
-            .split("")
-            .any((c) => !constants.alphabet.contains(c.toLowerCase()));
+        !widget.pwCtrl.text.split("").any((c) => !constants.alphabet.contains(c.toLowerCase()));
     okay = !showUsernameHint &&
         !showPwHint &&
         (widget.registering && oldEnough || !widget.registering);
@@ -149,9 +144,7 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(widget.title,
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(widget.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 SizedBox(height: 12),
                 AccountTextField(
                   txtCtrl: widget.usernameCtrl,
@@ -160,9 +153,7 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
                   focusNode: widget.usernameFocusNode,
                   nextFocus: widget.passwordFocusNode,
                 ),
-                showUsernameHint
-                    ? Text('Between 4 and 16 characters.')
-                    : SizedBox(),
+                showUsernameHint ? Text('Between 4 and 16 characters.') : SizedBox(),
                 SizedBox(height: 8),
                 AccountTextField(
                   txtCtrl: widget.pwCtrl,
@@ -172,9 +163,7 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
                   focusNode: widget.passwordFocusNode,
                   onSubmit: submit,
                 ),
-                showPwHint
-                    ? Text('At least 8 characters, one special symbol.')
-                    : SizedBox(),
+                showPwHint ? Text('At least 8 characters, one special symbol.') : SizedBox(),
                 SizedBox(height: 8),
                 buildSubmitButton(),
                 buildAskAge(),
@@ -220,9 +209,7 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
                   ),
                   Text(
                     "I'm more than 13 years old",
-                    style: TextStyle(
-                        fontWeight:
-                            remindAge ? FontWeight.bold : FontWeight.normal),
+                    style: TextStyle(fontWeight: remindAge ? FontWeight.bold : FontWeight.normal),
                   ),
                 ],
               ),

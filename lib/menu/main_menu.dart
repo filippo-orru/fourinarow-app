@@ -32,8 +32,7 @@ class MainMenu extends StatefulWidget {
   _MainMenuState createState() => _MainMenuState();
 
   static PageRouteBuilder route() {
-    final opacityTween =
-        Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.ease));
+    final opacityTween = Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.ease));
     // final sizeTween =
     //     Tween<double>(begin: 0.9, end: 1).chain(CurveTween(curve: Curves.ease));
     return PageRouteBuilder(
@@ -151,10 +150,7 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
                     alignment: Alignment.center,
                     child: PlayButton(
                       label: 'Play',
-                      color: context
-                          .watch<ThemesProvider>()
-                          .selectedTheme
-                          .playOnlineThemeColor,
+                      color: context.watch<ThemesProvider>().selectedTheme.playOnlineThemeColor,
                       diameter: 128,
                       onTap: () {
                         Navigator.of(context).push(PlaySelection.route());
@@ -228,8 +224,7 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
                         borderRadius: BorderRadius.all(Radius.circular(32)),
                       ),
                       alignment: Alignment.center,
-                      child: Text(unread.toString(),
-                          style: TextStyle(color: Colors.white)),
+                      child: Text(unread.toString(), style: TextStyle(color: Colors.white)),
                     ))
                 : SizedBox(),
           ]),
@@ -244,10 +239,7 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
           children: [
             SmallColorButton(
               iconData: Icons.people,
-              color: context
-                  .watch<ThemesProvider>()
-                  .selectedTheme
-                  .friendsThemeColor,
+              color: context.watch<ThemesProvider>().selectedTheme.friendsThemeColor,
               onTap: () => accountCheck(),
             ),
             loadingUserInfo ? CircularProgressIndicator() : SizedBox(),
@@ -307,8 +299,7 @@ class ThemesButton extends StatefulWidget {
   State<ThemesButton> createState() => _ThemesButtonState();
 }
 
-class _ThemesButtonState extends State<ThemesButton>
-    with TickerProviderStateMixin {
+class _ThemesButtonState extends State<ThemesButton> with TickerProviderStateMixin {
   static final List<Color> colors = [
     // Color(0xfff13f3f),
     // Color(0xffff006c),
@@ -379,8 +370,7 @@ class _ThemesButtonState extends State<ThemesButton>
   void initState() {
     super.initState();
 
-    _controllers =
-        [for (var i = 0; i < _visiblePointsCount; i += 1) i].map((index) {
+    _controllers = [for (var i = 0; i < _visiblePointsCount; i += 1) i].map((index) {
       AnimationController controller = AnimationController(
         vsync: this,
         duration: Duration(milliseconds: 4000),
@@ -417,8 +407,7 @@ class _ThemesButtonState extends State<ThemesButton>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors:
-              _colorAnims.map((anim) => anim.value).toList().filterNotNull(),
+          colors: _colorAnims.map((anim) => anim.value).toList().filterNotNull(),
           tileMode: TileMode.mirror,
         ),
         onTap: () {
@@ -448,8 +437,7 @@ class SmallColorButton extends StatefulWidget {
     this.color,
     this.gradient,
     required this.onTap,
-  })  : this.icon =
-            iconData != null ? Icon(iconData, color: Colors.white) : icon!,
+  })  : this.icon = iconData != null ? Icon(iconData, color: Colors.white) : icon!,
         assert((color != null) ^ (gradient != null)),
         super(key: key);
 
@@ -457,8 +445,7 @@ class SmallColorButton extends StatefulWidget {
   _SmallColorButtonState createState() => _SmallColorButtonState();
 }
 
-class _SmallColorButtonState extends State<SmallColorButton>
-    with SingleTickerProviderStateMixin {
+class _SmallColorButtonState extends State<SmallColorButton> with SingleTickerProviderStateMixin {
   late AnimationController animCtrl;
 
   bool expanded = false;
@@ -526,8 +513,7 @@ class SearchingGameNotification extends StatefulWidget {
   const SearchingGameNotification(this.connected, {Key? key}) : super(key: key);
 
   @override
-  _SearchingGameNotificationState createState() =>
-      _SearchingGameNotificationState();
+  _SearchingGameNotificationState createState() => _SearchingGameNotificationState();
 }
 
 class _SearchingGameNotificationState extends State<SearchingGameNotification> {
@@ -578,15 +564,12 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
                                   SizedBox(
                                     height: 32,
                                     width: 32,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
+                                    child: CircularProgressIndicator(strokeWidth: 2),
                                   ),
                                   Container(
                                     padding: EdgeInsets.all(8),
                                     child: Icon(
-                                      collapsed
-                                          ? Icons.arrow_downward
-                                          : Icons.arrow_upward,
+                                      collapsed ? Icons.arrow_downward : Icons.arrow_upward,
                                       size: 16,
                                       color: Colors.white70,
                                     ),
@@ -627,15 +610,12 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
                                         SizedBox(
                                           height: 32,
                                           width: 32,
-                                          child: CircularProgressIndicator(
-                                              strokeWidth: 2),
+                                          child: CircularProgressIndicator(strokeWidth: 2),
                                         ),
                                         Container(
                                           padding: EdgeInsets.all(8),
                                           child: Icon(
-                                            collapsed
-                                                ? Icons.arrow_downward
-                                                : Icons.arrow_upward,
+                                            collapsed ? Icons.arrow_downward : Icons.arrow_upward,
                                             size: 16,
                                             color: Colors.white70,
                                           ),
@@ -654,23 +634,18 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
                                       clipBehavior: Clip.antiAlias,
                                       color: Colors.black87,
                                       child: InkWell(
-                                        onTap: () => context
-                                            .read<GameStateManager>()
-                                            .leave(),
+                                        onTap: () => context.read<GameStateManager>().leave(),
                                         splashColor: Colors.white70,
                                         child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 12, horizontal: 8),
+                                          padding:
+                                              EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                                           decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                            border: Border.all(
-                                                color: Colors.white60),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(color: Colors.white60),
                                           ),
                                           child: Text(
                                             'Cancel',
-                                            style: TextStyle(
-                                                color: Colors.white70),
+                                            style: TextStyle(color: Colors.white70),
                                           ),
                                         ),
                                       ),
@@ -740,11 +715,8 @@ class _ChatAcceptDialogState extends State<ChatAcceptDialog> {
           mainAxisSize: MainAxisSize.max,
           children: [
             Checkbox(
-              activeColor: context
-                  .watch<ThemesProvider>()
-                  .selectedTheme
-                  .chatThemeColor
-                  .withOpacity(0.9),
+              activeColor:
+                  context.watch<ThemesProvider>().selectedTheme.chatThemeColor.withOpacity(0.9),
               value: oldEnough,
               onChanged: (v) {
                 if (v == null) return;
@@ -778,22 +750,13 @@ class _ChatAcceptDialogState extends State<ChatAcceptDialog> {
             TextButton(
               style: TextButton.styleFrom(
                 backgroundColor: oldEnough
-                    ? context
-                        .watch<ThemesProvider>()
-                        .selectedTheme
-                        .chatThemeColor
-                    : context
-                        .watch<ThemesProvider>()
-                        .selectedTheme
-                        .chatThemeColor
-                        .withOpacity(0.3),
+                    ? context.watch<ThemesProvider>().selectedTheme.chatThemeColor
+                    : context.watch<ThemesProvider>().selectedTheme.chatThemeColor.withOpacity(0.3),
               ),
-              onPressed:
-                  !oldEnough ? null : () => Navigator.of(context).pop(true),
+              onPressed: !oldEnough ? null : () => Navigator.of(context).pop(true),
               child: Text(
                 'ACCEPT',
-                style:
-                    TextStyle(color: oldEnough ? Colors.white : Colors.black45),
+                style: TextStyle(color: oldEnough ? Colors.white : Colors.black45),
               ),
             ),
           ],

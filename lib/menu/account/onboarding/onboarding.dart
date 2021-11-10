@@ -20,8 +20,7 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
     Future.delayed(Duration(milliseconds: 1500), () {
       Navigator.of(context)
         ..pop()
-        ..pushReplacement(MaterialPageRoute(
-            builder: (BuildContext context) => FriendsList()));
+        ..pushReplacement(MaterialPageRoute(builder: (BuildContext context) => FriendsList()));
     });
   }
 
@@ -33,8 +32,7 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
           Center(
             child: Container(
               margin: EdgeInsets.all(48),
-              width: min(
-                  (MediaQuery.of(context).size.height * 0.8).toDouble(), 400),
+              width: min((MediaQuery.of(context).size.height * 0.8).toDouble(), 400),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -47,10 +45,8 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
                   SizedBox(height: 48),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      primary: context
-                          .watch<ThemesProvider>()
-                          .selectedTheme
-                          .accountLoginAccentColor,
+                      primary:
+                          context.watch<ThemesProvider>().selectedTheme.accountLoginAccentColor,
                     ),
                     onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(
@@ -58,23 +54,19 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
                               LoginPage(callback: successfullyLoggedIn)));
                       // .push(PageRouteBuilder(pageBuilder: () => RegisterPage())());
                     },
-                    child: Text('Log in'.toUpperCase(),
-                        style: TextStyle(color: Colors.white)),
+                    child: Text('Log in'.toUpperCase(), style: TextStyle(color: Colors.white)),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      primary: context
-                          .watch<ThemesProvider>()
-                          .selectedTheme
-                          .accountRegisterAccentColor,
+                      primary:
+                          context.watch<ThemesProvider>().selectedTheme.accountRegisterAccentColor,
                     ),
                     onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (BuildContext context) =>
                               RegisterPage(callback: successfullyLoggedIn)));
                     },
-                    child: Text('Register'.toUpperCase(),
-                        style: TextStyle(color: Colors.white)),
+                    child: Text('Register'.toUpperCase(), style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -87,11 +79,9 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
               child: TextButton(
                 child: Text('Settings'),
                 style: TextButton.styleFrom(
-                  primary:
-                      context.watch<ThemesProvider>().selectedTheme.accentColor,
+                  primary: context.watch<ThemesProvider>().selectedTheme.accentColor,
                 ),
-                onPressed: () =>
-                    Navigator.of(context).push(slideUpRoute(SettingsScreen())),
+                onPressed: () => Navigator.of(context).push(slideUpRoute(SettingsScreen())),
               ),
             ),
           ),

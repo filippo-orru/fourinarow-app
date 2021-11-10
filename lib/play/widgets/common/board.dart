@@ -163,8 +163,7 @@ class _CreateCell extends StatelessWidget {
         GameChipStatic(Color(0xFFDEDEDE)),
         chip,
         wasLastPlaced
-            ? Transform.scale(
-                scale: 0.16, child: GameChip(Colors.white.withOpacity(0.6)))
+            ? Transform.scale(scale: 0.16, child: GameChip(Colors.white.withOpacity(0.6)))
             : SizedBox(),
       ]),
     );

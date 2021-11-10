@@ -146,9 +146,7 @@ class FieldResetButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = _turn
-        .color(context.watch<ThemesProvider>().selectedTheme)
-        .withOpacity(0.5);
+    final borderColor = _turn.color(context.watch<ThemesProvider>().selectedTheme).withOpacity(0.5);
     return BorderButton("Reset",
         icon: Icons.refresh, callback: _fieldReset, borderColor: borderColor);
   }

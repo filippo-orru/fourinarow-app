@@ -10,13 +10,11 @@ class ThemesProvider with ChangeNotifier {
     FiarThemeWeird(),
   ];
 
-  ThemesProvider({FiarTheme? overrideTheme})
-      : this._overrideTheme = overrideTheme;
+  ThemesProvider({FiarTheme? overrideTheme}) : this._overrideTheme = overrideTheme;
 
   FiarTheme get selectedTheme {
     String selectedThemeIdId = FiarSharedPrefs.selectedThemeId;
-    return _overrideTheme ??
-        allThemes.firstWhere((theme) => theme.id == selectedThemeIdId);
+    return _overrideTheme ?? allThemes.firstWhere((theme) => theme.id == selectedThemeIdId);
   }
 }
 

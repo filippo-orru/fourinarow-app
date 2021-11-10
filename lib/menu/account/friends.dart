@@ -30,8 +30,7 @@ class FriendsList extends StatefulWidget {
   _FriendsListState createState() => _FriendsListState();
 }
 
-class _FriendsListState extends State<FriendsList>
-    with SingleTickerProviderStateMixin {
+class _FriendsListState extends State<FriendsList> with SingleTickerProviderStateMixin {
   late AnimationController expandMore;
   late Animation<Offset> offsetTween;
 
@@ -68,10 +67,8 @@ class _FriendsListState extends State<FriendsList>
   @override
   void initState() {
     super.initState();
-    expandMore =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 130));
-    offsetTween =
-        Tween(begin: Offset(0, 0.5), end: Offset.zero).animate(expandMore);
+    expandMore = AnimationController(vsync: this, duration: Duration(milliseconds: 130));
+    offsetTween = Tween(begin: Offset(0, 0.5), end: Offset.zero).animate(expandMore);
   }
 
   @override
@@ -104,19 +101,14 @@ class _FriendsListState extends State<FriendsList>
                       right: 24,
                       bottom: FiarBottomSheet.HEIGHT,
                       child: FloatingActionButton(
-                        backgroundColor: context
-                            .watch<ThemesProvider>()
-                            .selectedTheme
-                            .friendsThemeColor[300],
+                        backgroundColor:
+                            context.watch<ThemesProvider>().selectedTheme.friendsThemeColor[300],
                         child: Icon(Icons.add),
                         onPressed: () => setState(() => showAddFriend = true),
                       ),
                     ),
                     FiarBottomSheet(
-                      color: context
-                          .watch<ThemesProvider>()
-                          .selectedTheme
-                          .friendsThemeColor,
+                      color: context.watch<ThemesProvider>().selectedTheme.friendsThemeColor,
                       expandedHeight: 218,
                       topChildren: [
                         Text.rich(
@@ -130,8 +122,7 @@ class _FriendsListState extends State<FriendsList>
                                     fontSize: 16,
                                   )),
                               TextSpan(
-                                text:
-                                    "${userInfo.user!.gameInfo.skillRating} SR",
+                                text: "${userInfo.user!.gameInfo.skillRating} SR",
                                 style: TextStyle(
                                   color: Colors.grey.shade600,
                                   fontSize: 16,
@@ -152,13 +143,12 @@ class _FriendsListState extends State<FriendsList>
                           child: ListTile(
                             onTap: () {
                               userInfo.logOut();
-                              Navigator.of(context).pushReplacement(
-                                  slideUpRoute(AccountOnboarding()));
+                              Navigator.of(context)
+                                  .pushReplacement(slideUpRoute(AccountOnboarding()));
                             },
                             leading: Icon(Icons.exit_to_app),
                             title: Text('Log out'),
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 24),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 24),
                           ),
                         ),
                         Material(
@@ -167,22 +157,19 @@ class _FriendsListState extends State<FriendsList>
                             onTap: shareInviteFriends,
                             leading: Icon(Icons.share_rounded),
                             title: Text('Invite friends'),
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 24),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 24),
                           ),
                         ),
                         Material(
                           type: MaterialType.transparency,
                           child: ListTile(
                             onTap: () {
-                              Navigator.of(context)
-                                  .push(slideUpRoute(SettingsScreen()));
+                              Navigator.of(context).push(slideUpRoute(SettingsScreen()));
                             },
                             leading: Icon(Icons.settings),
                             title: Text('More settings'),
                             trailing: Icon(Icons.chevron_right_rounded),
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 24),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 24),
                           ),
                         ),
                         SizedBox(height: 32),
@@ -222,11 +209,7 @@ class _FriendsListState extends State<FriendsList>
           SizedBox(height: 18),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              primary: context
-                  .watch<ThemesProvider>()
-                  .selectedTheme
-                  .friendsThemeColor
-                  .shade200,
+              primary: context.watch<ThemesProvider>().selectedTheme.friendsThemeColor.shade200,
             ),
             onPressed: () {
               userInfo.logOut();
@@ -248,8 +231,7 @@ class _FriendsListInner extends StatefulWidget {
   }) : super(key: key);
 
   final UserInfo userInfo;
-  final GlobalKey<RefreshIndicatorState> refreshKey =
-      GlobalKey<RefreshIndicatorState>();
+  final GlobalKey<RefreshIndicatorState> refreshKey = GlobalKey<RefreshIndicatorState>();
 
   final void Function(String) onBattleRequest;
 
@@ -271,10 +253,8 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
             .toList() ??
         [];
 
-    List<PublicUser> onlineFriends =
-        confirmedFriends.where((f) => f.isPlaying).toList();
-    List<PublicUser> offlineFriends =
-        confirmedFriends.where((f) => !f.isPlaying).toList();
+    List<PublicUser> onlineFriends = confirmedFriends.where((f) => f.isPlaying).toList();
+    List<PublicUser> offlineFriends = confirmedFriends.where((f) => !f.isPlaying).toList();
     int headingsCount = onlineFriends.isNotEmpty
         ? offlineFriends.isNotEmpty
             ? 2 // both headings
@@ -291,17 +271,14 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
                 : 1 + friendRequests.length // show friend requests with title
             : confirmedFriends.length +
                 headingsCount +
-                (friendRequests.isEmpty
-                    ? 0
-                    : 1 // 'x pending requests at the top'
+                (friendRequests.isEmpty ? 0 : 1 // 'x pending requests at the top'
                 ),
         itemBuilder: (_, index) {
           if (confirmedFriends.isNotEmpty) {
             if (friendRequests.isNotEmpty && index == 0) {
               String s = friendRequests.length == 1 ? '' : 's';
               return ListTile(
-                  trailing:
-                      Icon(Icons.chevron_right_rounded, color: Colors.black54),
+                  trailing: Icon(Icons.chevron_right_rounded, color: Colors.black54),
                   title: Text(
                     '${friendRequests.length.toNumberWord().capitalize()} pending friend request$s',
                     style: TextStyle(
@@ -324,25 +301,21 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
               }
 
               if (offlineFriends.isNotEmpty) {
-                if ((onlineFriends.isNotEmpty &&
-                        index - 1 == onlineFriends.length) ||
+                if ((onlineFriends.isNotEmpty && index - 1 == onlineFriends.length) ||
                     (onlineFriends.isEmpty && index == 0)) {
                   return FriendListHeading(title: 'Offline');
                 }
               }
 
-              if (onlineFriends.isNotEmpty &&
-                  index - 1 < onlineFriends.length) {
+              if (onlineFriends.isNotEmpty && index - 1 < onlineFriends.length) {
                 index -= onlineFriends.isNotEmpty ? 1 : 0;
                 bool isLast = index != onlineFriends.length - 1;
-                return FriendsListTile(
-                    onlineFriends[index], widget.onBattleRequest, isLast);
+                return FriendsListTile(onlineFriends[index], widget.onBattleRequest, isLast);
               } else {
                 index -= onlineFriends.length + headingsCount;
 
                 bool isLast = index != offlineFriends.length - 1;
-                return FriendsListTile(
-                    offlineFriends[index], widget.onBattleRequest, isLast);
+                return FriendsListTile(offlineFriends[index], widget.onBattleRequest, isLast);
               }
             }
           } else if (friendRequests.isNotEmpty) {
@@ -350,14 +323,11 @@ class __FriendsListInnerState extends State<_FriendsListInner> {
               return FriendListHeading(title: 'Friend Requests');
             } else {
               bool isLast = index - 1 != friendRequests.length - 1;
-              return FriendsListTile(
-                  friendRequests[index - 1], widget.onBattleRequest, isLast);
+              return FriendsListTile(friendRequests[index - 1], widget.onBattleRequest, isLast);
             }
           } else {
             return Container(
-              height: MediaQuery.of(context).size.height -
-                  FiarBottomSheet.HEIGHT -
-                  92,
+              height: MediaQuery.of(context).size.height - FiarBottomSheet.HEIGHT - 92,
               alignment: Alignment.center,
               child: Text("No friends yet. Add some to get started!"),
             );
@@ -440,14 +410,12 @@ class FriendRequestsScreen extends StatelessWidget {
             return !userInfo.loggedIn
                 ? Container(
                     height: 128,
-                    child: Text(
-                        'Something went wrong. Please restart the app or log out.'))
+                    child: Text('Something went wrong. Please restart the app or log out.'))
                 : ListView(
                     children: friendRequests.isEmpty
                         ? [
                             Container(
-                              height: MediaQuery.of(context).size.height -
-                                  FiarBottomSheet.HEIGHT,
+                              height: MediaQuery.of(context).size.height - FiarBottomSheet.HEIGHT,
                               alignment: Alignment.center,
                               child: Text("No friend requests at the moment",
                                   style: TextStyle(
@@ -489,10 +457,7 @@ class MoreButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        primary: context
-            .watch<ThemesProvider>()
-            .selectedTheme
-            .friendsThemeColor[200],
+        primary: context.watch<ThemesProvider>().selectedTheme.friendsThemeColor[200],
         shape: StadiumBorder(),
       ),
       onPressed: () => onTap,
@@ -511,8 +476,7 @@ class FriendsListTile extends StatefulWidget {
   final void Function(String) battleRequest;
   final bool isLast;
 
-  FriendsListTile(this.friend, this.battleRequest, this.isLast, {Key? key})
-      : super(key: key);
+  FriendsListTile(this.friend, this.battleRequest, this.isLast, {Key? key}) : super(key: key);
 
   @override
   _FriendsListTileState createState() => _FriendsListTileState();
@@ -523,9 +487,8 @@ class _FriendsListTileState extends State<FriendsListTile> {
 
   @override
   Widget build(BuildContext context) {
-    bool isFriendRequest =
-        widget.friend.friendState == FriendState.IsRequestedByMe ||
-            widget.friend.friendState == FriendState.HasRequestedMe;
+    bool isFriendRequest = widget.friend.friendState == FriendState.IsRequestedByMe ||
+        widget.friend.friendState == FriendState.HasRequestedMe;
     var tile = Material(
       child: Padding(
         padding: EdgeInsets.fromLTRB(16, 16, 24, 16),
@@ -559,8 +522,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
                       SizedBox(height: 4),
                       Text(
                         isFriendRequest
-                            ? widget.friend.friendState ==
-                                    FriendState.HasRequestedMe
+                            ? widget.friend.friendState == FriendState.HasRequestedMe
                                 ? "Waiting for your response"
                                 : "Awaiting response"
                             : "${widget.friend.gameInfo.skillRating} SR",
@@ -574,13 +536,11 @@ class _FriendsListTileState extends State<FriendsListTile> {
                 ),
                 isFriendRequest
                     ? IconButton(
-                        tooltip: widget.friend.friendState ==
-                                FriendState.HasRequestedMe
+                        tooltip: widget.friend.friendState == FriendState.HasRequestedMe
                             ? 'Accept'
                             : 'Delete',
                         icon: Icon(
-                          widget.friend.friendState ==
-                                  FriendState.HasRequestedMe
+                          widget.friend.friendState == FriendState.HasRequestedMe
                               ? Icons.check
                               : Icons.clear,
                           color: Colors.grey[600],
@@ -589,8 +549,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
                         ),
                         onPressed: () {
                           var userInfo = context.read<UserInfo>();
-                          widget.friend.friendState ==
-                                  FriendState.HasRequestedMe
+                          widget.friend.friendState == FriendState.HasRequestedMe
                               ? userInfo.addFriend(widget.friend.id)
                               : userInfo.removeFriend(widget.friend.id);
                         },
@@ -608,8 +567,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
                                   colorBlendMode: BlendMode.srcIn,
                                 ),
                               ),
-                              onPressed: () =>
-                                  widget.battleRequest(widget.friend.id),
+                              onPressed: () => widget.battleRequest(widget.friend.id),
                             ),
                           )
                         : null,
@@ -618,8 +576,8 @@ class _FriendsListTileState extends State<FriendsListTile> {
                     : TweenAnimationBuilder(
                         tween: Tween<double>(begin: 0, end: _expanded ? 1 : 0),
                         duration: Duration(milliseconds: 120),
-                        builder: (_, val, child) => Transform.rotate(
-                            angle: pi * (val as double), child: child),
+                        builder: (_, val, child) =>
+                            Transform.rotate(angle: pi * (val as double), child: child),
                         child: IconButton(
                           onPressed: () {
                             setState(() => _expanded = !_expanded);
@@ -641,8 +599,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
                     children: _expanded
                         ? [
                             IconButton(
-                              icon: Icon(Icons.cancel_outlined,
-                                  color: Colors.grey.shade600),
+                              icon: Icon(Icons.cancel_outlined, color: Colors.grey.shade600),
                               onPressed: () {
                                 showDialog(
                                   context: context,
@@ -661,16 +618,14 @@ class _FriendsListTileState extends State<FriendsListTile> {
                                           'Do you really want to remove \"${widget.friend.username}\"?'),
                                       SizedBox(height: 24),
                                       Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                           TextButton(
                                             style: TextButton.styleFrom(
                                               primary: Colors.black87,
                                             ),
                                             child: Text('Cancel'),
-                                            onPressed: () =>
-                                                Navigator.of(ctx).pop(),
+                                            onPressed: () => Navigator.of(ctx).pop(),
                                           ),
                                           SizedBox(width: 16),
                                           OutlinedButton(
@@ -680,8 +635,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
                                             onPressed: () {
                                               context
                                                   .read<UserInfo>()
-                                                  .removeFriend(
-                                                      widget.friend.id);
+                                                  .removeFriend(widget.friend.id);
                                               Navigator.of(ctx).pop();
                                             },
                                             child: Text('Remove'),
@@ -695,15 +649,13 @@ class _FriendsListTileState extends State<FriendsListTile> {
                             ),
                             SizedBox(width: 12),
                             IconButton(
-                              icon: Icon(Icons.chat_outlined,
-                                  color: Colors.grey.shade600),
+                              icon: Icon(Icons.chat_outlined, color: Colors.grey.shade600),
                               onPressed: () {
                                 showDialog(
                                   context: context,
                                   builder: (_) => FiarSimpleDialog(
                                     title: "Chat",
-                                    content:
-                                        'Chatting with friends is coming soon! Stay tuned 😊',
+                                    content: 'Chatting with friends is coming soon! Stay tuned 😊',
                                   ),
                                 );
                               },
@@ -761,8 +713,7 @@ class _BattleRequestDialogState extends State<BattleRequestDialog> {
     super.initState();
 
     ticker = Ticker((time) => setState(() {
-          timerVal =
-              time.inMilliseconds / BattleRequestDialog.TIMEOUT.inMilliseconds;
+          timerVal = time.inMilliseconds / BattleRequestDialog.TIMEOUT.inMilliseconds;
         }));
     ticker.start();
   }
@@ -770,12 +721,10 @@ class _BattleRequestDialogState extends State<BattleRequestDialog> {
   @override
   didUpdateWidget(oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.showBattleRequest != null &&
-        oldWidget.showBattleRequest == null) {
+    if (widget.showBattleRequest != null && oldWidget.showBattleRequest == null) {
       ticker.stop();
       ticker = Ticker((time) {
-        setState(() => timerVal =
-            time.inMilliseconds / BattleRequestDialog.TIMEOUT.inMilliseconds);
+        setState(() => timerVal = time.inMilliseconds / BattleRequestDialog.TIMEOUT.inMilliseconds);
         if (timerVal >= 1) {
           timerVal = 1;
           ticker.stop();
@@ -876,8 +825,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
 
   void search() async {
     if (searchText.length < AddFriendDialog.MIN_SEARCH_LEN) {
-      setState(() => errorMessage =
-          "Enter at least ${AddFriendDialog.MIN_SEARCH_LEN} characters.");
+      setState(() => errorMessage = "Enter at least ${AddFriendDialog.MIN_SEARCH_LEN} characters.");
       return;
     }
 
@@ -897,11 +845,10 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
     }
 
     if (response.statusCode == 200) {
-      Map<int, PublicUser> temp = (jsonDecode(response.body) as List<dynamic>)
-          .asMap()
-          .map<int, PublicUser?>((i, dyn) {
-        PublicUser? user = PublicUser.fromMapPublic(
-            widget.userInfo.user, dyn as Map<String, dynamic>);
+      Map<int, PublicUser> temp =
+          (jsonDecode(response.body) as List<dynamic>).asMap().map<int, PublicUser?>((i, dyn) {
+        PublicUser? user =
+            PublicUser.fromMapPublic(widget.userInfo.user, dyn as Map<String, dynamic>);
         if (user == null) return MapEntry(i, null);
         return MapEntry(i, user);
       }).filterNotNull();
@@ -1015,15 +962,12 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
                             builder: (_, themeProvider, child) => IconButton(
                               icon: Icon(
                                 Icons.close,
-                                color: themeProvider
-                                    .selectedTheme.friendsThemeColor.shade200,
+                                color: themeProvider.selectedTheme.friendsThemeColor.shade200,
                               ),
-                              splashColor: themeProvider
-                                  .selectedTheme.friendsThemeColor
-                                  .withOpacity(0.2),
+                              splashColor:
+                                  themeProvider.selectedTheme.friendsThemeColor.withOpacity(0.2),
                               hoverColor: Colors.transparent,
-                              highlightColor: themeProvider
-                                  .selectedTheme.friendsThemeColor.shade100
+                              highlightColor: themeProvider.selectedTheme.friendsThemeColor.shade100
                                   .withOpacity(0.2),
                               onPressed: () => widget.hide(),
                             ),
@@ -1063,8 +1007,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
                                   ),
                                   IconButton(
                                     iconSize: 24,
-                                    splashColor: themeProvider
-                                        .selectedTheme.friendsThemeColor[300]!
+                                    splashColor: themeProvider.selectedTheme.friendsThemeColor[300]!
                                         .withOpacity(0.5),
                                     highlightColor: themeProvider
                                         .selectedTheme.friendsThemeColor[200]!
@@ -1080,16 +1023,13 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
                           ),
                         ),
                       ),
-                      searchResults != null
-                          ? buildSearchresults(searchResults!)
-                          : SizedBox(),
+                      searchResults != null ? buildSearchresults(searchResults!) : SizedBox(),
                       Container(
                         height: 48,
                         alignment: Alignment.center,
                         child: TextButton.icon(
                           style: TextButton.styleFrom(
-                              primary: themeProvider
-                                  .selectedTheme.friendsThemeColor.shade300),
+                              primary: themeProvider.selectedTheme.friendsThemeColor.shade300),
                           onPressed: shareInviteFriends,
                           icon: Icon(Icons.share_rounded),
                           label: Text('Invite friends'),
@@ -1126,8 +1066,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
                     itemCount: searchResults.length,
                     itemBuilder: (_, index) {
                       PublicUser? publicUser = searchResults[index];
-                      return FriendSearchResult(
-                          publicUser, addingFriend, index, addFriend);
+                      return FriendSearchResult(publicUser, addingFriend, index, addFriend);
                     },
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,
@@ -1147,8 +1086,7 @@ void shareInviteFriends() {
 }
 
 class FriendSearchResult extends StatelessWidget {
-  const FriendSearchResult(
-      this.publicUser, this.addingFriend, this.index, this.addFriend,
+  const FriendSearchResult(this.publicUser, this.addingFriend, this.index, this.addFriend,
       {Key? key})
       : super(key: key);
 
@@ -1164,13 +1102,9 @@ class FriendSearchResult extends StatelessWidget {
       subtitle: Text("${publicUser.gameInfo.skillRating} SR"),
       trailing: Consumer<ThemesProvider>(
         builder: (_, themeProvider, child) => IconButton(
-          splashColor: themeProvider.selectedTheme.friendsThemeColor.shade500
-              .withOpacity(0.2),
-          highlightColor: themeProvider.selectedTheme.friendsThemeColor.shade300
-              .withOpacity(0.2),
-          icon: addingFriend == index
-              ? CircularProgressIndicator()
-              : publicUser.friendState.icon(),
+          splashColor: themeProvider.selectedTheme.friendsThemeColor.shade500.withOpacity(0.2),
+          highlightColor: themeProvider.selectedTheme.friendsThemeColor.shade300.withOpacity(0.2),
+          icon: addingFriend == index ? CircularProgressIndicator() : publicUser.friendState.icon(),
           onPressed: publicUser.friendState == FriendState.None ||
                   publicUser.friendState == FriendState.HasRequestedMe
               ? () => addFriend(publicUser.id, index)

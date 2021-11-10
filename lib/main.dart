@@ -42,8 +42,7 @@ class SplashAppInternal extends StatefulWidget {
 
 enum AppLoadState { Loading, Preloading, Loaded, Error }
 
-class _SplashAppInternalState extends State<SplashAppInternal>
-    with TickerProviderStateMixin {
+class _SplashAppInternalState extends State<SplashAppInternal> with TickerProviderStateMixin {
   AppLoadState state = AppLoadState.Loading;
 
   AnimationController _lottieAnimCtrl;
@@ -88,8 +87,7 @@ class _SplashAppInternalState extends State<SplashAppInternal>
   }) async {
     if (state == AppLoadState.Loaded) return; // already initialized
 
-    if (_startedInitializing && state != AppLoadState.Error)
-      return; // Was already called
+    if (_startedInitializing && state != AppLoadState.Error) return; // Was already called
     _startedInitializing = true;
 
     setState(() => state = AppLoadState.Loading);
@@ -181,8 +179,7 @@ class _SplashAppInternalState extends State<SplashAppInternal>
       double end = max(0, viewHeight * 0.22);
 
       _moveUpAnim = _moveUpAnimCtrl.drive(
-        Tween<double>(begin: begin, end: end)
-            .chain(CurveTween(curve: Curves.easeInOutCubic)),
+        Tween<double>(begin: begin, end: end).chain(CurveTween(curve: Curves.easeInOutCubic)),
       );
     }
 
@@ -208,8 +205,7 @@ class _SplashAppInternalState extends State<SplashAppInternal>
           child: AnimatedBuilder(
             animation: _moveUpAnimCtrl,
             builder: (_, child) => Container(
-              padding:
-                  EdgeInsets.only(left: 32, right: 32, top: _moveUpAnim.value),
+              padding: EdgeInsets.only(left: 32, right: 32, top: _moveUpAnim.value),
               child: child,
             ),
             child: Lottie.asset(
@@ -336,10 +332,8 @@ class _FiarAppState extends State<FiarApp> {
               title: 'Four in a Row',
               color: Colors.blueAccent,
               initialRoute: "/",
-              pageRouteBuilder: <T>(RouteSettings settings,
-                  Widget Function(BuildContext) builder) {
-                return MaterialPageRoute<T>(
-                    builder: builder, settings: settings);
+              pageRouteBuilder: <T>(RouteSettings settings, Widget Function(BuildContext) builder) {
+                return MaterialPageRoute<T>(builder: builder, settings: settings);
               },
               builder: (ctx, child) {
                 _initialization(ctx);
@@ -361,16 +355,14 @@ class _FiarAppState extends State<FiarApp> {
                                     gsm.showViewer,
                                     gsm.hideViewer,
                                     gsm.connected,
-                                    gsm.currentGameState
-                                        is WaitingForWWOpponentState
+                                    gsm.currentGameState is WaitingForWWOpponentState
                                   ],
                               builder: (_, tuple, __) {
                                 // print("building popup");
                                 var gsm = ctx.read<GameStateManager>();
                                 if (gsm.showViewer) {
                                   Future.delayed(Duration.zero, () {
-                                    _navigator
-                                        .push(slideUpRoute(GameStateViewer()));
+                                    _navigator.push(slideUpRoute(GameStateViewer()));
                                   });
                                   // gsm.showViewer = false;
                                 }
@@ -385,17 +377,13 @@ class _FiarAppState extends State<FiarApp> {
                                   curve: Curves.easeOutQuad,
                                   tween: Tween<double>(
                                       begin: 1,
-                                      end: gsm.currentGameState
-                                              is WaitingForWWOpponentState
+                                      end: gsm.currentGameState is WaitingForWWOpponentState
                                           ? 0
                                           : 1),
                                   duration: Duration(milliseconds: 250),
-                                  builder: (_, val, child) =>
-                                      Transform.translate(
-                                          offset: Offset(0, -144 * val),
-                                          child: child),
-                                  child:
-                                      SearchingGameNotification(gsm.connected),
+                                  builder: (_, val, child) => Transform.translate(
+                                      offset: Offset(0, -144 * val), child: child),
+                                  child: SearchingGameNotification(gsm.connected),
                                 );
                               }),
                         ),
@@ -405,44 +393,37 @@ class _FiarAppState extends State<FiarApp> {
                           right: 0,
                           child: Selector<GameStateManager, BattleRequestState>(
                             selector: (_, gsm) => gsm.incomingBattleRequest,
-                            builder: (_, battleRequestState, __) =>
-                                battleRequestState != null
-                                    ? BattleRequestPopup(
-                                        username:
-                                            battleRequestState.user.username,
-                                        joinCallback: () =>
-                                            context.read<GameStateManager>()
-                                              ..startGame(
-                                                ORqLobbyJoin(
-                                                    battleRequestState.lobbyId),
-                                              )
-                                              ..cancelIncomingBattleReq(),
-                                        leaveCallback: () => context
-                                            .read<GameStateManager>()
-                                            .cancelIncomingBattleReq(),
+                            builder: (_, battleRequestState, __) => battleRequestState != null
+                                ? BattleRequestPopup(
+                                    username: battleRequestState.user.username,
+                                    joinCallback: () => context.read<GameStateManager>()
+                                      ..startGame(
+                                        ORqLobbyJoin(battleRequestState.lobbyId),
                                       )
-                                    : SizedBox(),
+                                      ..cancelIncomingBattleReq(),
+                                    leaveCallback: () =>
+                                        context.read<GameStateManager>().cancelIncomingBattleReq(),
+                                  )
+                                : SizedBox(),
                           ),
                         ),
                         Selector<ServerConnection, bool>(
-                          selector: (_, connection) =>
-                              connection.catastrophicFailure,
+                          selector: (_, connection) => connection.catastrophicFailure,
                           shouldRebuild: (_, fail) => fail,
-                          builder: (_, catastrophicFailure, child) =>
-                              catastrophicFailure
-                                  ? AbsorbPointer(
-                                      child: Container(
-                                        color: Colors.black54,
-                                        constraints: BoxConstraints.expand(),
-                                        child: FiarSimpleDialog(
-                                          title: "Error!",
-                                          content:
-                                              "Oh no! A fatal error has occurred :( \n\nThe app will close now.",
-                                          showOkay: false,
-                                        ),
-                                      ),
-                                    )
-                                  : SizedBox(),
+                          builder: (_, catastrophicFailure, child) => catastrophicFailure
+                              ? AbsorbPointer(
+                                  child: Container(
+                                    color: Colors.black54,
+                                    constraints: BoxConstraints.expand(),
+                                    child: FiarSimpleDialog(
+                                      title: "Error!",
+                                      content:
+                                          "Oh no! A fatal error has occurred :( \n\nThe app will close now.",
+                                      showOkay: false,
+                                    ),
+                                  ),
+                                )
+                              : SizedBox(),
                         ),
                       ]),
                     ),

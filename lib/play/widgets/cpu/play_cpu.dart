@@ -131,8 +131,7 @@ class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.info_outline,
-                            color: Colors.grey.shade600),
+                        icon: Icon(Icons.info_outline, color: Colors.grey.shade600),
                         iconSize: 20,
                         onPressed: () {
                           showDialog(
@@ -170,9 +169,7 @@ class FieldResetButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = _turn
-        .color(context.watch<ThemesProvider>().selectedTheme)
-        .withOpacity(0.5);
+    final borderColor = _turn.color(context.watch<ThemesProvider>().selectedTheme).withOpacity(0.5);
     return BorderButton("Reset",
         icon: Icons.refresh, callback: _fieldReset, borderColor: borderColor);
   }

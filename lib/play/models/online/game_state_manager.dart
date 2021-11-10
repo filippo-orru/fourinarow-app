@@ -46,12 +46,10 @@ class GameStateManager with ChangeNotifier {
   void _userInfoListener() {
     // print(
     //     "userinfolistener! (loggedin = ${userInfo.loggedIn}, cls = $currentLoginState)");
-    if (userInfo.loggedIn == true &&
-        this.currentLoginState is GameLoginLoggedOut) {
+    if (userInfo.loggedIn == true && this.currentLoginState is GameLoginLoggedOut) {
       // When logging in
       _sendLoginMsg();
-    } else if (userInfo.loggedIn == false &&
-        this.currentLoginState is! GameLoginLoggedOut) {
+    } else if (userInfo.loggedIn == false && this.currentLoginState is! GameLoginLoggedOut) {
       // Need to log out
       _sendLogoutMsg();
     }
@@ -81,8 +79,7 @@ class GameStateManager with ChangeNotifier {
   set serverInfo(CurrentServerInfo? s) {
     _serverInfo = s;
     _serverInfo!.currentlyConnectedPlayers--;
-    if (s?.playerWaitingInLobby == true &&
-        currentGameState is WaitingForWWOpponentState) {
+    if (s?.playerWaitingInLobby == true && currentGameState is WaitingForWWOpponentState) {
       _serverInfo!.playerWaitingInLobby = false;
     }
   }
@@ -166,15 +163,12 @@ class GameStateManager with ChangeNotifier {
     return await this._serverConnection.send(PlayerMsgLeave());
   }
 
-  Future<bool> Function(PlayerMessage) get sendPlayerMessage =>
-      this._serverConnection.send;
+  Future<bool> Function(PlayerMessage) get sendPlayerMessage => this._serverConnection.send;
 
   void _didGameStateChange(GameState oldState, GameState newState) {
-    if (oldState is! WaitingForWWOpponentState &&
-        newState is WaitingForWWOpponentState) {
+    if (oldState is! WaitingForWWOpponentState && newState is WaitingForWWOpponentState) {
       notifications?.searchingGame();
-    } else if (oldState is WaitingForWWOpponentState &&
-        newState is! WaitingForWWOpponentState) {
+    } else if (oldState is WaitingForWWOpponentState && newState is! WaitingForWWOpponentState) {
       notifications?.cancelSearchingGame();
     }
   }
@@ -185,8 +179,7 @@ class GameStateManager with ChangeNotifier {
       GameState? newGameState = currentGameState.handleServerMessage(msg);
       this.currentGameState = newGameState ?? currentGameState;
 
-      GameLoginState? newLoginState =
-          currentLoginState.handleServerMessage(msg);
+      GameLoginState? newLoginState = currentLoginState.handleServerMessage(msg);
       this.currentLoginState = newLoginState ?? currentLoginState;
       notifyListeners();
     });
@@ -196,8 +189,7 @@ class GameStateManager with ChangeNotifier {
       GameState? newGameState = currentGameState.handlePlayerMessage(msg);
       this.currentGameState = newGameState ?? currentGameState;
 
-      GameLoginState? newLoginState =
-          currentLoginState.handlePlayerMessage(msg);
+      GameLoginState? newLoginState = currentLoginState.handlePlayerMessage(msg);
       this.currentLoginState = newLoginState ?? currentLoginState;
       notifyListeners();
     });
@@ -222,10 +214,8 @@ class GameStateManager with ChangeNotifier {
       userInfo.getUserInfo(userId: msg.userId).then((loadedUserInfo) {
         if (loadedUserInfo == null) return;
         incomingBattleRequestTimer?.cancel();
-        incomingBattleRequest =
-            BattleRequestState(loadedUserInfo, msg.lobbyCode);
-        incomingBattleRequestTimer =
-            Timer(BattleRequestPopup.DURATION, cancelIncomingBattleReq);
+        incomingBattleRequest = BattleRequestState(loadedUserInfo, msg.lobbyCode);
+        incomingBattleRequestTimer = Timer(BattleRequestPopup.DURATION, cancelIncomingBattleReq);
         notifyListeners();
 
         if (lifecycle!.state != AppLifecycleState.resumed) {

@@ -192,8 +192,7 @@ class _PlayingPreviewState extends State<PlayingPreview> {
       me: Player.One,
       dropChip: (x) {},
       opponentInfo: OpponentInfo()
-        ..user =
-            PublicUser("", "opponent", GameInfo(1275, 1), FriendState.None),
+        ..user = PublicUser("", "opponent", GameInfo(1275, 1), FriendState.None),
       connectionLost: false,
       setOpponentUser: (x) {},
       setMuteState: (x) {},

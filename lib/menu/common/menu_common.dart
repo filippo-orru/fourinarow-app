@@ -15,8 +15,7 @@ class MenuWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bgCol =
-        context.watch<ThemesProvider>().selectedTheme.menuBackgroundColor;
+    Color bgCol = context.watch<ThemesProvider>().selectedTheme.menuBackgroundColor;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -85,8 +84,7 @@ class _ArmsButtonState extends State<ArmsButton> {
 }
 
 PageRouteBuilder fadeRoute(Widget child, {int millDuration = 300}) {
-  final opacityTween =
-      Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.ease));
+  final opacityTween = Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.ease));
   // final sizeTween =
   //     Tween<double>(begin: 0.9, end: 1).chain(CurveTween(curve: Curves.ease));
   return PageRouteBuilder(
@@ -125,8 +123,7 @@ class FiarAppBar extends AppBar {
             AnimatedSwitcher(
               duration: Duration(milliseconds: 200),
               child: refreshing
-                  ? Transform.scale(
-                      scale: 0.7, child: CircularProgressIndicator())
+                  ? Transform.scale(scale: 0.7, child: CircularProgressIndicator())
                   : SizedBox(),
             ),
             threeDots.isNotEmpty ? FiarPopupMenuButton(threeDots) : SizedBox(),
@@ -177,8 +174,7 @@ class FeedbackDialog extends StatefulWidget {
   _FeedbackDialogState createState() => _FeedbackDialogState();
 }
 
-class _FeedbackDialogState extends State<FeedbackDialog>
-    with SingleTickerProviderStateMixin {
+class _FeedbackDialogState extends State<FeedbackDialog> with SingleTickerProviderStateMixin {
   bool done = false;
 
   late final TextEditingController controller;
@@ -244,17 +240,13 @@ class _FeedbackDialogState extends State<FeedbackDialog>
                       ),
                       OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          primary: context
-                              .watch<ThemesProvider>()
-                              .selectedTheme
-                              .accentColor,
+                          primary: context.watch<ThemesProvider>().selectedTheme.accentColor,
                         ),
                         onPressed: () async {
                           Map<String, String> body = {
                             "content": controller.text,
                           };
-                          var user =
-                              context.read<GameStateManager>().userInfo.user;
+                          var user = context.read<GameStateManager>().userInfo.user;
                           if (user != null) {
                             body["user_id"] = user.id;
                           }
