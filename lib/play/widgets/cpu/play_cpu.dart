@@ -1,13 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/inherit/route.dart';
+import 'package:four_in_a_row/providers/route.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
 import 'package:four_in_a_row/play/models/cpu/cpu.dart';
+import 'package:four_in_a_row/providers/themes.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:four_in_a_row/util/vibration.dart';
+import 'package:provider/src/provider.dart';
 
 import '../common/common.dart';
 import '../common/board.dart';
@@ -129,7 +131,8 @@ class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.info_outline, color: Colors.grey.shade600),
+                        icon: Icon(Icons.info_outline,
+                            color: Colors.grey.shade600),
                         iconSize: 20,
                         onPressed: () {
                           showDialog(
@@ -167,7 +170,9 @@ class FieldResetButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = _turn.color().withOpacity(0.5);
+    final borderColor = _turn
+        .color(context.watch<ThemesProvider>().selectedTheme)
+        .withOpacity(0.5);
     return BorderButton("Reset",
         icon: Icons.refresh, callback: _fieldReset, borderColor: borderColor);
   }

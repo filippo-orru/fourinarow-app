@@ -26,7 +26,8 @@ class FiarBottomSheet extends StatefulWidget {
   _FiarBottomSheetState createState() => _FiarBottomSheetState();
 }
 
-class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProviderStateMixin {
+class _FiarBottomSheetState extends State<FiarBottomSheet>
+    with SingleTickerProviderStateMixin {
   late AnimationController animCtrl;
   late Animation<double> moveUpAnim;
   late Animation<double> rotateAnim;
@@ -51,7 +52,8 @@ class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProv
 
     animCtrl = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: (widget.expandedHeight * 0.3).toInt() + 140),
+      duration:
+          Duration(milliseconds: (widget.expandedHeight * 0.3).toInt() + 140),
     );
 
     moveUpAnim = Tween<double>(begin: 0, end: 1)
@@ -92,7 +94,9 @@ class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProv
           children: [
             expanded
                 ? GestureDetector(
-                    behavior: expanded ? HitTestBehavior.opaque : HitTestBehavior.translucent,
+                    behavior: expanded
+                        ? HitTestBehavior.opaque
+                        : HitTestBehavior.translucent,
                     onTap: () {
                       if (expanded) hide();
                     },
@@ -111,7 +115,8 @@ class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProv
                 alignment: Alignment.topCenter,
                 size: Size(
                   double.infinity,
-                  FiarBottomSheet._CONT_HEIGHT + moveUpAnim.value * widget.expandedHeight,
+                  FiarBottomSheet._CONT_HEIGHT +
+                      moveUpAnim.value * widget.expandedHeight,
                 ),
                 child: child,
               ),
@@ -174,7 +179,8 @@ class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProv
                                 InkResponse(
                               containedInkWell: true,
                               highlightShape: BoxShape.rectangle,
-                              borderRadius: BorderRadius.all(Radius.circular(24)),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(24)),
                               onTap: widget.onlyOpenUsingButton
                                   ? null
                                   : () {
@@ -184,30 +190,35 @@ class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProv
                                         show();
                                     },
                               splashColor:
-                                  (widget.color[300] ?? widget.color[200]!).withOpacity(0.5),
+                                  (widget.color[300] ?? widget.color[200]!)
+                                      .withOpacity(0.5),
                               // focusColor: Colors.blue,
-                              highlightColor: widget.color[100]!.withOpacity(0.5),
+                              highlightColor:
+                                  widget.color[100]!.withOpacity(0.5),
                               // hoverColor: Colors.green,
                               child: Padding(
                                 padding: EdgeInsets.only(left: 24, right: 24),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: widget.topChildren +
                                       [
                                         RotationTransition(
                                           turns: rotateAnim,
                                           child: IconButton(
-                                            onPressed: widget.onlyOpenUsingButton
-                                                ? () {
-                                                    if (expanded)
-                                                      hide();
-                                                    else
-                                                      show();
-                                                  }
-                                                : null,
-                                            icon: Icon(Icons.arrow_drop_up, color: Colors.black87),
+                                            onPressed:
+                                                widget.onlyOpenUsingButton
+                                                    ? () {
+                                                        if (expanded)
+                                                          hide();
+                                                        else
+                                                          show();
+                                                      }
+                                                    : null,
+                                            icon: Icon(Icons.arrow_drop_up,
+                                                color: Colors.black87),
                                           ),
                                         ),
                                       ],
@@ -253,4 +264,26 @@ class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProv
       ),
     );
   }
+}
+
+PageRouteBuilder slideUpRoute(Widget content) {
+  final offset = Tween<Offset>(begin: Offset(0, 0.25), end: Offset.zero)
+      .chain(CurveTween(curve: Curves.ease));
+
+  final opacity = Tween<double>(begin: 0, end: 1).chain(
+    CurveTween(curve: Curves.easeInOut),
+  );
+  return PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) => content,
+    transitionDuration: Duration(milliseconds: 220),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: animation.drive(opacity),
+        child: SlideTransition(
+          position: animation.drive(offset),
+          child: child,
+        ),
+      );
+    },
+  );
 }

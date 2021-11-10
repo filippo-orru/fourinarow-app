@@ -5,7 +5,7 @@ import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/util/vibration.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/connection/messages.dart';
-import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/providers/user.dart';
 import 'package:four_in_a_row/util/toast.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
 import 'game_state.dart';
@@ -83,7 +83,9 @@ class PlayingState extends GameState {
         showPopup("Opponent left");
       }
       // return Idle(widget.sink);
-    } else if (msg is MsgLobbyClosing && !this.leaving && !this.opponentInfo.hasLeft) {
+    } else if (msg is MsgLobbyClosing &&
+        !this.leaving &&
+        !this.opponentInfo.hasLeft) {
       return IdleState(gsm);
       // TODO: do I need this?
 
@@ -168,6 +170,50 @@ class PlayingState extends GameState {
     });
     notifyListeners();
   }
+
+  PlayingStateIntermediate toIntermediate() {
+    return PlayingStateIntermediate(
+      getShowRatingDialog: () => showRatingDialog,
+      setShowRatingDialog: (b) => showRatingDialog = b,
+      toastState: toastState,
+      field: field,
+      me: me,
+      dropChip: dropChip,
+      opponentInfo: opponentInfo,
+      connectionLost: connectionLost,
+      setOpponentUser: setOpponentUser,
+      setMuteState: setMuteState,
+      playAgain: playAgain,
+    );
+  }
+}
+
+class PlayingStateIntermediate {
+  final bool Function() getShowRatingDialog;
+  final void Function(bool) setShowRatingDialog;
+  final ToastState? toastState;
+  final Field field;
+  final Player me;
+  final void Function(int) dropChip;
+  final OpponentInfo opponentInfo;
+  final bool connectionLost;
+  final void Function(PublicUser?) setOpponentUser;
+  final void Function(bool) setMuteState;
+  final void Function() playAgain;
+
+  PlayingStateIntermediate({
+    required this.getShowRatingDialog,
+    required this.setShowRatingDialog,
+    required this.toastState,
+    required this.field,
+    required this.me,
+    required this.dropChip,
+    required this.opponentInfo,
+    required this.connectionLost,
+    required this.setOpponentUser,
+    required this.setMuteState,
+    required this.playAgain,
+  });
 }
 
 class OpponentInfo {

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:four_in_a_row/providers/themes.dart';
 import 'package:provider/provider.dart';
 
-import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/providers/user.dart';
 import 'common.dart';
 
 class RegisterPage extends StatefulWidget {
   final title = 'Register';
-  final Color accentColor = Colors.redAccent;
   final usernameCtrl = TextEditingController();
   final pwCtrl = TextEditingController();
   final VoidCallback callback;
@@ -21,8 +21,9 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<int>? registerFuture;
 
   void onPressed() async {
-    registerFuture =
-        context.read<UserInfo>().register(widget.usernameCtrl.text, widget.pwCtrl.text);
+    registerFuture = context
+        .read<UserInfo>()
+        .register(widget.usernameCtrl.text, widget.pwCtrl.text);
 
     setState(() {});
     if (await registerFuture == 200) {
@@ -50,7 +51,10 @@ class _RegisterPageState extends State<RegisterPage> {
           title: widget.title,
           usernameCtrl: widget.usernameCtrl,
           pwCtrl: widget.pwCtrl,
-          accentColor: widget.accentColor,
+          accentColor: context
+              .watch<ThemesProvider>()
+              .selectedTheme
+              .accountRegisterAccentColor,
           onSubmit: onPressed,
           registering: true,
         ),
@@ -68,12 +72,14 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Center(
                           child: snapshot.hasData
                               ? Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 24, vertical: 18),
                                   // height: 100,
                                   width: 220,
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.all(Radius.circular(4)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(4)),
                                   ),
                                   child: Text(
                                     textFromStatuscode(snapshot.data),
@@ -86,7 +92,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ? Container(
                                       color: Colors.white,
                                       padding: EdgeInsets.all(12),
-                                      child: Text("${snapshot.error}\nTry again!"),
+                                      child:
+                                          Text("${snapshot.error}\nTry again!"),
                                     )
                                   : CircularProgressIndicator(),
                         ),

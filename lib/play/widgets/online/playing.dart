@@ -4,9 +4,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:four_in_a_row/inherit/chat.dart';
+import 'package:four_in_a_row/providers/chat.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
-import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/providers/themes.dart';
+import 'package:four_in_a_row/providers/user.dart';
 import 'package:four_in_a_row/menu/common/rate_dialog.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
@@ -23,7 +24,7 @@ import 'package:four_in_a_row/util/global_common_widgets.dart';
 import 'package:provider/provider.dart';
 
 class PlayingViewer extends AbstractGameStateViewer {
-  final PlayingState _playingState;
+  final PlayingStateIntermediate _playingState;
 
   PlayingViewer(this._playingState, {Key? key}) : super(key: key) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -33,8 +34,8 @@ class PlayingViewer extends AbstractGameStateViewer {
 
   @override
   Widget build(BuildContext context) {
-    if (_playingState.showRatingDialog) {
-      _playingState.showRatingDialog = false;
+    if (_playingState.getShowRatingDialog()) {
+      _playingState.setShowRatingDialog(false);
       RateTheGameDialog.show(context);
     }
 
@@ -42,7 +43,7 @@ class PlayingViewer extends AbstractGameStateViewer {
     if (_playingState.toastState != null) {
       toast = Toast(_playingState.toastState!);
     }
-    var _field = _playingState.field;
+    Field _field = _playingState.field;
 
     WinDetails? winDetails;
     bool waitingToPlayAgain = false;
@@ -68,7 +69,8 @@ class PlayingViewer extends AbstractGameStateViewer {
               OnlineTurnIndicator(turn == _playingState.me),
               Expanded(
                 child: Center(
-                  child: Board(_playingState.field, dropChip: _playingState.dropChip),
+                  child: Board(_playingState.field,
+                      dropChip: _playingState.dropChip),
                 ),
               ),
             ],
@@ -84,8 +86,9 @@ class PlayingViewer extends AbstractGameStateViewer {
                   builder: (_, chatState, __) => ScrollingChatMiniview(
                     messages: chatState.ingameMessages
                         .map(
-                          (chatMessage) =>
-                              MiniviewMessage(chatMessage.sender is SenderMe, chatMessage.content),
+                          (chatMessage) => MiniviewMessage(
+                              chatMessage.sender is SenderMe,
+                              chatMessage.content),
                         )
                         .toList(),
                   ),
@@ -250,7 +253,9 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
                       },
                       onChoose: (reaction) {
                         reactionPickerOpen = false;
-                        context.read<ChatState>().sendMessage(reaction, ingameMessage: true);
+                        context
+                            .read<ChatState>()
+                            .sendMessage(reaction, ingameMessage: true);
                       },
                     ),
             ],
@@ -260,9 +265,9 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
       children: [
         ListTile(
           leading: leadingIcon,
-          title: Text(
-              widget.opponentInfo.user?.friendState.title(widget.opponentInfo.user!.username) ??
-                  "Add friend"),
+          title: Text(widget.opponentInfo.user?.friendState
+                  .title(widget.opponentInfo.user!.username) ??
+              "Add friend"),
           subtitle: !iAmLoggedIn
               ? Text("Cant add as friend, you are not logged in")
               : widget.opponentInfo.user == null
@@ -295,9 +300,13 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
                   await Future.delayed(Duration(milliseconds: 600));
                   setState(() => reported = ReportedState.Reported);
 
-                  if (widget.opponentInfo.user == null) return; // Can't report anon users for now
+                  if (widget.opponentInfo.user == null)
+                    return; // Can't report anon users for now
 
-                  Map body = {"content": "Reported user: \"${widget.opponentInfo.user!.id}\""};
+                  Map body = {
+                    "content":
+                        "Reported user: \"${widget.opponentInfo.user!.id}\""
+                  };
                   var userMe = context.read<GameStateManager>().userInfo.user;
                   if (userMe != null) {
                     body["user_id"] = userMe.id;
@@ -307,8 +316,9 @@ class _BottomSheetState extends State<_BottomSheetWidget> {
               : null,
         ),
         ListTile(
-          leading: Icon(
-              widget.opponentInfo.muted ? Icons.volume_off_outlined : Icons.volume_up_outlined),
+          leading: Icon(widget.opponentInfo.muted
+              ? Icons.volume_off_outlined
+              : Icons.volume_up_outlined),
           title: Text(widget.opponentInfo.muted ? "Unmute chat" : "Mute chat"),
           onTap: widget.toggleMuteState,
         ),
@@ -356,7 +366,8 @@ class MiniviewMessage {
 class ScrollingChatMiniview extends StatefulWidget {
   final List<MiniviewMessage> messages;
 
-  const ScrollingChatMiniview({Key? key, required this.messages}) : super(key: key);
+  const ScrollingChatMiniview({Key? key, required this.messages})
+      : super(key: key);
 
   @override
   _ScrollingChatMiniviewState createState() => _ScrollingChatMiniviewState();
@@ -366,11 +377,14 @@ class _ScrollingChatMiniviewState extends State<ScrollingChatMiniview>
     with SingleTickerProviderStateMixin {
   void startScrollingToBottom() {
     int iterations = 0;
-    while (ctrl.position.pixels ~/ ScrollingChatMiniviewMessage.HEIGHT < widget.messages.length &&
+    while (ctrl.position.pixels ~/ ScrollingChatMiniviewMessage.HEIGHT <
+            widget.messages.length &&
         iterations < 5) {
       // We need to scroll down
-      ctrl.position.animateTo(ctrl.position.maxScrollExtent + ScrollingChatMiniviewMessage.HEIGHT,
-          duration: Duration(milliseconds: 300), curve: Curves.ease);
+      ctrl.position.animateTo(
+          ctrl.position.maxScrollExtent + ScrollingChatMiniviewMessage.HEIGHT,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.ease);
       iterations++;
     }
   }
@@ -383,8 +397,9 @@ class _ScrollingChatMiniviewState extends State<ScrollingChatMiniview>
   void initState() {
     super.initState();
     ctrl = ScrollController();
-    opacityCtrl = AnimationController(vsync: this, duration: Duration(milliseconds: 150))
-      ..value = 0.3;
+    opacityCtrl =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 150))
+          ..value = 0.3;
   }
 
   @override
@@ -423,7 +438,8 @@ class _ScrollingChatMiniviewState extends State<ScrollingChatMiniview>
               .map(
                 (message) => AnimatedBuilder(
                   animation: opacityCtrl,
-                  builder: (_, child) => Opacity(opacity: opacityCtrl.value, child: child),
+                  builder: (_, child) =>
+                      Opacity(opacity: opacityCtrl.value, child: child),
                   child: ScrollingChatMiniviewMessage(message),
                 ),
               )
@@ -439,13 +455,15 @@ class ScrollingChatMiniviewMessage extends StatelessWidget {
 
   final MiniviewMessage message;
 
-  const ScrollingChatMiniviewMessage(this.message, {Key? key}) : super(key: key);
+  const ScrollingChatMiniviewMessage(this.message, {Key? key})
+      : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Container(
       height: HEIGHT,
       child: Align(
-        alignment: message.senderIsMe ? Alignment.centerRight : Alignment.centerLeft,
+        alignment:
+            message.senderIsMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
           constraints: BoxConstraints.expand(width: 48),
           padding: EdgeInsets.all(2),
@@ -509,10 +527,11 @@ class ReactionPicker extends StatefulWidget {
 
 class _ReactionPickerState extends State<ReactionPicker> {
   final Animatable<double> openCloseFade = Tween<double>(begin: 0, end: 1);
-  final Animatable<double> openCloseRotate =
-      Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.easeOutQuart));
+  final Animatable<double> openCloseRotate = Tween<double>(begin: 0, end: 1)
+      .chain(CurveTween(curve: Curves.easeOutQuart));
 
-  final Animatable<Offset> emojiSlideTween = Tween<Offset>(begin: Offset(0.2, 0), end: Offset.zero);
+  final Animatable<Offset> emojiSlideTween =
+      Tween<Offset>(begin: Offset(0.2, 0), end: Offset.zero);
 
   @override
   void initState() {
@@ -529,8 +548,9 @@ class _ReactionPickerState extends State<ReactionPicker> {
             transitionBuilder: (child, anim) => FadeTransition(
               opacity: anim.drive(CurveTween(curve: Curves.easeOutCubic)),
               child: SlideTransition(
-                  position:
-                      emojiSlideTween.chain(CurveTween(curve: Curves.easeOutCubic)).animate(anim),
+                  position: emojiSlideTween
+                      .chain(CurveTween(curve: Curves.easeOutCubic))
+                      .animate(anim),
                   child: child),
             ),
             duration: Duration(milliseconds: 170),
@@ -578,9 +598,11 @@ class _ReactionPickerState extends State<ReactionPicker> {
                 ? Tween<double>(begin: 0.0, end: 1.0)
                 : Tween<double>(begin: 1.0, end: 0.0);
             return FadeTransition(
-              opacity: openCloseFade.animate(anim.drive(CurveTween(curve: opacityCurve))),
+              opacity: openCloseFade
+                  .animate(anim.drive(CurveTween(curve: opacityCurve))),
               child: RotationTransition(
-                  turns: openCloseRotate.animate(anim.drive(tween)), child: child),
+                  turns: openCloseRotate.animate(anim.drive(tween)),
+                  child: child),
             );
           },
           switchInCurve: Curves.easeInOutCubic,
@@ -594,7 +616,8 @@ class _ReactionPickerState extends State<ReactionPicker> {
               : IconButton(
                   key: ValueKey(widget.open),
                   splashRadius: Material.defaultSplashRadius * 0.8,
-                  icon: Icon(Icons.sentiment_satisfied_outlined, color: Colors.black87),
+                  icon: Icon(Icons.sentiment_satisfied_outlined,
+                      color: Colors.black87),
                   onPressed: widget.onOpen,
                 ),
         )
@@ -624,7 +647,8 @@ class SplashingWidgetState {
   SplashingWidgetState({required this.degree, required this.speed});
 }
 
-class _ReactionSmileyState extends State<_ReactionSmiley> with SingleTickerProviderStateMixin {
+class _ReactionSmileyState extends State<_ReactionSmiley>
+    with SingleTickerProviderStateMixin {
   static const double DEGREE_RANGE = 1;
 
   static Random rng = Random();
@@ -633,12 +657,15 @@ class _ReactionSmileyState extends State<_ReactionSmiley> with SingleTickerProvi
   void _generateSplashingCopies() {
     int copiesAmount = 3;
     for (int i in 0.to(copiesAmount)) {
-      double thisDegreeRangeFrom = (i / copiesAmount) * DEGREE_RANGE - DEGREE_RANGE / 2;
-      double thisDegreeRangeTo = ((i + 1) / copiesAmount) * DEGREE_RANGE - DEGREE_RANGE / 2;
+      double thisDegreeRangeFrom =
+          (i / copiesAmount) * DEGREE_RANGE - DEGREE_RANGE / 2;
+      double thisDegreeRangeTo =
+          ((i + 1) / copiesAmount) * DEGREE_RANGE - DEGREE_RANGE / 2;
       double thisDegreeRange = thisDegreeRangeTo - thisDegreeRangeFrom;
       splashingCopies.add(SplashingWidgetState(
           degree: thisDegreeRangeFrom +
-              thisDegreeRange * (rng.nextDouble() * 0.5 - 0.25), // between 0.25 and 0.75
+              thisDegreeRange *
+                  (rng.nextDouble() * 0.5 - 0.25), // between 0.25 and 0.75
           speed: rng.nextDouble() + 1.5));
     }
   }
@@ -647,13 +674,14 @@ class _ReactionSmileyState extends State<_ReactionSmiley> with SingleTickerProvi
   @override
   void initState() {
     super.initState();
-    splashesAnimCtrl = AnimationController(vsync: this, duration: Duration(milliseconds: 350))
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          splashesAnimCtrl.value = 0;
-          setState(() => splashingCopies = []);
-        }
-      });
+    splashesAnimCtrl =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 350))
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              splashesAnimCtrl.value = 0;
+              setState(() => splashingCopies = []);
+            }
+          });
   }
 
   @override
@@ -694,7 +722,8 @@ class _ReactionSmileyState extends State<_ReactionSmiley> with SingleTickerProvi
                       opacity: opacity,
                       child: Transform(
                         alignment: Alignment.center,
-                        transform: Matrix4.identity()..translate(0.0, -x * splash.speed * 45),
+                        transform: Matrix4.identity()
+                          ..translate(0.0, -x * splash.speed * 45),
                         child: child,
                       ),
                     );
@@ -760,10 +789,12 @@ class OnlineTurnIndicator extends StatelessWidget {
             //   return child;
             // },
             transitionBuilder: (Widget child, Animation<double> anim) {
-              final begin = child.key == ValueKey(myTurn) ? Offset(1, 0) : Offset(-1, 0);
+              final begin =
+                  child.key == ValueKey(myTurn) ? Offset(1, 0) : Offset(-1, 0);
               return ClipRect(
                 child: SlideTransition(
-                  position: Tween<Offset>(begin: begin, end: Offset(0, 0)).animate(anim),
+                  position: Tween<Offset>(begin: begin, end: Offset(0, 0))
+                      .animate(anim),
                   child: child,
                 ),
               );
@@ -772,10 +803,12 @@ class OnlineTurnIndicator extends StatelessWidget {
               myTurn ? "Your turn" : "Opponent's turn",
               key: ValueKey(myTurn),
               style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  fontStyle: FontStyle.italic,
-                  color: Player.values[myTurn ? 0 : 1].color()),
+                fontSize: 32,
+                fontWeight: FontWeight.w700,
+                fontStyle: FontStyle.italic,
+                color: Player.values[myTurn ? 0 : 1]
+                    .color(context.watch<ThemesProvider>().selectedTheme),
+              ),
             ),
           ),
         ],
@@ -793,7 +826,8 @@ class ConnectionIndicator extends StatefulWidget {
   _ConnectionIndicatorState createState() => _ConnectionIndicatorState();
 }
 
-class _ConnectionIndicatorState extends State<ConnectionIndicator> with TickerProviderStateMixin {
+class _ConnectionIndicatorState extends State<ConnectionIndicator>
+    with TickerProviderStateMixin {
   late AnimationController breatheCtrl;
   late AnimationController turnRed;
   late Animation<Color> colorAnim;
@@ -803,17 +837,21 @@ class _ConnectionIndicatorState extends State<ConnectionIndicator> with TickerPr
   @override
   void initState() {
     super.initState();
-    turnRed = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
-    colorAnim = Tween<Color>(begin: Colors.green, end: Colors.red).animate(turnRed);
-    breatheCtrl = AnimationController(vsync: this, duration: Duration(seconds: 2))
-      // brea
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed && turnRed.status != AnimationStatus.completed) {
-          breatheCtrl.reverse();
-        } else if (status == AnimationStatus.dismissed) {
-          breatheCtrl.forward();
-        }
-      });
+    turnRed =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+    colorAnim =
+        Tween<Color>(begin: Colors.green, end: Colors.red).animate(turnRed);
+    breatheCtrl =
+        AnimationController(vsync: this, duration: Duration(seconds: 2))
+          // brea
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed &&
+                turnRed.status != AnimationStatus.completed) {
+              breatheCtrl.reverse();
+            } else if (status == AnimationStatus.dismissed) {
+              breatheCtrl.forward();
+            }
+          });
     breatheAnim = Tween<double>(begin: 0.5, end: 0.7)
         .chain(CurveTween(curve: Curves.easeInOutSine))
         .animate(breatheCtrl);

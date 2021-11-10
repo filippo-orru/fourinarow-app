@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
-import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/providers/user.dart';
 import 'package:four_in_a_row/play/models/online/game_login_state.dart';
 import 'package:four_in_a_row/util/extensions.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
@@ -44,7 +44,9 @@ class _MenuContentPlayOnlineState extends State<MenuContentPlayOnline> {
         //   child:
         // FittedBox(
         //     child:
-        MediaQuery.of(context).devicePixelRatio < 2 ? SizedBox() : UserRankDisplay(),
+        MediaQuery.of(context).devicePixelRatio < 2
+            ? SizedBox()
+            : UserRankDisplay(),
         // ),
         // LimitedBox(
         //     maxHeight: 48,
@@ -75,7 +77,8 @@ class _MenuContentPlayOnlineState extends State<MenuContentPlayOnline> {
                 serverConnection.serverIsDownSync,
                 serverConnection.tryingToConnect,
               ),
-              builder: (_, connectionTuple, __) => Selector<GameStateManager, CurrentServerInfo?>(
+              builder: (_, connectionTuple, __) =>
+                  Selector<GameStateManager, CurrentServerInfo?>(
                 selector: (_, gsm) => gsm.serverInfo,
                 builder: (_, serverInfo, __) => Text(
                   connectionTuple.item3 //tryingToConnect
@@ -188,7 +191,8 @@ class JoinLobbyButtons extends StatefulWidget {
   _JoinLobbyButtonsState createState() => _JoinLobbyButtonsState();
 }
 
-class _JoinLobbyButtonsState extends State<JoinLobbyButtons> with SingleTickerProviderStateMixin {
+class _JoinLobbyButtonsState extends State<JoinLobbyButtons>
+    with SingleTickerProviderStateMixin {
   final TextEditingController lobbyCodeController = TextEditingController();
   bool expandedLobbyCode = false;
   bool showMore = false;
@@ -205,8 +209,10 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons> with SingleTickerPr
       // print("keyboard vis: $visible");
     });
 
-    moveUpAnimCtrl = AnimationController(vsync: this, duration: Duration(milliseconds: 200));
-    moveUpAnim = moveUpAnimCtrl.drive(Tween(begin: Offset.zero, end: Offset(0, -60)));
+    moveUpAnimCtrl =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 200));
+    moveUpAnim =
+        moveUpAnimCtrl.drive(Tween(begin: Offset.zero, end: Offset(0, -60)));
   }
 
   @override
@@ -279,7 +285,8 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons> with SingleTickerPr
           style: TextButton.styleFrom(
             backgroundColor: Colors.white24,
           ),
-          onPressed: () => context.read<GameStateManager>().startGame(ORqLobbyRequest()),
+          onPressed: () =>
+              context.read<GameStateManager>().startGame(ORqLobbyRequest()),
           // setState(() => expandedLobbyCode = true),
           child: Text(
             'CREATE LOBBY',
@@ -316,7 +323,8 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons> with SingleTickerPr
                       icon: Icons.close,
                       color: Colors.black45,
                       bgColor: Colors.white,
-                      onPressed: () => setState(() => expandedLobbyCode = false),
+                      onPressed: () =>
+                          setState(() => expandedLobbyCode = false),
                     ),
                     SizedBox(width: 12),
                     Container(
@@ -373,7 +381,8 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons> with SingleTickerPr
                             enableInteractiveSelection: false,
                             onSubmitted: (_) => context
                                 .read<GameStateManager>()
-                                .startGame(ORqLobbyJoin(lobbyCodeController.text)),
+                                .startGame(
+                                    ORqLobbyJoin(lobbyCodeController.text)),
                           ),
                         ),
                       ),

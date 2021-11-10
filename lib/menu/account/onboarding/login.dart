@@ -1,7 +1,8 @@
 // import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/providers/themes.dart';
+import 'package:four_in_a_row/providers/user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,7 +10,6 @@ import 'common.dart';
 
 class LoginPage extends StatefulWidget {
   final title = 'Login';
-  final Color accentColor = Colors.blueAccent;
   final usernameCtrl = TextEditingController();
   final pwCtrl = TextEditingController();
   final VoidCallback callback;
@@ -24,7 +24,9 @@ class _LoginPageState extends State<LoginPage> {
   Future<int>? loginFuture;
 
   void onPressed() async {
-    loginFuture = context.read<UserInfo>().login(widget.usernameCtrl.text, widget.pwCtrl.text);
+    loginFuture = context
+        .read<UserInfo>()
+        .login(widget.usernameCtrl.text, widget.pwCtrl.text);
 
     setState(() {});
     if (await loginFuture == 200) {
@@ -53,7 +55,8 @@ class _LoginPageState extends State<LoginPage> {
           title: widget.title,
           usernameCtrl: widget.usernameCtrl,
           pwCtrl: widget.pwCtrl,
-          accentColor: widget.accentColor,
+          accentColor:
+              context.watch<ThemesProvider>().selectedTheme.chatThemeColor,
           onSubmit: onPressed,
         ),
         AnimatedSwitcher(
@@ -71,17 +74,26 @@ class _LoginPageState extends State<LoginPage> {
                           child: snapshot.hasData
                               ? Container(
                                   margin: EdgeInsets.symmetric(horizontal: 24),
-                                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 24, vertical: 18),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.all(Radius.circular(4)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(4)),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       snapshot.data == 200
-                                          ? Icon(Icons.check, color: Colors.blue)
-                                          : Icon(Icons.close, color: Colors.red),
+                                          ? Icon(
+                                              Icons.check,
+                                              color: context
+                                                  .watch<ThemesProvider>()
+                                                  .selectedTheme
+                                                  .chatThemeColor,
+                                            )
+                                          : Icon(Icons.close,
+                                              color: Colors.red),
                                       SizedBox(width: 12),
                                       Text(
                                         textFromStatuscode(snapshot.data),
@@ -96,7 +108,8 @@ class _LoginPageState extends State<LoginPage> {
                                   ? Container(
                                       color: Colors.white,
                                       padding: EdgeInsets.all(12),
-                                      child: Text("${snapshot.error}\nTry again!"),
+                                      child:
+                                          Text("${snapshot.error}\nTry again!"),
                                     )
                                   : CircularProgressIndicator(),
                         ),

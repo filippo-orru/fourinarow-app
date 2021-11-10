@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/inherit/route.dart';
+import 'package:four_in_a_row/providers/route.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/widgets/online/playing.dart';
@@ -22,7 +22,7 @@ class GameStateViewer extends StatefulWidget {
 class _GameStateViewerState extends State<GameStateViewer> with RouteAware {
   Widget getViewer(GameState cgs) {
     if (cgs is PlayingState) {
-      return PlayingViewer(cgs);
+      return PlayingViewer(cgs.toIntermediate());
     } else if (cgs is IdleState) {
       return IdleViewer(cgs);
     } else if (cgs is InLobbyState) {
@@ -166,7 +166,8 @@ class _ReconnectingState extends State<Reconnecting> {
                   onPressed: (s > 5) ? () => Navigator.of(context).pop() : null,
                   child: Text(
                     'Leave',
-                    style: TextStyle(color: s > 5 ? Colors.black87 : Colors.black45),
+                    style: TextStyle(
+                        color: s > 5 ? Colors.black87 : Colors.black45),
                   ),
                 ),
               ),

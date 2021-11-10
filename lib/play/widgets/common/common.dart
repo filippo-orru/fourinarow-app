@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 import 'package:four_in_a_row/play/models/common/player.dart';
+import 'package:four_in_a_row/providers/themes.dart';
+import 'package:provider/src/provider.dart';
 
 class BorderButton extends StatelessWidget {
   const BorderButton(
@@ -36,7 +38,8 @@ class BorderButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text(label, style: TextStyle(fontSize: 16, color: Colors.black87)),
+              Text(label,
+                  style: TextStyle(fontSize: 16, color: Colors.black87)),
               SizedBox(width: 8),
               Transform(
                   transform: Matrix4.identity()..rotateY(pi),
@@ -67,16 +70,20 @@ class TurnIndicator extends StatelessWidget {
     return Container(
       width: double.infinity,
       child: Column(children: [
-        Text("Now playing", style: TextStyle(fontSize: 22, color: Colors.black.withOpacity(0.7))),
+        Text("Now playing",
+            style:
+                TextStyle(fontSize: 22, color: Colors.black.withOpacity(0.7))),
         AnimatedSwitcher(
           duration: Duration(milliseconds: 170),
           switchInCurve: Curves.easeInOutExpo,
           switchOutCurve: Curves.easeInOutExpo,
           transitionBuilder: (Widget child, Animation<double> anim) {
-            final begin = child.key == ValueKey(turn) ? Offset(1, 0) : Offset(-1, 0);
+            final begin =
+                child.key == ValueKey(turn) ? Offset(1, 0) : Offset(-1, 0);
             return ClipRect(
               child: SlideTransition(
-                position: Tween<Offset>(begin: begin, end: Offset(0, 0)).animate(anim),
+                position: Tween<Offset>(begin: begin, end: Offset(0, 0))
+                    .animate(anim),
                 child: child,
               ),
             );
@@ -85,10 +92,13 @@ class TurnIndicator extends StatelessWidget {
             playerNames(turn),
             key: ValueKey(turn),
             style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.w700,
-                // fontStyle: FontStyle.italic,
-                color: turn.color()),
+              fontSize: 36,
+              fontWeight: FontWeight.w700,
+              // fontStyle: FontStyle.italic,
+              color: turn.color(
+                context.watch<ThemesProvider>().selectedTheme,
+              ),
+            ),
           ),
         ),
       ]),

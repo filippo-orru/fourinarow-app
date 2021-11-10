@@ -6,22 +6,24 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
-import 'package:four_in_a_row/inherit/route.dart';
+import 'package:four_in_a_row/providers/route.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
+import 'package:four_in_a_row/providers/themes.dart';
 import 'package:four_in_a_row/util/battle_req_popup.dart';
 import 'package:four_in_a_row/util/constants.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
+import 'package:four_in_a_row/util/global_common_widgets.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
-import 'inherit/chat.dart';
-import 'inherit/user.dart';
-import 'inherit/lifecycle.dart';
-import 'inherit/notifications.dart';
+import 'providers/chat.dart';
+import 'providers/user.dart';
+import 'providers/lifecycle.dart';
+import 'providers/notifications.dart';
 
 import 'menu/main_menu.dart';
 
@@ -40,7 +42,8 @@ class SplashAppInternal extends StatefulWidget {
 
 enum AppLoadState { Loading, Preloading, Loaded, Error }
 
-class _SplashAppInternalState extends State<SplashAppInternal> with TickerProviderStateMixin {
+class _SplashAppInternalState extends State<SplashAppInternal>
+    with TickerProviderStateMixin {
   AppLoadState state = AppLoadState.Loading;
 
   AnimationController _lottieAnimCtrl;
@@ -85,7 +88,8 @@ class _SplashAppInternalState extends State<SplashAppInternal> with TickerProvid
   }) async {
     if (state == AppLoadState.Loaded) return; // already initialized
 
-    if (_startedInitializing && state != AppLoadState.Error) return; // Was already called
+    if (_startedInitializing && state != AppLoadState.Error)
+      return; // Was already called
     _startedInitializing = true;
 
     setState(() => state = AppLoadState.Loading);
@@ -177,7 +181,8 @@ class _SplashAppInternalState extends State<SplashAppInternal> with TickerProvid
       double end = max(0, viewHeight * 0.22);
 
       _moveUpAnim = _moveUpAnimCtrl.drive(
-        Tween<double>(begin: begin, end: end).chain(CurveTween(curve: Curves.easeInOutCubic)),
+        Tween<double>(begin: begin, end: end)
+            .chain(CurveTween(curve: Curves.easeInOutCubic)),
       );
     }
 
@@ -203,7 +208,8 @@ class _SplashAppInternalState extends State<SplashAppInternal> with TickerProvid
           child: AnimatedBuilder(
             animation: _moveUpAnimCtrl,
             builder: (_, child) => Container(
-              padding: EdgeInsets.only(left: 32, right: 32, top: _moveUpAnim.value),
+              padding:
+                  EdgeInsets.only(left: 32, right: 32, top: _moveUpAnim.value),
               child: child,
             ),
             child: Lottie.asset(
@@ -224,18 +230,21 @@ class _SplashAppInternalState extends State<SplashAppInternal> with TickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        state == AppLoadState.Preloading || state == AppLoadState.Loaded
-            ? FiarProviderApp()
-            : SizedBox(),
-        WidgetsApp(
-          color: Colors.blue,
-          debugShowCheckedModeBanner: false,
-          builder: (ctx, __) => buildSplashScreen(ctx),
-        ),
-      ],
+    return ChangeNotifierProvider<ThemesProvider>(
+      create: (_) => ThemesProvider(),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          state == AppLoadState.Preloading || state == AppLoadState.Loaded
+              ? FiarProviderApp()
+              : SizedBox(),
+          WidgetsApp(
+            color: Colors.blue,
+            debugShowCheckedModeBanner: false,
+            builder: (ctx, __) => buildSplashScreen(ctx),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -327,8 +336,10 @@ class _FiarAppState extends State<FiarApp> {
               title: 'Four in a Row',
               color: Colors.blueAccent,
               initialRoute: "/",
-              pageRouteBuilder: <T>(RouteSettings settings, Widget Function(BuildContext) builder) {
-                return MaterialPageRoute<T>(builder: builder, settings: settings);
+              pageRouteBuilder: <T>(RouteSettings settings,
+                  Widget Function(BuildContext) builder) {
+                return MaterialPageRoute<T>(
+                    builder: builder, settings: settings);
               },
               builder: (ctx, child) {
                 _initialization(ctx);
@@ -350,14 +361,16 @@ class _FiarAppState extends State<FiarApp> {
                                     gsm.showViewer,
                                     gsm.hideViewer,
                                     gsm.connected,
-                                    gsm.currentGameState is WaitingForWWOpponentState
+                                    gsm.currentGameState
+                                        is WaitingForWWOpponentState
                                   ],
                               builder: (_, tuple, __) {
                                 // print("building popup");
                                 var gsm = ctx.read<GameStateManager>();
                                 if (gsm.showViewer) {
                                   Future.delayed(Duration.zero, () {
-                                    _navigator.push(slideUpRoute(GameStateViewer()));
+                                    _navigator
+                                        .push(slideUpRoute(GameStateViewer()));
                                   });
                                   // gsm.showViewer = false;
                                 }
@@ -372,13 +385,17 @@ class _FiarAppState extends State<FiarApp> {
                                   curve: Curves.easeOutQuad,
                                   tween: Tween<double>(
                                       begin: 1,
-                                      end: gsm.currentGameState is WaitingForWWOpponentState
+                                      end: gsm.currentGameState
+                                              is WaitingForWWOpponentState
                                           ? 0
                                           : 1),
                                   duration: Duration(milliseconds: 250),
-                                  builder: (_, val, child) => Transform.translate(
-                                      offset: Offset(0, -144 * val), child: child),
-                                  child: SearchingGameNotification(gsm.connected),
+                                  builder: (_, val, child) =>
+                                      Transform.translate(
+                                          offset: Offset(0, -144 * val),
+                                          child: child),
+                                  child:
+                                      SearchingGameNotification(gsm.connected),
                                 );
                               }),
                         ),
@@ -388,37 +405,44 @@ class _FiarAppState extends State<FiarApp> {
                           right: 0,
                           child: Selector<GameStateManager, BattleRequestState>(
                             selector: (_, gsm) => gsm.incomingBattleRequest,
-                            builder: (_, battleRequestState, __) => battleRequestState != null
-                                ? BattleRequestPopup(
-                                    username: battleRequestState.user.username,
-                                    joinCallback: () => context.read<GameStateManager>()
-                                      ..startGame(
-                                        ORqLobbyJoin(battleRequestState.lobbyId),
+                            builder: (_, battleRequestState, __) =>
+                                battleRequestState != null
+                                    ? BattleRequestPopup(
+                                        username:
+                                            battleRequestState.user.username,
+                                        joinCallback: () =>
+                                            context.read<GameStateManager>()
+                                              ..startGame(
+                                                ORqLobbyJoin(
+                                                    battleRequestState.lobbyId),
+                                              )
+                                              ..cancelIncomingBattleReq(),
+                                        leaveCallback: () => context
+                                            .read<GameStateManager>()
+                                            .cancelIncomingBattleReq(),
                                       )
-                                      ..cancelIncomingBattleReq(),
-                                    leaveCallback: () =>
-                                        context.read<GameStateManager>().cancelIncomingBattleReq(),
-                                  )
-                                : SizedBox(),
+                                    : SizedBox(),
                           ),
                         ),
                         Selector<ServerConnection, bool>(
-                          selector: (_, connection) => connection.catastrophicFailure,
+                          selector: (_, connection) =>
+                              connection.catastrophicFailure,
                           shouldRebuild: (_, fail) => fail,
-                          builder: (_, catastrophicFailure, child) => catastrophicFailure
-                              ? AbsorbPointer(
-                                  child: Container(
-                                    color: Colors.black54,
-                                    constraints: BoxConstraints.expand(),
-                                    child: FiarSimpleDialog(
-                                      title: "Error!",
-                                      content:
-                                          "Oh no! A fatal error has occurred :( \n\nThe app will close now.",
-                                      showOkay: false,
-                                    ),
-                                  ),
-                                )
-                              : SizedBox(),
+                          builder: (_, catastrophicFailure, child) =>
+                              catastrophicFailure
+                                  ? AbsorbPointer(
+                                      child: Container(
+                                        color: Colors.black54,
+                                        constraints: BoxConstraints.expand(),
+                                        child: FiarSimpleDialog(
+                                          title: "Error!",
+                                          content:
+                                              "Oh no! A fatal error has occurred :( \n\nThe app will close now.",
+                                          showOkay: false,
+                                        ),
+                                      ),
+                                    )
+                                  : SizedBox(),
                         ),
                       ]),
                     ),

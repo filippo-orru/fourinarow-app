@@ -1,18 +1,24 @@
 import 'dart:ui';
 
+import 'package:four_in_a_row/menu/ThemeSelectPage.dart';
+import 'package:four_in_a_row/providers/themes.dart';
+import 'package:four_in_a_row/util/constants.dart';
+import 'package:four_in_a_row/util/extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/inherit/chat.dart';
-import 'package:four_in_a_row/inherit/route.dart';
+import 'package:four_in_a_row/providers/chat.dart';
+import 'package:four_in_a_row/providers/route.dart';
 import 'package:four_in_a_row/menu/account/friends.dart';
 import 'package:four_in_a_row/menu/account/onboarding/onboarding.dart';
 import 'package:four_in_a_row/menu/account/offline.dart';
 import 'package:four_in_a_row/menu/chat.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
-import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/providers/user.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
+import 'package:four_in_a_row/util/global_common_widgets.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'common/play_button.dart';
 
 import 'package:provider/provider.dart';
@@ -26,7 +32,8 @@ class MainMenu extends StatefulWidget {
   _MainMenuState createState() => _MainMenuState();
 
   static PageRouteBuilder route() {
-    final opacityTween = Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.ease));
+    final opacityTween =
+        Tween<double>(begin: 0, end: 1).chain(CurveTween(curve: Curves.ease));
     // final sizeTween =
     //     Tween<double>(begin: 0.9, end: 1).chain(CurveTween(curve: Curves.ease));
     return PageRouteBuilder(
@@ -40,28 +47,6 @@ class MainMenu extends StatefulWidget {
       },
     );
   }
-}
-
-PageRouteBuilder slideUpRoute(Widget content) {
-  final offset =
-      Tween<Offset>(begin: Offset(0, 0.25), end: Offset.zero).chain(CurveTween(curve: Curves.ease));
-
-  final opacity = Tween<double>(begin: 0, end: 1).chain(
-    CurveTween(curve: Curves.easeInOut),
-  );
-  return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => content,
-    transitionDuration: Duration(milliseconds: 220),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(
-        opacity: animation.drive(opacity),
-        child: SlideTransition(
-          position: animation.drive(offset),
-          child: child,
-        ),
-      );
-    },
-  );
 }
 
 class _MainMenuState extends State<MainMenu> with RouteAware {
@@ -147,6 +132,12 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
               // mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Container(
+                //   alignment: Alignment.center,
+                //   constraints: BoxConstraints(maxWidth: 600),
+                //   margin: EdgeInsets.only(top: 32, left: 24, right: 24),
+                //   child:
+                // ),
                 Flexible(
                   flex: 10,
                   fit: FlexFit.tight,
@@ -156,7 +147,20 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
                 Expanded(child: SizedBox()),
                 SizedBox(
                   height: 150,
-                  child: buildPlayButton(context),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: PlayButton(
+                      label: 'Play',
+                      color: context
+                          .watch<ThemesProvider>()
+                          .selectedTheme
+                          .playOnlineThemeColor,
+                      diameter: 128,
+                      onTap: () {
+                        Navigator.of(context).push(PlaySelection.route());
+                      },
+                    ),
+                  ),
                 ),
                 SizedBox(height: 96),
                 Container(
@@ -204,74 +208,52 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
     );
   }
 
-  Stack buildBottomBar(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
+  Widget buildBottomBar(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Selector<ChatState, int>(
+          selector: (_, chatState) => chatState.unread,
+          builder: (_, unread, Widget? child) => Stack(children: [
+            child!,
+            unread > 0
+                ? Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      height: 18,
+                      width: 18,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.all(Radius.circular(32)),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(unread.toString(),
+                          style: TextStyle(color: Colors.white)),
+                    ))
+                : SizedBox(),
+          ]),
+          child: SmallColorButton(
+            iconData: Icons.chat,
+            color: context.watch<ThemesProvider>().selectedTheme.chatThemeColor,
+            onTap: showChat,
+          ),
+        ),
+        ThemesButton(),
+        Stack(
           children: [
-            Selector<ChatState, int>(
-              selector: (_, chatState) => chatState.unread,
-              builder: (_, unread, Widget? child) => Stack(children: [
-                child!,
-                unread > 0
-                    ? Positioned(
-                        top: 0,
-                        right: 0,
-                        child: Container(
-                          height: 18,
-                          width: 18,
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.all(Radius.circular(32)),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(unread.toString(), style: TextStyle(color: Colors.white)),
-                        ))
-                    : SizedBox(),
-              ]),
-              child: SmallColorButton(
-                icon: Icons.chat,
-                color: Colors.blueAccent,
-                onTap: showChat,
-              ),
+            SmallColorButton(
+              iconData: Icons.people,
+              color: context
+                  .watch<ThemesProvider>()
+                  .selectedTheme
+                  .friendsThemeColor,
+              onTap: () => accountCheck(),
             ),
-            Stack(
-              children: [
-                SmallColorButton(
-                  icon: Icons.people,
-                  color: Colors.purple[300]!,
-                  onTap: () => accountCheck(),
-                ),
-                loadingUserInfo ? CircularProgressIndicator() : SizedBox(),
-              ],
-            ),
+            loadingUserInfo ? CircularProgressIndicator() : SizedBox(),
           ],
         ),
-        Text('• Filippo Orru, 2021 •'.toUpperCase(),
-            style: TextStyle(
-              letterSpacing: 0.5,
-              color: Colors.black54,
-              fontWeight: FontWeight.bold,
-              // fontStyle: FontStyle.italic,
-            )),
       ],
-    );
-  }
-
-  Widget buildPlayButton(BuildContext context) {
-    return Align(
-      alignment: Alignment.center,
-      child: PlayButton(
-        label: 'Play',
-        color: Colors.redAccent,
-        diameter: 128,
-        onTap: () {
-          // _buttonExpanded = true;
-          Navigator.of(context).push(PlaySelection.route());
-        },
-      ),
     );
   }
 
@@ -280,15 +262,172 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
       left: 0,
       right: 0,
       top: MediaQuery.of(context).size.height * 0.22,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 32),
-        child: Hero(
-          tag: "wide_logo_banner",
-          child: Image.asset(
-            "assets/img/wide_logo_banner.png",
-            fit: BoxFit.contain,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 32),
+            child: Hero(
+              tag: "wide_logo_banner",
+              child: Image.asset(
+                "assets/img/wide_logo_banner.png",
+                fit: BoxFit.contain,
+              ),
+            ),
           ),
+          SizedBox(height: 6),
+          TextButton(
+            child: Text(
+              'Filippo Orru, 2021'.toUpperCase(),
+              style: TextStyle(
+                letterSpacing: 0.5,
+                color: Colors.black54,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            onPressed: () async {
+              if (await canLaunch(LINKEDIN_PROFILE)) {
+                await launch(LINKEDIN_PROFILE);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ThemesButton extends StatefulWidget {
+  const ThemesButton({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<ThemesButton> createState() => _ThemesButtonState();
+}
+
+class _ThemesButtonState extends State<ThemesButton>
+    with TickerProviderStateMixin {
+  static final List<Color> colors = [
+    // Color(0xfff13f3f),
+    // Color(0xffff006c),
+    // Color(0xffff00a7),
+    // Color(0xfffb11eb),
+
+    // Color(0xffbbff99), //egg
+    // Color(0xffffec99),
+    // Color(0xffff9999),
+
+    // Color(0xfff13f3f),
+    // Color(0xfff54d31),
+    // Color(0xfff75b1f),
+    // Color(0xfff66a00),
+    // Color(0xfff37800),
+    // Color(0xffee8700),
+    // Color(0xffe79600),
+    // Color(0xffdea400),
+    // Color(0xffd2b200),
+    // Color(0xffc4bf00),
+    // Color(0xffb3cc00),
+    // Color(0xff9fd800),
+    // Color(0xff85e400),
+    // Color(0xff62f000),
+    // Color(0xff11fb25),
+    Color(0xfff13f3f),
+    Color(0xfffc417a),
+    Color(0xfff25ab2),
+    Color(0xffd479e0),
+    Color(0xffa796fe),
+    Color(0xff6fadff),
+    Color(0xff30c0ff),
+    Color(0xff11cefb),
+    Color(0xff11cefb),
+    Color(0xff30c0ff),
+    Color(0xff6fadff),
+    Color(0xffa796fe),
+    Color(0xffd479e0),
+    Color(0xfff25ab2),
+    Color(0xfffc417a),
+    Color(0xfff13f3f),
+  ];
+
+  final _visiblePointsCount = 3;
+
+  late List<AnimationController> _controllers;
+
+  Animatable<Color?> _colorTween = TweenSequence(
+    colors
+        .asMap()
+        .map((index, color) {
+          Color lastColor = colors[(index - 1) % colors.length];
+          return MapEntry(
+            index,
+            TweenSequenceItem(
+              weight: 1.0,
+              tween: ColorTween(begin: lastColor, end: color),
+            ),
+          );
+        })
+        .values
+        .toList(),
+  );
+
+  List<Animation<Color?>> _colorAnims = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controllers =
+        [for (var i = 0; i < _visiblePointsCount; i += 1) i].map((index) {
+      AnimationController controller = AnimationController(
+        vsync: this,
+        duration: Duration(milliseconds: 4000),
+      );
+      controller.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          // print("Ticker $index completed");
+          controller.reverse();
+        } else if (status == AnimationStatus.dismissed) {
+          controller.forward();
+        }
+      });
+      Animation<Color?> colorAnim = _colorTween.animate(controller);
+      controller.value = index / (colors.length);
+      // print("Ticker $index started");
+      _colorAnims.add(colorAnim);
+      return controller;
+    }).toList();
+    _controllers.forEach((c) => c.forward());
+  }
+
+  @override
+  void dispose() {
+    _controllers.forEach((c) => c.dispose());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controllers[0],
+      builder: (_, __) => SmallColorButton(
+        iconData: Icons.brush,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors:
+              _colorAnims.map((anim) => anim.value).toList().filterNotNull(),
+          tileMode: TileMode.mirror,
         ),
+        onTap: () {
+          Navigator.of(context).push(
+            slideUpRoute(
+              ThemeSelectPage(),
+            ),
+          );
+        },
       ),
     );
   }
@@ -296,23 +435,30 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
 
 class SmallColorButton extends StatefulWidget {
   final String? label;
-  final IconData icon;
-  final Color color;
+  final Widget icon;
+  final Color? color;
+  final Gradient? gradient;
   final VoidCallback onTap;
 
-  const SmallColorButton({
+  SmallColorButton({
     Key? key,
     this.label,
-    required this.icon,
-    required this.color,
+    IconData? iconData,
+    Widget? icon,
+    this.color,
+    this.gradient,
     required this.onTap,
-  }) : super(key: key);
+  })  : this.icon =
+            iconData != null ? Icon(iconData, color: Colors.white) : icon!,
+        assert((color != null) ^ (gradient != null)),
+        super(key: key);
 
   @override
   _SmallColorButtonState createState() => _SmallColorButtonState();
 }
 
-class _SmallColorButtonState extends State<SmallColorButton> with SingleTickerProviderStateMixin {
+class _SmallColorButtonState extends State<SmallColorButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController animCtrl;
 
   bool expanded = false;
@@ -349,14 +495,22 @@ class _SmallColorButtonState extends State<SmallColorButton> with SingleTickerPr
           children: [
             Transform.scale(scale: 1 + animCtrl.value / 4, child: child),
             Transform.scale(
-                scale: 1 + animCtrl.value / 8, child: Icon(widget.icon, color: Colors.white)),
+              scale: 1 + animCtrl.value / 8,
+              child: SizedBox(
+                height: 32,
+                width: 32,
+                child: widget.icon,
+              ),
+            ),
           ],
         ),
-        child: Container(
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 500),
           width: 48,
           height: 48,
           padding: EdgeInsets.only(left: 1),
           decoration: BoxDecoration(
+            gradient: widget.gradient,
             color: widget.color,
             borderRadius: BorderRadius.all(Radius.circular(100)),
           ),
@@ -372,7 +526,8 @@ class SearchingGameNotification extends StatefulWidget {
   const SearchingGameNotification(this.connected, {Key? key}) : super(key: key);
 
   @override
-  _SearchingGameNotificationState createState() => _SearchingGameNotificationState();
+  _SearchingGameNotificationState createState() =>
+      _SearchingGameNotificationState();
 }
 
 class _SearchingGameNotificationState extends State<SearchingGameNotification> {
@@ -380,171 +535,178 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data:
-          Theme.of(context).copyWith(accentColor: Colors.white70, colorScheme: ColorScheme.light()),
-      child: Container(
-        margin: EdgeInsets.all(12).copyWith(top: 24),
-        child: AnimatedSwitcher(
-          layoutBuilder: (currentChild, previousChildren) => Stack(
-            children: <Widget>[
-              ...previousChildren,
-              if (currentChild != null) currentChild,
-            ],
-            alignment: Alignment.topLeft,
-          ),
-          duration: Duration(milliseconds: 180),
-          switchInCurve: Curves.easeOutQuad,
-          switchOutCurve: Curves.easeInQuad,
-          child: widget.connected
-              ? GestureDetector(
-                  key: ValueKey(collapsed),
-                  onTap: () {
-                    setState(() {
-                      collapsed = !collapsed;
-                    });
-                  },
-                  child: collapsed
-                      ? Padding(
-                          padding: EdgeInsets.only(top: 14, left: 10),
-                          child: Material(
-                            borderRadius: BorderRadius.circular(100),
-                            color: Colors.black.withOpacity(0.8),
-                            clipBehavior: Clip.antiAlias,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  height: 48,
-                                  child: AspectRatio(
-                                    aspectRatio: 1,
-                                  ),
-                                ),
-                                Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    SizedBox(
-                                      height: 32,
-                                      width: 32,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    ),
-                                    Container(
-                                      padding: EdgeInsets.all(8),
-                                      child: Icon(
-                                        collapsed ? Icons.arrow_downward : Icons.arrow_upward,
-                                        size: 16,
-                                        color: Colors.white70,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : Material(
-                          borderRadius: BorderRadius.circular(10),
-                          clipBehavior: Clip.antiAlias,
+    return Container(
+      margin: EdgeInsets.all(12).copyWith(top: 24),
+      child: AnimatedSwitcher(
+        layoutBuilder: (currentChild, previousChildren) => Stack(
+          children: <Widget>[
+            ...previousChildren,
+            if (currentChild != null) currentChild,
+          ],
+          alignment: Alignment.topLeft,
+        ),
+        duration: Duration(milliseconds: 180),
+        switchInCurve: Curves.easeOutQuad,
+        switchOutCurve: Curves.easeInQuad,
+        child: widget.connected
+            ? GestureDetector(
+                key: ValueKey(collapsed),
+                onTap: () {
+                  setState(() {
+                    collapsed = !collapsed;
+                  });
+                },
+                child: collapsed
+                    ? Padding(
+                        padding: EdgeInsets.only(top: 14, left: 10),
+                        child: Material(
+                          borderRadius: BorderRadius.circular(100),
                           color: Colors.black.withOpacity(0.8),
+                          clipBehavior: Clip.antiAlias,
                           child: Stack(
                             alignment: Alignment.center,
-                            children: <Widget>[
-                              Positioned(
-                                top: 0,
-                                right: 0,
-                                bottom: 0,
-                                left: 0,
-                                child: Container(
-                                  constraints: BoxConstraints.expand(),
-                                  decoration: BoxDecoration(),
+                            children: [
+                              Container(
+                                height: 48,
+                                child: AspectRatio(
+                                  aspectRatio: 1,
                                 ),
                               ),
-                              Padding(
-                                padding: EdgeInsets.all(18),
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: <Widget>[
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          SizedBox(
-                                            height: 32,
-                                            width: 32,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
-                                          ),
-                                          Container(
-                                            padding: EdgeInsets.all(8),
-                                            child: Icon(
-                                              collapsed ? Icons.arrow_downward : Icons.arrow_upward,
-                                              size: 16,
-                                              color: Colors.white70,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  SizedBox(
+                                    height: 32,
+                                    width: 32,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.all(8),
+                                    child: Icon(
+                                      collapsed
+                                          ? Icons.arrow_downward
+                                          : Icons.arrow_upward,
+                                      size: 16,
+                                      color: Colors.white70,
                                     ),
-                                    Text(
-                                        'Searching for opponent\nThis might take a while\nTap to minimize',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(color: Colors.white)),
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: Material(
-                                        borderRadius: BorderRadius.circular(6),
-                                        clipBehavior: Clip.antiAlias,
-                                        color: Colors.black87,
-                                        child: InkWell(
-                                          onTap: () => context.read<GameStateManager>().leave(),
-                                          splashColor: Colors.white70,
-                                          child: Container(
-                                            padding:
-                                                EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(6),
-                                              border: Border.all(color: Colors.white60),
-                                            ),
-                                            child: Text(
-                                              'Cancel',
-                                              style: TextStyle(color: Colors.white70),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
-                )
-              : Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        height: 32,
-                        width: 32,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Material(
+                        borderRadius: BorderRadius.circular(10),
+                        clipBehavior: Clip.antiAlias,
+                        color: Colors.black.withOpacity(0.8),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: <Widget>[
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              bottom: 0,
+                              left: 0,
+                              child: Container(
+                                constraints: BoxConstraints.expand(),
+                                decoration: BoxDecoration(),
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(18),
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: <Widget>[
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        SizedBox(
+                                          height: 32,
+                                          width: 32,
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2),
+                                        ),
+                                        Container(
+                                          padding: EdgeInsets.all(8),
+                                          child: Icon(
+                                            collapsed
+                                                ? Icons.arrow_downward
+                                                : Icons.arrow_upward,
+                                            size: 16,
+                                            color: Colors.white70,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                      'Searching for opponent\nThis might take a while\nTap to minimize',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(color: Colors.white)),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Material(
+                                      borderRadius: BorderRadius.circular(6),
+                                      clipBehavior: Clip.antiAlias,
+                                      color: Colors.black87,
+                                      child: InkWell(
+                                        onTap: () => context
+                                            .read<GameStateManager>()
+                                            .leave(),
+                                        splashColor: Colors.white70,
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 12, horizontal: 8),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                            border: Border.all(
+                                                color: Colors.white60),
+                                          ),
+                                          child: Text(
+                                            'Cancel',
+                                            style: TextStyle(
+                                                color: Colors.white70),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      SizedBox(width: 12),
-                      Text(
-                        'No Connection! Waiting to reconnect.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
+              )
+            : Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-        ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 32,
+                      width: 32,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'No Connection! Waiting to reconnect.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
       ),
     );
   }
@@ -578,7 +740,11 @@ class _ChatAcceptDialogState extends State<ChatAcceptDialog> {
           mainAxisSize: MainAxisSize.max,
           children: [
             Checkbox(
-              focusColor: Colors.blueAccent.withOpacity(0.9),
+              activeColor: context
+                  .watch<ThemesProvider>()
+                  .selectedTheme
+                  .chatThemeColor
+                  .withOpacity(0.9),
               value: oldEnough,
               onChanged: (v) {
                 if (v == null) return;
@@ -601,17 +767,33 @@ class _ChatAcceptDialogState extends State<ChatAcceptDialog> {
           children: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Cancel'.toUpperCase()),
+              child: Text(
+                'Cancel'.toUpperCase(),
+                style: TextStyle(
+                  color: Colors.black87,
+                ),
+              ),
             ),
             SizedBox(width: 12),
             TextButton(
               style: TextButton.styleFrom(
-                backgroundColor: Colors.blueAccent.withOpacity(1),
+                backgroundColor: oldEnough
+                    ? context
+                        .watch<ThemesProvider>()
+                        .selectedTheme
+                        .chatThemeColor
+                    : context
+                        .watch<ThemesProvider>()
+                        .selectedTheme
+                        .chatThemeColor
+                        .withOpacity(0.3),
               ),
-              onPressed: !oldEnough ? null : () => Navigator.of(context).pop(true),
+              onPressed:
+                  !oldEnough ? null : () => Navigator.of(context).pop(true),
               child: Text(
                 'ACCEPT',
-                style: TextStyle(color: oldEnough ? Colors.white : Colors.black45),
+                style:
+                    TextStyle(color: oldEnough ? Colors.white : Colors.black45),
               ),
             ),
           ],
