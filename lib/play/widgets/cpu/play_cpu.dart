@@ -9,6 +9,7 @@ import 'package:four_in_a_row/play/models/cpu/cpu.dart';
 import 'package:four_in_a_row/providers/themes.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:four_in_a_row/util/vibration.dart';
+import 'package:provider/provider.dart';
 import 'package:provider/src/provider.dart';
 
 import '../common/common.dart';
@@ -107,11 +108,14 @@ class _PlayingCPUState extends State<PlayingCPU> with RouteAware {
                 Padding(
                   padding: EdgeInsets.only(top: 2),
                   child: waitingForCpu
-                      ? SizedBox(
-                          width: 64,
-                          child: LinearProgressIndicator(
-                            backgroundColor: Colors.red,
-                          ))
+                      ? Consumer<ThemesProvider>(
+                          builder: (_, themes, __) => SizedBox(
+                                width: 64,
+                                child: LinearProgressIndicator(
+                                  color: themes.selectedTheme.playerOneColor,
+                                  backgroundColor: themes.selectedTheme.playerTwoColor,
+                                ),
+                              ))
                       : SizedBox(height: 4),
                 ),
                 Expanded(

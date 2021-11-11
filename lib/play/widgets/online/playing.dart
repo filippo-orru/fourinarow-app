@@ -450,15 +450,6 @@ class ScrollingChatMiniviewMessage extends StatelessWidget {
         child: Container(
           constraints: BoxConstraints.expand(width: 48),
           padding: EdgeInsets.all(2),
-          // decoration: BoxDecoration(
-          //   borderRadius: BorderRadius.circular(6),
-          // border: Border.all(
-          //   color: message.senderIsMe
-          //       ? Colors.blueAccent[200]!.withOpacity(0.9)
-          //       : Colors.redAccent[200]!.withOpacity(0.9),
-          //   width: 1,
-          // ),
-          // ),
           child: FittedBox(
             fit: BoxFit.contain,
             child: Text(

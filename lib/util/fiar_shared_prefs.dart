@@ -112,7 +112,7 @@ class FiarSharedPrefs {
     return "weird";
   });
   static String get selectedThemeId =>
-      sharedPrefs.getBool(_selectedThemeId.key) ?? _selectedThemeId.defaultValue();
+      sharedPrefs.getString(_selectedThemeId.key) ?? _selectedThemeId.defaultValue();
   static set selectedThemeId(String t) => sharedPrefs.setString(_selectedThemeId.key, t);
 
   static _SharedPrefPair _hasAcceptedChat =
@@ -146,6 +146,7 @@ class FiarSharedPrefs {
       sharedPrefs.setString(_settingsQuickchatEmojis.key, i.join("#"));
 }
 
+// TODO actually use this
 class _SharedPrefPair<T> {
   final String key;
   final Type type;

@@ -610,7 +610,13 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
                                         SizedBox(
                                           height: 32,
                                           width: 32,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                          child: CircularProgressIndicator(
+                                            color: context
+                                                .watch<ThemesProvider>()
+                                                .selectedTheme
+                                                .accentColor,
+                                            strokeWidth: 2,
+                                          ),
                                         ),
                                         Container(
                                           padding: EdgeInsets.all(8),

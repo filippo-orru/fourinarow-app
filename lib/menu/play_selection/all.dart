@@ -130,7 +130,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
             children: [
               Container(
                 constraints: BoxConstraints.expand(),
-                color: Colors.redAccent,
+                color: context.watch<ThemesProvider>().selectedTheme.playOnlineThemeColor,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Align(
@@ -141,7 +141,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
               ),
               Container(
                 constraints: BoxConstraints.expand(),
-                color: Colors.blueAccent,
+                color: context.watch<ThemesProvider>().selectedTheme.playLocalThemeColor,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Stack(children: [
@@ -158,7 +158,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
               ),
               Container(
                 constraints: BoxConstraints.expand(),
-                color: Colors.deepPurple,
+                color: context.watch<ThemesProvider>().selectedTheme.playCpuThemeColor,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Align(
@@ -252,7 +252,7 @@ class FiarSimpleDialog extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    primary: Colors.blue,
+                    primary: context.watch<ThemesProvider>().selectedTheme.accentColor,
                   ),
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text('Okay'),

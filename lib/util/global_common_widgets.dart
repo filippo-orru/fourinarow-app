@@ -12,6 +12,11 @@ class FiarBottomSheet extends StatefulWidget {
   final ColorSwatch<int> color;
   final double expandedHeight;
   final bool onlyOpenUsingButton;
+  final VoidCallback? onOpening;
+  final VoidCallback? onOpened;
+  final VoidCallback? onClosing;
+  final VoidCallback? onClosed;
+  final VoidCallback? onTapped;
 
   const FiarBottomSheet({
     required this.topChildren,
@@ -19,6 +24,11 @@ class FiarBottomSheet extends StatefulWidget {
     required this.color,
     this.expandedHeight = DEFAULT_EXPANDED_HEIGHT,
     this.onlyOpenUsingButton = false,
+    this.onOpening,
+    this.onOpened,
+    this.onClosing,
+    this.onClosed,
+    this.onTapped,
     Key? key,
   }) : super(key: key);
 
@@ -27,6 +37,7 @@ class FiarBottomSheet extends StatefulWidget {
 }
 
 class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProviderStateMixin {
+  final ScrollController scrollController = ScrollController();
   late AnimationController animCtrl;
   late Animation<double> moveUpAnim;
   late Animation<double> rotateAnim;
@@ -34,15 +45,22 @@ class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProv
   bool expanded = false;
 
   Future<void> show() async {
+    widget.onTapped?.call();
+    widget.onOpening?.call();
     await Future.delayed(Duration(milliseconds: 30));
 
     setState(() => expanded = true);
     await animCtrl.forward();
+    widget.onOpened?.call();
   }
 
   Future<void> hide() async {
+    widget.onTapped?.call();
+    widget.onClosing?.call();
     await animCtrl.reverse();
     setState(() => expanded = false);
+    scrollController.jumpTo(0);
+    widget.onClosed?.call();
   }
 
   @override
@@ -165,13 +183,8 @@ class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProv
                           },
                           child: Material(
                             type: MaterialType.transparency,
-                            // color: Colors.red,
 
-                            child:
-                                // widget.disabled
-                                //     ? Container(child: buildTopChildren())
-                                //     :
-                                InkResponse(
+                            child: InkResponse(
                               containedInkWell: true,
                               highlightShape: BoxShape.rectangle,
                               borderRadius: BorderRadius.all(Radius.circular(24)),
@@ -237,13 +250,11 @@ class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProv
                       // child: InkWell(
                       // When the user taps the button, show a snackbar.
                       child: ListView(
-                        // padding: EdgeInsets.zero,
+                        controller: scrollController,
                         padding: EdgeInsets.only(top: 24, bottom: 32),
                         children: widget.children,
-                        // ),
                       ),
                     ),
-                    // Expanded(child: Container()),
                   ],
                 ),
               ),

@@ -16,6 +16,11 @@ class ThemesProvider with ChangeNotifier {
     String selectedThemeIdId = FiarSharedPrefs.selectedThemeId;
     return _overrideTheme ?? allThemes.firstWhere((theme) => theme.id == selectedThemeIdId);
   }
+
+  void setSelectedTheme(String id) {
+    FiarSharedPrefs.selectedThemeId = id;
+    notifyListeners();
+  }
 }
 
 class FiarTheme {
@@ -79,7 +84,7 @@ class FiarThemeDefault extends FiarTheme {
           accountRegisterAccentColor: Colors.redAccent,
           playOnlineThemeColor: Colors.redAccent,
           playLocalThemeColor: Colors.blueAccent,
-          playCpuThemeColor: Colors.purple,
+          playCpuThemeColor: Colors.deepPurple,
         );
 }
 
