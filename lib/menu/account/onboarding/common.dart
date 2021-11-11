@@ -10,6 +10,7 @@ class AccountTextField extends StatelessWidget {
     Key? key,
     required this.txtCtrl,
     required this.hint,
+    required this.borderColor,
     this.password = false,
     this.focusNode,
     this.nextFocus,
@@ -18,6 +19,7 @@ class AccountTextField extends StatelessWidget {
 
   final TextEditingController txtCtrl;
   final String hint;
+  final Color borderColor;
   final FocusNode? focusNode;
   final FocusNode? nextFocus;
   final VoidCallback? onSubmit;
@@ -39,12 +41,17 @@ class AccountTextField extends StatelessWidget {
       keyboardType: TextInputType.visiblePassword,
       textInputAction: nextFocus == null ? TextInputAction.done : TextInputAction.next,
       decoration: InputDecoration(
-          hintText: hint,
-          border: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black45, width: 2),
-            borderRadius: BorderRadius.circular(2),
-          ),
-          contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15)),
+        hintText: hint,
+        border: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.black45, width: 2),
+          borderRadius: BorderRadius.circular(2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: borderColor, width: 2),
+          borderRadius: BorderRadius.circular(2),
+        ),
+        contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
+      ),
     );
   }
 }
@@ -142,6 +149,7 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
                 AccountTextField(
                   txtCtrl: widget.usernameCtrl,
                   hint: 'Username',
+                  borderColor: widget.accentColor,
                   focusNode: widget.usernameFocusNode,
                   nextFocus: widget.passwordFocusNode,
                 ),
@@ -150,6 +158,7 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
                 AccountTextField(
                   txtCtrl: widget.pwCtrl,
                   hint: 'Password',
+                  borderColor: widget.accentColor,
                   password: true,
                   focusNode: widget.passwordFocusNode,
                   onSubmit: submit,

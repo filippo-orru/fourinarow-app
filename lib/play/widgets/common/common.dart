@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 import 'package:four_in_a_row/play/models/common/player.dart';
+import 'package:four_in_a_row/providers/themes.dart';
+import 'package:provider/src/provider.dart';
 
 class BorderButton extends StatelessWidget {
   const BorderButton(
@@ -85,10 +87,13 @@ class TurnIndicator extends StatelessWidget {
             playerNames(turn),
             key: ValueKey(turn),
             style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.w700,
-                // fontStyle: FontStyle.italic,
-                color: turn.color()),
+              fontSize: 36,
+              fontWeight: FontWeight.w700,
+              // fontStyle: FontStyle.italic,
+              color: turn.color(
+                context.watch<ThemesProvider>().selectedTheme,
+              ),
+            ),
           ),
         ),
       ]),

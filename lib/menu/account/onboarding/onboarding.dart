@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:four_in_a_row/menu/account/friends.dart';
 import 'package:four_in_a_row/menu/main_menu.dart';
 import 'package:four_in_a_row/menu/settings.dart';
+import 'package:four_in_a_row/providers/themes.dart';
+import 'package:four_in_a_row/util/global_common_widgets.dart';
+import 'package:provider/src/provider.dart';
 import 'login.dart';
 import 'register.dart';
 
@@ -42,7 +45,8 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
                   SizedBox(height: 48),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      primary: Colors.blueAccent,
+                      primary:
+                          context.watch<ThemesProvider>().selectedTheme.accountLoginAccentColor,
                     ),
                     onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(
@@ -54,7 +58,8 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      primary: Colors.redAccent,
+                      primary:
+                          context.watch<ThemesProvider>().selectedTheme.accountRegisterAccentColor,
                     ),
                     onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(
@@ -74,7 +79,7 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
               child: TextButton(
                 child: Text('Settings'),
                 style: TextButton.styleFrom(
-                  primary: Colors.blue,
+                  primary: context.watch<ThemesProvider>().selectedTheme.accentColor,
                 ),
                 onPressed: () => Navigator.of(context).push(slideUpRoute(SettingsScreen())),
               ),

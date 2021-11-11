@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
-import 'package:four_in_a_row/inherit/chat.dart';
+import 'package:four_in_a_row/providers/chat.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
+import 'package:four_in_a_row/providers/themes.dart';
 import 'package:four_in_a_row/util/widget_extensions.dart';
 
 import 'package:provider/provider.dart';
@@ -157,7 +158,11 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal>
                         )
                       : ScrollConfiguration(
                           behavior: MyScrollBehavior(
-                            color: Colors.blueAccent.withOpacity(0.1),
+                            color: context
+                                .watch<ThemesProvider>()
+                                .selectedTheme
+                                .chatThemeColor
+                                .withOpacity(0.1),
                           ),
                           child: ListView(
                               reverse: true,
@@ -359,7 +364,13 @@ class _CreateMessageWidgetState extends State<CreateMessageWidget> {
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(100),
-                    color: enabled ? Colors.blueAccent.withOpacity(0.9) : Colors.grey[300],
+                    color: enabled
+                        ? context
+                            .watch<ThemesProvider>()
+                            .selectedTheme
+                            .chatThemeColor
+                            .withOpacity(0.9)
+                        : Colors.grey[300],
                   ),
                   child: Transform.translate(
                     offset: Offset(1.5, 0),
@@ -413,10 +424,9 @@ class _CreateMessageWidgetState extends State<CreateMessageWidget> {
                       border: InputBorder.none,
                       counterText: null,
                       counterStyle: null,
+                      focusColor: context.watch<ThemesProvider>().selectedTheme.chatThemeColor,
                     ),
-                    // style: TextStyle(
-                    //   color: this._sendingMessage ? Colors.black54 : Colors.black,
-                    // ),
+                    cursorColor: context.watch<ThemesProvider>().selectedTheme.chatThemeColor,
                     maxLines: 1,
                   ),
                 ),
@@ -447,48 +457,6 @@ class ChatMessageWidget extends StatelessWidget {
 
   ChatMessageWidget(this.message, {required this.resendMessage, Key? key}) : super(key: key);
 
-  Widget buildMessageStateIndicator() {
-    switch (message.state) {
-      case ConfirmationState.Sent:
-        return Transform.scale(scale: 0.5, child: CircularProgressIndicator());
-      case ConfirmationState.Received:
-        return Icon(
-          Icons.check,
-          size: 18,
-          color: Colors.grey,
-          key: ValueKey(1),
-        );
-      case ConfirmationState.Error:
-        return Icon(
-          Icons.warning_outlined,
-          size: 18,
-          color: Colors.red[900],
-          key: ValueKey(2),
-        );
-      case ConfirmationState.Seen:
-        return Stack(
-          key: ValueKey(3),
-          children: [
-            Icon(
-              Icons.check,
-              color: Colors.blueAccent,
-              size: 18,
-            ),
-            Transform.translate(
-              offset: Offset(6.5, 0),
-              child: Icon(
-                Icons.check,
-                color: Colors.blueAccent.withOpacity(0.6),
-                size: 18,
-              ),
-            ),
-          ],
-        );
-      default:
-        return SizedBox();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     String senderStr = "Anonymous";
@@ -514,8 +482,10 @@ class ChatMessageWidget extends StatelessWidget {
         child: InkResponse(
           containedInkWell: true,
           highlightShape: BoxShape.rectangle,
-          splashColor: Colors.blueAccent.withOpacity(0.35),
-          highlightColor: Colors.blueAccent.withOpacity(0.35),
+          splashColor:
+              context.watch<ThemesProvider>().selectedTheme.chatThemeColor.withOpacity(0.35),
+          highlightColor:
+              context.watch<ThemesProvider>().selectedTheme.chatThemeColor.withOpacity(0.35),
           onTap: () {
             if (message.state == ConfirmationState.Error) {
               resendMessage();
@@ -589,7 +559,7 @@ class ChatMessageWidget extends StatelessWidget {
                               child: Center(
                                 child: AnimatedSwitcher(
                                   duration: Duration(milliseconds: 350),
-                                  child: buildMessageStateIndicator(),
+                                  child: MessageStateIndicator(message.state),
                                 ),
                               ),
                             )
@@ -608,5 +578,54 @@ class ChatMessageWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class MessageStateIndicator extends StatelessWidget {
+  final ConfirmationState messageState;
+  const MessageStateIndicator(this.messageState, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    switch (messageState) {
+      case ConfirmationState.Sent:
+        return Transform.scale(scale: 0.5, child: CircularProgressIndicator());
+      case ConfirmationState.Received:
+        return Icon(
+          Icons.check,
+          size: 18,
+          color: Colors.grey,
+          key: ValueKey(1),
+        );
+      case ConfirmationState.Error:
+        return Icon(
+          Icons.warning_outlined,
+          size: 18,
+          color: Colors.red[900],
+          key: ValueKey(2),
+        );
+      case ConfirmationState.Seen:
+        return Stack(
+          key: ValueKey(3),
+          children: [
+            Icon(
+              Icons.check,
+              color: context.watch<ThemesProvider>().selectedTheme.chatThemeColor,
+              size: 18,
+            ),
+            Transform.translate(
+              offset: Offset(6.5, 0),
+              child: Icon(
+                Icons.check,
+                color:
+                    context.watch<ThemesProvider>().selectedTheme.chatThemeColor.withOpacity(0.6),
+                size: 18,
+              ),
+            ),
+          ],
+        );
+      default:
+        return SizedBox();
+    }
   }
 }

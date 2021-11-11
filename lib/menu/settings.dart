@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/providers/themes.dart';
+import 'package:four_in_a_row/providers/user.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/menu/common/overlay_dialog.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
+import 'package:four_in_a_row/util/global_common_widgets.dart';
 import 'package:four_in_a_row/util/vibration.dart';
 import 'package:four_in_a_row/util/constants.dart';
 import 'package:provider/provider.dart';
 
 import 'account/onboarding/onboarding.dart';
-import 'main_menu.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -73,7 +74,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       ),
                                       OutlinedButton(
                                         style: OutlinedButton.styleFrom(
-                                          primary: Colors.blue,
+                                          primary: context
+                                              .watch<ThemesProvider>()
+                                              .selectedTheme
+                                              .accentColor,
                                         ),
                                         onPressed: () {
                                           context.read<UserInfo>().logOut();
@@ -109,6 +113,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
             trailing: Switch(
               value: vibrate,
+              activeColor: context.watch<ThemesProvider>().selectedTheme.accentColor,
               onChanged: _canVibrate == true
                   ? (shouldVibrate) {
                       setState(() => FiarSharedPrefs.settingsAllowVibrate = shouldVibrate);
@@ -135,6 +140,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
             trailing: Switch(
               value: showNotifications,
+              activeColor: context.watch<ThemesProvider>().selectedTheme.accentColor,
               onChanged: (shouldShowNotifications) {
                 setState(() {
                   FiarSharedPrefs.settingsAllowNotifications = shouldShowNotifications;
@@ -244,7 +250,17 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
                             child: AnimatedContainer(
                               duration: Duration(milliseconds: 150),
                               decoration: BoxDecoration(
-                                color: (isSelected ? Colors.blue.shade500 : Colors.blue.shade50)
+                                color: (isSelected
+                                        ? context
+                                            .watch<ThemesProvider>()
+                                            .selectedTheme
+                                            .accentColor
+                                            .shade500
+                                        : context
+                                            .watch<ThemesProvider>()
+                                            .selectedTheme
+                                            .accentColor
+                                            .shade50)
                                     .withOpacity(0.4),
                                 borderRadius: BorderRadius.circular(4),
                               ),
@@ -307,7 +323,7 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
                         ),
                         OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            primary: Colors.blue,
+                            primary: context.watch<ThemesProvider>().selectedTheme.accentColor,
                           ),
                           child: Text('Save'),
                           onPressed: _allowSave()

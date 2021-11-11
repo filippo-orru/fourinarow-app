@@ -6,22 +6,24 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
-import 'package:four_in_a_row/inherit/route.dart';
+import 'package:four_in_a_row/providers/route.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
+import 'package:four_in_a_row/providers/themes.dart';
 import 'package:four_in_a_row/util/battle_req_popup.dart';
 import 'package:four_in_a_row/util/constants.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
+import 'package:four_in_a_row/util/global_common_widgets.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
-import 'inherit/chat.dart';
-import 'inherit/user.dart';
-import 'inherit/lifecycle.dart';
-import 'inherit/notifications.dart';
+import 'providers/chat.dart';
+import 'providers/user.dart';
+import 'providers/lifecycle.dart';
+import 'providers/notifications.dart';
 
 import 'menu/main_menu.dart';
 
@@ -224,18 +226,21 @@ class _SplashAppInternalState extends State<SplashAppInternal> with TickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        state == AppLoadState.Preloading || state == AppLoadState.Loaded
-            ? FiarProviderApp()
-            : SizedBox(),
-        WidgetsApp(
-          color: Colors.blue,
-          debugShowCheckedModeBanner: false,
-          builder: (ctx, __) => buildSplashScreen(ctx),
-        ),
-      ],
+    return ChangeNotifierProvider<ThemesProvider>(
+      create: (_) => ThemesProvider(),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          state == AppLoadState.Preloading || state == AppLoadState.Loaded
+              ? FiarProviderApp()
+              : SizedBox(),
+          WidgetsApp(
+            color: Colors.blue,
+            debugShowCheckedModeBanner: false,
+            builder: (ctx, __) => buildSplashScreen(ctx),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,8 +1,8 @@
 import 'package:four_in_a_row/connection/server_connection.dart';
+import 'package:four_in_a_row/providers/themes.dart';
 import 'package:four_in_a_row/util/extensions.dart';
-import 'package:four_in_a_row/inherit/route.dart';
+import 'package:four_in_a_row/providers/route.dart';
 import 'package:four_in_a_row/menu/account/offline.dart';
-import 'package:four_in_a_row/menu/main_menu.dart';
 import 'package:four_in_a_row/menu/outdated.dart';
 import 'package:four_in_a_row/play/models/cpu/cpu.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
@@ -13,6 +13,7 @@ import 'package:four_in_a_row/menu/play_selection/online.dart';
 import 'package:four_in_a_row/play/widgets/local/play_local.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
+import 'package:four_in_a_row/util/global_common_widgets.dart';
 import 'package:four_in_a_row/util/swipe_detector.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:four_in_a_row/util/toast.dart';
@@ -129,7 +130,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
             children: [
               Container(
                 constraints: BoxConstraints.expand(),
-                color: Colors.redAccent,
+                color: context.watch<ThemesProvider>().selectedTheme.playOnlineThemeColor,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Align(
@@ -140,7 +141,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
               ),
               Container(
                 constraints: BoxConstraints.expand(),
-                color: Colors.blueAccent,
+                color: context.watch<ThemesProvider>().selectedTheme.playLocalThemeColor,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Stack(children: [
@@ -157,7 +158,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
               ),
               Container(
                 constraints: BoxConstraints.expand(),
-                color: Colors.deepPurple,
+                color: context.watch<ThemesProvider>().selectedTheme.playCpuThemeColor,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: Align(
@@ -184,7 +185,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
                 content: MenuContentPlayOnline(),
                 pushRoute: tappedPlayOnline,
                 offset: offset,
-                bgColor: Colors.redAccent,
+                bgColor: context.watch<ThemesProvider>().selectedTheme.playOnlineThemeColor,
               ),
             ),
             PlaySelectionScreen(
@@ -195,7 +196,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
               description: 'Two players, one device!',
               offset: offset,
               pushRoute: () => Navigator.of(context).push(fadeRoute(PlayingLocal())),
-              bgColor: Colors.blueAccent,
+              bgColor: context.watch<ThemesProvider>().selectedTheme.playLocalThemeColor,
             ),
             PlaySelectionScreen(
               index: 2,
@@ -206,7 +207,7 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
               offset: offset,
               pushRoute: () =>
                   Navigator.of(context).push(fadeRoute(PlayingCPU(difficulty: _selectedDificulty))),
-              bgColor: Colors.blueAccent,
+              bgColor: context.watch<ThemesProvider>().selectedTheme.playCpuThemeColor,
             ),
           ],
         ),
@@ -251,7 +252,7 @@ class FiarSimpleDialog extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    primary: Colors.blue,
+                    primary: context.watch<ThemesProvider>().selectedTheme.accentColor,
                   ),
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text('Okay'),

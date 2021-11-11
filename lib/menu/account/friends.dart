@@ -5,6 +5,7 @@ import 'package:flutter/material.dart' hide BottomSheet;
 import 'package:flutter/scheduler.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
 import 'package:four_in_a_row/menu/settings.dart';
+import 'package:four_in_a_row/providers/themes.dart';
 import 'package:http/http.dart' as http;
 import 'package:share/share.dart';
 
@@ -15,7 +16,7 @@ import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:four_in_a_row/util/constants.dart' as constants;
 import 'package:four_in_a_row/util/extensions.dart';
-import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/providers/user.dart';
 import 'package:four_in_a_row/menu/common/overlay_dialog.dart';
 import 'package:four_in_a_row/util/global_common_widgets.dart';
 
@@ -100,13 +101,14 @@ class _FriendsListState extends State<FriendsList> with SingleTickerProviderStat
                       right: 24,
                       bottom: FiarBottomSheet.HEIGHT,
                       child: FloatingActionButton(
-                        backgroundColor: Colors.purple[300],
+                        backgroundColor:
+                            context.watch<ThemesProvider>().selectedTheme.friendsThemeColor[300],
                         child: Icon(Icons.add),
                         onPressed: () => setState(() => showAddFriend = true),
                       ),
                     ),
                     FiarBottomSheet(
-                      color: Colors.purple,
+                      color: context.watch<ThemesProvider>().selectedTheme.friendsThemeColor,
                       expandedHeight: 218,
                       topChildren: [
                         Text.rich(
@@ -207,7 +209,7 @@ class _FriendsListState extends State<FriendsList> with SingleTickerProviderStat
           SizedBox(height: 18),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              primary: Colors.purple.shade200,
+              primary: context.watch<ThemesProvider>().selectedTheme.friendsThemeColor.shade200,
             ),
             onPressed: () {
               userInfo.logOut();
@@ -455,7 +457,7 @@ class MoreButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        primary: Colors.purple[200],
+        primary: context.watch<ThemesProvider>().selectedTheme.friendsThemeColor[200],
         shape: StadiumBorder(),
       ),
       onPressed: () => onTap,
@@ -938,105 +940,109 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
               type: MaterialType.transparency,
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Add friend',
-                            style: TextStyle(
-                              fontFamily: 'RobotoSlab',
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                child: Consumer<ThemesProvider>(
+                  builder: (_, themeProvider, child) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Add friend',
+                              style: TextStyle(
+                                fontFamily: 'RobotoSlab',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.close,
-                            color: Colors.purple.shade200,
+                          Consumer<ThemesProvider>(
+                            builder: (_, themeProvider, child) => IconButton(
+                              icon: Icon(
+                                Icons.close,
+                                color: themeProvider.selectedTheme.friendsThemeColor.shade200,
+                              ),
+                              splashColor:
+                                  themeProvider.selectedTheme.friendsThemeColor.withOpacity(0.2),
+                              hoverColor: Colors.transparent,
+                              highlightColor: themeProvider.selectedTheme.friendsThemeColor.shade100
+                                  .withOpacity(0.2),
+                              onPressed: () => widget.hide(),
+                            ),
                           ),
-                          splashColor: Colors.purple.withOpacity(0.2),
-                          hoverColor: Colors.transparent,
-                          highlightColor: Colors.purple.shade100.withOpacity(0.2),
-                          onPressed: () => widget.hide(),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: () => widget.searchbarFocusNode.requestFocus(),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          color: Colors.grey[100],
-                        ),
-                        margin: EdgeInsets.symmetric(vertical: 8),
-                        child: Material(
-                          type: MaterialType.transparency,
-                          child: Padding(
-                            padding: EdgeInsets.fromLTRB(18, 8, 8, 8),
-                            child: Row(
-                              children: <Widget>[
-                                buildSearchfield(),
-                                buildSearchbutton(),
-                              ],
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () => widget.searchbarFocusNode.requestFocus(),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                            color: Colors.grey[100],
+                          ),
+                          margin: EdgeInsets.symmetric(vertical: 8),
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(18, 8, 8, 8),
+                              child: Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: TextField(
+                                      autofocus: true,
+                                      onChanged: setSearchText,
+                                      onSubmitted: (_) => search(),
+                                      focusNode: widget.searchbarFocusNode,
+                                      decoration: InputDecoration(
+                                        errorText: errorMessage,
+                                        hintText: 'Search for users',
+                                        border: InputBorder.none,
+                                        counterText: null,
+                                        counter: null,
+                                        counterStyle: null,
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    iconSize: 24,
+                                    splashColor: themeProvider.selectedTheme.friendsThemeColor[300]!
+                                        .withOpacity(0.5),
+                                    highlightColor: themeProvider
+                                        .selectedTheme.friendsThemeColor[200]!
+                                        .withOpacity(0.5),
+                                    icon: searching
+                                        ? CircularProgressIndicator()
+                                        : Icon(Icons.search),
+                                    onPressed: search,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    searchResults != null ? buildSearchresults(searchResults!) : SizedBox(),
-                    Container(
-                      height: 48,
-                      alignment: Alignment.center,
-                      child: TextButton.icon(
-                        style: TextButton.styleFrom(primary: Colors.purple.shade300),
-                        onPressed: shareInviteFriends,
-                        icon: Icon(Icons.share_rounded),
-                        label: Text('Invite friends'),
+                      searchResults != null ? buildSearchresults(searchResults!) : SizedBox(),
+                      Container(
+                        height: 48,
+                        alignment: Alignment.center,
+                        child: TextButton.icon(
+                          style: TextButton.styleFrom(
+                              primary: themeProvider.selectedTheme.friendsThemeColor.shade300),
+                          onPressed: shareInviteFriends,
+                          icon: Icon(Icons.share_rounded),
+                          label: Text('Invite friends'),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
       ],
-    );
-  }
-
-  IconButton buildSearchbutton() {
-    return IconButton(
-      iconSize: 24,
-      splashColor: Colors.purple[300]!.withOpacity(0.5),
-      highlightColor: Colors.purple[200]!.withOpacity(0.5),
-      icon: searching ? CircularProgressIndicator() : Icon(Icons.search),
-      onPressed: search,
-    );
-  }
-
-  Expanded buildSearchfield() {
-    return Expanded(
-      child: TextField(
-        autofocus: true,
-        onChanged: setSearchText,
-        onSubmitted: (_) => search(),
-        focusNode: widget.searchbarFocusNode,
-        decoration: InputDecoration(
-          errorText: errorMessage,
-          hintText: 'Search for users',
-          border: InputBorder.none,
-          counterText: null,
-          counter: null,
-          counterStyle: null,
-        ),
-      ),
     );
   }
 
@@ -1094,14 +1100,16 @@ class FriendSearchResult extends StatelessWidget {
     return ListTile(
       title: Text(publicUser.username),
       subtitle: Text("${publicUser.gameInfo.skillRating} SR"),
-      trailing: IconButton(
-        splashColor: Colors.purple.shade500.withOpacity(0.2),
-        highlightColor: Colors.purple.shade300.withOpacity(0.2),
-        icon: addingFriend == index ? CircularProgressIndicator() : publicUser.friendState.icon(),
-        onPressed: publicUser.friendState == FriendState.None ||
-                publicUser.friendState == FriendState.HasRequestedMe
-            ? () => addFriend(publicUser.id, index)
-            : null,
+      trailing: Consumer<ThemesProvider>(
+        builder: (_, themeProvider, child) => IconButton(
+          splashColor: themeProvider.selectedTheme.friendsThemeColor.shade500.withOpacity(0.2),
+          highlightColor: themeProvider.selectedTheme.friendsThemeColor.shade300.withOpacity(0.2),
+          icon: addingFriend == index ? CircularProgressIndicator() : publicUser.friendState.icon(),
+          onPressed: publicUser.friendState == FriendState.None ||
+                  publicUser.friendState == FriendState.HasRequestedMe
+              ? () => addFriend(publicUser.id, index)
+              : null,
+        ),
       ),
     );
   }

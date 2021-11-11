@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:four_in_a_row/providers/themes.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,7 +15,7 @@ class MenuWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bgCol = Color(0xFFFDFDFD);
+    Color bgCol = context.watch<ThemesProvider>().selectedTheme.menuBackgroundColor;
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -239,7 +240,7 @@ class _FeedbackDialogState extends State<FeedbackDialog> with SingleTickerProvid
                       ),
                       OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          primary: Colors.blue,
+                          primary: context.watch<ThemesProvider>().selectedTheme.accentColor,
                         ),
                         onPressed: () async {
                           Map<String, String> body = {

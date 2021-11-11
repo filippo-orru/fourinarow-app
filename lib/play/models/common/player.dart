@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:four_in_a_row/providers/themes.dart';
 
 enum Player { One, Two }
 
 extension PlayerExtension on Player {
-  Color color() {
+  Color color(FiarTheme theme) {
     switch (this) {
       case Player.One:
-        return Colors.blue;
+        return theme.playerOneColor; // TODO theming how??
       case Player.Two:
-        return Colors.red;
+        return theme.playerTwoColor;
       default:
         throw UnimplementedError("More than two players: add color()");
     }

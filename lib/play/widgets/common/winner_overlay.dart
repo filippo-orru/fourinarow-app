@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
+import 'package:four_in_a_row/providers/themes.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:four_in_a_row/util/vibration.dart';
+import 'package:provider/provider.dart';
 
 import 'board.dart';
 
@@ -91,22 +93,24 @@ class _WinnerOverlayState extends State<WinnerOverlay> {
           ? SizedBox()
           : GestureDetector(
               onTap: widget.onTap,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: winDetails is WinDetailsWinner
-                      ? winDetails.winner.color()
-                      : Color.lerp(Colors.grey[700], Colors.blueAccent, 0.5),
-                  // borderRadius: BorderRadius.all(Radius.circular(8)),
-                  // boxShadow: [
-                  //   BoxShadow(
-                  //     color: Colors.black38,
-                  //     offset: Offset(0, 4),
-                  //     blurRadius: 12,
-                  //     spreadRadius: 2,
-                  //   ),
-                  // ]
-                ),
-                padding: EdgeInsets.fromLTRB(24, 64, 24, 24),
+              child: Consumer<ThemesProvider>(
+                builder: (_, themeProvider, child) => Container(
+                    decoration: BoxDecoration(
+                      color: winDetails is WinDetailsWinner
+                          ? winDetails.winner.color(themeProvider.selectedTheme)
+                          : Color.lerp(Colors.grey[700], Colors.blueAccent, 0.5),
+                      // borderRadius: BorderRadius.all(Radius.circular(8)),
+                      // boxShadow: [
+                      //   BoxShadow(
+                      //     color: Colors.black38,
+                      //     offset: Offset(0, 4),
+                      //     blurRadius: 12,
+                      //     spreadRadius: 2,
+                      //   ),
+                      // ]
+                    ),
+                    padding: EdgeInsets.fromLTRB(24, 64, 24, 24),
+                    child: child),
                 child: Column(
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

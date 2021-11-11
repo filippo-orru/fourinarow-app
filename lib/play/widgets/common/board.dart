@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/game_chip.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
+import 'package:four_in_a_row/providers/themes.dart';
+import 'package:provider/src/provider.dart';
 
 class Board extends StatelessWidget {
   final Field field;
@@ -147,11 +149,12 @@ class _CreateCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget chip = SizedBox();
+    FiarTheme theme = context.watch<ThemesProvider>().selectedTheme;
 
     if (cell != null) {
-      chip = GameChip(cell!.color());
+      chip = GameChip(cell!.color(theme));
       if (winning) {
-        chip = WinningGameChip(cell!.color());
+        chip = WinningGameChip(cell!.color(theme));
       }
     }
 

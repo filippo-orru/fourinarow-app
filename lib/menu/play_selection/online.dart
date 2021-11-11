@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
-import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/providers/user.dart';
 import 'package:four_in_a_row/play/models/online/game_login_state.dart';
 import 'package:four_in_a_row/util/extensions.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';

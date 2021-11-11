@@ -4,9 +4,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import 'package:four_in_a_row/inherit/chat.dart';
+import 'package:four_in_a_row/providers/chat.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
-import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/providers/themes.dart';
+import 'package:four_in_a_row/providers/user.dart';
 import 'package:four_in_a_row/menu/common/rate_dialog.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
@@ -23,7 +24,7 @@ import 'package:four_in_a_row/util/global_common_widgets.dart';
 import 'package:provider/provider.dart';
 
 class PlayingViewer extends AbstractGameStateViewer {
-  final PlayingState _playingState;
+  final PlayingStateIntermediate _playingState;
 
   PlayingViewer(this._playingState, {Key? key}) : super(key: key) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -33,8 +34,8 @@ class PlayingViewer extends AbstractGameStateViewer {
 
   @override
   Widget build(BuildContext context) {
-    if (_playingState.showRatingDialog) {
-      _playingState.showRatingDialog = false;
+    if (_playingState.getShowRatingDialog()) {
+      _playingState.setShowRatingDialog(false);
       RateTheGameDialog.show(context);
     }
 
@@ -42,7 +43,7 @@ class PlayingViewer extends AbstractGameStateViewer {
     if (_playingState.toastState != null) {
       toast = Toast(_playingState.toastState!);
     }
-    var _field = _playingState.field;
+    Field _field = _playingState.field;
 
     WinDetails? winDetails;
     bool waitingToPlayAgain = false;
@@ -449,15 +450,6 @@ class ScrollingChatMiniviewMessage extends StatelessWidget {
         child: Container(
           constraints: BoxConstraints.expand(width: 48),
           padding: EdgeInsets.all(2),
-          // decoration: BoxDecoration(
-          //   borderRadius: BorderRadius.circular(6),
-          // border: Border.all(
-          //   color: message.senderIsMe
-          //       ? Colors.blueAccent[200]!.withOpacity(0.9)
-          //       : Colors.redAccent[200]!.withOpacity(0.9),
-          //   width: 1,
-          // ),
-          // ),
           child: FittedBox(
             fit: BoxFit.contain,
             child: Text(
@@ -772,10 +764,12 @@ class OnlineTurnIndicator extends StatelessWidget {
               myTurn ? "Your turn" : "Opponent's turn",
               key: ValueKey(myTurn),
               style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w700,
-                  fontStyle: FontStyle.italic,
-                  color: Player.values[myTurn ? 0 : 1].color()),
+                fontSize: 32,
+                fontWeight: FontWeight.w700,
+                fontStyle: FontStyle.italic,
+                color: Player.values[myTurn ? 0 : 1]
+                    .color(context.watch<ThemesProvider>().selectedTheme),
+              ),
             ),
           ),
         ],

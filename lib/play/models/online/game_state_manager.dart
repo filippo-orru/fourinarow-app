@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/connection/messages.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
-import 'package:four_in_a_row/inherit/lifecycle.dart';
-import 'package:four_in_a_row/inherit/notifications.dart';
-import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/providers/lifecycle.dart';
+import 'package:four_in_a_row/providers/notifications.dart';
+import 'package:four_in_a_row/providers/user.dart';
 import 'package:four_in_a_row/util/battle_req_popup.dart';
 
 import 'game_login_state.dart';

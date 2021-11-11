@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:four_in_a_row/providers/themes.dart';
 import 'package:provider/provider.dart';
 
-import 'package:four_in_a_row/inherit/user.dart';
+import 'package:four_in_a_row/providers/user.dart';
 import 'common.dart';
 
 class RegisterPage extends StatefulWidget {
   final title = 'Register';
-  final Color accentColor = Colors.redAccent;
   final usernameCtrl = TextEditingController();
   final pwCtrl = TextEditingController();
   final VoidCallback callback;
@@ -50,7 +50,7 @@ class _RegisterPageState extends State<RegisterPage> {
           title: widget.title,
           usernameCtrl: widget.usernameCtrl,
           pwCtrl: widget.pwCtrl,
-          accentColor: widget.accentColor,
+          accentColor: context.watch<ThemesProvider>().selectedTheme.accountRegisterAccentColor,
           onSubmit: onPressed,
           registering: true,
         ),

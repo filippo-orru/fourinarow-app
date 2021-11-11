@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-import 'package:four_in_a_row/inherit/route.dart';
+import 'package:four_in_a_row/providers/route.dart';
 
 class PlayButton extends StatefulWidget {
   const PlayButton({
@@ -187,7 +187,7 @@ class _PlayButtonState extends State<PlayButton> with TickerProviderStateMixin, 
 }
 
 class FadingRing extends StatefulWidget {
-  FadingRing({required this.child, this.color = Colors.redAccent, this.startingDiameter = 128});
+  FadingRing({required this.child, required this.color, this.startingDiameter = 128});
 
   final Widget child;
   final Color color;
