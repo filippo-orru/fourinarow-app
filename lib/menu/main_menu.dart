@@ -413,7 +413,7 @@ class _ThemesButtonState extends State<ThemesButton> with TickerProviderStateMix
         onTap: () {
           Navigator.of(context).push(
             slideUpRoute(
-              ThemeSelectPage(),
+              ThemeSelectPage(themes: context.read<ThemesProvider>()),
             ),
           );
         },
