@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
+import 'package:four_in_a_row/play/models/common/game_chip.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
@@ -16,16 +17,25 @@ import 'common/menu_common.dart';
 import 'main_menu.dart';
 
 class ThemeSelectPage extends StatefulWidget {
-  const ThemeSelectPage({Key? key}) : super(key: key);
+  final ThemesProvider themes;
+
+  const ThemeSelectPage({required this.themes, Key? key}) : super(key: key);
 
   @override
   _ThemeSelectPageState createState() => _ThemeSelectPageState();
 }
 
 class _ThemeSelectPageState extends State<ThemeSelectPage> {
+  final PageController themePreviewPageController = PageController();
+
+  String selectedThemeId = "default";
+  int get selectedThemeIndex => widget.themes.allThemes.indexWhere((t) => t.id == selectedThemeId);
+
   @override
   void initState() {
     super.initState();
+
+    selectedThemeId = widget.themes.selectedTheme.id;
   }
 
   @override
@@ -45,28 +55,19 @@ class _ThemeSelectPageState extends State<ThemeSelectPage> {
       ),
       body: Column(
         children: [
+          CurrentCoinCount(),
           Flexible(
-            flex: 3,
+            flex: 4,
             // child: AbsorbPointer(
             child: PageView(
-              children: context
-                  .watch<ThemesProvider>()
-                  .allThemes
-                  .map((theme) => ThemePreview(theme))
-                  .toList(),
+              controller: themePreviewPageController,
+              children: widget.themes.allThemes.map((theme) => ThemePreview(theme)).toList(),
             ),
             // ),
           ),
           Flexible(
-            flex: 1,
-            child: Column(
-              children: [
-                ThemePrice(),
-                ThemesCarousel(),
-                Divider(),
-                CurrentCoinCount(),
-              ],
-            ),
+            flex: 3,
+            child: ThemesCarousel(allThemes: widget.themes.allThemes, selectedId: selectedThemeId),
           ),
         ],
       ),
@@ -221,13 +222,91 @@ class ThemePrice extends StatelessWidget {
   }
 }
 
-class ThemesCarousel extends StatelessWidget {
-  const ThemesCarousel({Key? key}) : super(key: key);
+class ThemesCarousel extends StatefulWidget {
+  final List<FiarTheme> allThemes;
+  final String selectedId;
+
+  const ThemesCarousel({Key? key, required this.allThemes, required this.selectedId})
+      : super(key: key);
+
+  @override
+  State<ThemesCarousel> createState() => _ThemesCarouselState();
+}
+
+class _ThemesCarouselState extends State<ThemesCarousel> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: double.infinity,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(8),
+          topRight: Radius.circular(8),
+        ),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 8,
+            offset: Offset(0, -1),
+            spreadRadius: 1,
+            color: Colors.black26,
+          )
+        ],
+      ),
+      child: Container(
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: widget.allThemes.map((theme) => ThemesCarouselItem(theme)).toList(),
+        ),
+      ),
+    );
+  }
+}
+
+class ThemesCarouselItem extends StatelessWidget {
+  final FiarTheme theme;
+
+  ThemesCarouselItem(this.theme);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Text('Theme carousel'),
+      height: 64,
+      width: 64,
+      child: Stack(
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GameChipStatic(theme.playerOneColor),
+                    GameChipStatic(theme.playerTwoColor),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GameChipStatic(theme.playerTwoColor),
+                    GameChipStatic(theme.playerOneColor),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(theme.name),
+            ),
+          )
+        ],
+      ),
     );
   }
 }
