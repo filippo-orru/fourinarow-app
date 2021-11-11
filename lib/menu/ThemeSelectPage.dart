@@ -10,6 +10,8 @@ import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:four_in_a_row/providers/themes.dart';
 import 'package:four_in_a_row/providers/user.dart';
+import 'package:four_in_a_row/util/extensions.dart';
+import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/src/provider.dart';
 
@@ -28,14 +30,13 @@ class ThemeSelectPage extends StatefulWidget {
 class _ThemeSelectPageState extends State<ThemeSelectPage> {
   final PageController themePreviewPageController = PageController();
 
-  String selectedThemeId = "default";
-  int get selectedThemeIndex => widget.themes.allThemes.indexWhere((t) => t.id == selectedThemeId);
+  late int selectedThemeIndex;
 
   @override
   void initState() {
     super.initState();
 
-    selectedThemeId = widget.themes.selectedTheme.id;
+    selectedThemeIndex = widget.themes.allThemes.indexWhere((t) => t.id == "default");
   }
 
   @override
@@ -54,20 +55,61 @@ class _ThemeSelectPageState extends State<ThemeSelectPage> {
         ],
       ),
       body: Column(
+        mainAxisSize: MainAxisSize.max,
         children: [
           CurrentCoinCount(),
-          Flexible(
-            flex: 4,
+          Expanded(
             // child: AbsorbPointer(
             child: PageView(
               controller: themePreviewPageController,
               children: widget.themes.allThemes.map((theme) => ThemePreview(theme)).toList(),
             ),
-            // ),
           ),
-          Flexible(
-            flex: 3,
-            child: ThemesCarousel(allThemes: widget.themes.allThemes, selectedId: selectedThemeId),
+          // ),
+          // Flexible(
+          //   flex: 3,
+          // child:
+
+          ThemesCarousel(
+            allThemes: widget.themes.allThemes,
+            selectedIndex: selectedThemeIndex,
+            onThemeSelected: (selectedThemeIndex) {
+              themePreviewPageController.animateToPage(
+                selectedThemeIndex,
+                curve: Curves.easeInOut,
+                duration: Duration(milliseconds: 220),
+              );
+              setState(() => this.selectedThemeIndex = selectedThemeIndex);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CurrentCoinCount extends StatelessWidget {
+  const CurrentCoinCount({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+// TODO
+          ),
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Text('200 ©'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(right: 12),
+                child: Text('Get more!'),
+              ),
+            ],
           ),
         ],
       ),
@@ -224,20 +266,73 @@ class ThemePrice extends StatelessWidget {
 
 class ThemesCarousel extends StatefulWidget {
   final List<FiarTheme> allThemes;
-  final String selectedId;
+  Map<FiarThemeCategory, List<FiarTheme>> get categorizedThemes =>
+      allThemes.groupBy((t) => t.category);
+  final int selectedIndex;
+  final void Function(int) onThemeSelected;
 
-  const ThemesCarousel({Key? key, required this.allThemes, required this.selectedId})
-      : super(key: key);
+  ThemesCarousel({
+    Key? key,
+    required this.allThemes,
+    required this.selectedIndex,
+    required this.onThemeSelected,
+  }) : super(key: key);
 
   @override
   State<ThemesCarousel> createState() => _ThemesCarouselState();
 }
 
 class _ThemesCarouselState extends State<ThemesCarousel> {
+  late final LinkedScrollControllerGroup _controllers;
+  late final ScrollController _categories;
+  late final ScrollController _themes;
+  final double themesCarouselItemWidth = 96 + 24.0;
+
+  double offset = 0;
+  Map<int, double> categoriesMaxWidths = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _controllers = LinkedScrollControllerGroup()
+      ..addOffsetChangedListener(() {
+        setState(() => offset = _controllers.offset);
+      });
+    _categories = _controllers.addAndGet();
+    _themes = _controllers.addAndGet();
+  }
+
+  @override
+  void didUpdateWidget(ThemesCarousel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.selectedIndex != widget.selectedIndex) {
+      double screenWidth = MediaQuery.of(context).size.width;
+
+      _controllers.animateTo(
+        max(
+            0,
+            widget.selectedIndex * themesCarouselItemWidth -
+                (screenWidth / 2) +
+                (themesCarouselItemWidth / 2)),
+        curve: Curves.easeInOut,
+        duration: Duration(milliseconds: 220),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _categories.dispose();
+    _themes.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: double.infinity,
+      // height: 128,
+      // height: double.infinity,
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -255,10 +350,102 @@ class _ThemesCarouselState extends State<ThemesCarousel> {
         ],
       ),
       child: Container(
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          children: widget.allThemes.map((theme) => ThemesCarouselItem(theme)).toList(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: 40,
+              child: ListView.builder(
+                controller: _categories,
+                scrollDirection: Axis.horizontal,
+                itemCount: widget.categorizedThemes.keys.length,
+                itemBuilder: (_, index) {
+                  FiarThemeCategory category = widget.categorizedThemes.keys.toList()[index];
+                  double relativeOffset = offset -
+                      widget.allThemes.takeWhile((theme) => theme.category != category).length *
+                          themesCarouselItemWidth;
+                  double boxWidth =
+                      widget.categorizedThemes[category]!.length * themesCarouselItemWidth;
+                  return Container(
+                    padding: const EdgeInsets.only(top: 8, bottom: 5),
+                    width: boxWidth,
+                    child: Stack(
+                      children: [
+                        Opacity(
+                          opacity: 0.00001, // Don't skip laying out the widget
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Expanded(
+                                child: LayoutBuilder(
+                                  builder: (_, constraints) {
+                                    categoriesMaxWidths[index] =
+                                        constraints.maxWidth - 24; // padding
+                                    return SizedBox();
+                                  },
+                                ),
+                              ),
+                              CategoryTitle(category: category),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            SizedBox(
+                                width: max(
+                                    0,
+                                    min(relativeOffset,
+                                        categoriesMaxWidths.getOrNull(index) ?? 0))),
+                            CategoryTitle(category: category),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(
+              height: 96,
+              child: ListView.builder(
+                controller: _themes,
+                scrollDirection: Axis.horizontal,
+                itemCount: widget.allThemes.length,
+                itemBuilder: (_, index) {
+                  var theme = widget.allThemes[index];
+                  return ThemesCarouselItem(
+                    theme,
+                    onClick: () {
+                      widget.onThemeSelected(index);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class CategoryTitle extends StatelessWidget {
+  const CategoryTitle({
+    Key? key,
+    required this.category,
+  }) : super(key: key);
+
+  final FiarThemeCategory category;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      category.name,
+      style: TextStyle(
+        fontFamily: 'RobotoSlab',
+        fontWeight: FontWeight.bold,
       ),
     );
   }
@@ -266,58 +453,61 @@ class _ThemesCarouselState extends State<ThemesCarousel> {
 
 class ThemesCarouselItem extends StatelessWidget {
   final FiarTheme theme;
+  final void Function() onClick;
 
-  ThemesCarouselItem(this.theme);
+  ThemesCarouselItem(this.theme, {required this.onClick});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 64,
-      width: 64,
-      child: Stack(
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GameChipStatic(theme.playerOneColor),
-                    GameChipStatic(theme.playerTwoColor),
-                  ],
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GameChipStatic(theme.playerTwoColor),
-                    GameChipStatic(theme.playerOneColor),
-                  ],
-                ),
-              ],
-            ),
+    return Padding(
+      padding: EdgeInsets.only(right: 24),
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: GestureDetector(
+          onTap: onClick,
+          child: Container(
+            width: 96,
+
+            color: theme.category == FiarThemeCategory.FREE ? Colors.green : Colors.red,
+            // child:
+            //     Stack(
+            //       children: [GridView(
+            //     // mainAxisSize: MainAxisSize.min,
+            //     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            //       crossAxisCount: 2,
+            //     ),
+            //     children: [
+            //       GameChipStatic(Colors.lightBlue),
+            //       GameChipStatic(Colors.lightBlue),
+            //       GameChipStatic(Colors.lightBlue),
+            //       GameChipStatic(Colors.lightBlue),
+            //       // GameChipStatic(theme.playerOneColor),
+            //       // GameChipStatic(theme.playerTwoColor),
+            //       // GameChipStatic(theme.playerTwoColor),
+            //       // GameChipStatic(theme.playerOneColor),
+            //     ],
+            //   ),
+            // ),
+            // Positioned(
+            //   bottom: 0,
+            //   left: 0,
+            //   right: 0,
+            //   child: Center(
+            //     child: Text(
+            //       theme.name,
+            //       style: TextStyle(
+            //         // fontSize: 16,
+            //         fontFamily: "RobotoSlab",
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            //   ],
+            // ),
           ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Text(theme.name),
-            ),
-          )
-        ],
+        ),
       ),
-    );
-  }
-}
-
-class CurrentCoinCount extends StatelessWidget {
-  const CurrentCoinCount({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Text('Coin count'),
     );
   }
 }

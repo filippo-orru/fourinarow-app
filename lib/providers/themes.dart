@@ -7,6 +7,12 @@ class ThemesProvider with ChangeNotifier {
   final FiarTheme? _overrideTheme;
   List<FiarTheme> allThemes = [
     FiarThemeDefault(),
+    FiarThemeDefault(),
+    FiarThemeDefault(),
+    FiarThemeDefault(),
+    FiarThemeWeird(),
+    FiarThemeWeird(),
+    FiarThemeWeird(),
     FiarThemeWeird(),
   ];
 
@@ -28,6 +34,8 @@ class FiarTheme {
 
   /// User facing
   final String name;
+
+  final FiarThemeCategory category;
 
   /// For buttons etc
   final MaterialColor accentColor;
@@ -51,6 +59,7 @@ class FiarTheme {
   FiarTheme(
     this.id, {
     required this.name,
+    required this.category,
     required this.menuBackgroundColor,
     required this.accentColor,
     //required this.buttonOutlineColor,
@@ -68,11 +77,25 @@ class FiarTheme {
   });
 }
 
+enum FiarThemeCategory { FREE, PREMIUM }
+
+extension FiarThemeCategoryExtension on FiarThemeCategory {
+  String get name {
+    switch (this) {
+      case FiarThemeCategory.FREE:
+        return "Free";
+      case FiarThemeCategory.PREMIUM:
+        return "Premium";
+    }
+  }
+}
+
 class FiarThemeDefault extends FiarTheme {
   FiarThemeDefault()
       : super(
           "default",
           name: "Default (light)",
+          category: FiarThemeCategory.FREE,
           menuBackgroundColor: Color(0xFFFDFDFD),
           playerOneColor: Colors.blue,
           playerTwoColor: Colors.red,
@@ -93,6 +116,7 @@ class FiarThemeWeird extends FiarTheme {
       : super(
           "weird",
           name: "Weird",
+          category: FiarThemeCategory.PREMIUM,
           menuBackgroundColor: Colors.amber,
           playerOneColor: Colors.purple,
           playerTwoColor: Colors.green,
