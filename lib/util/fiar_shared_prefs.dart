@@ -1,3 +1,4 @@
+import 'package:four_in_a_row/providers/themes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FiarSharedPrefs {
@@ -109,7 +110,7 @@ class FiarSharedPrefs {
 
   static _SharedPrefPair _selectedThemeId =
       _SharedPrefPair("selectedThemeId", String, defaultValue: () {
-    return "weird";
+    return FiarThemeDefault().id;
   });
   static String get selectedThemeId =>
       sharedPrefs.getString(_selectedThemeId.key) ?? _selectedThemeId.defaultValue();
