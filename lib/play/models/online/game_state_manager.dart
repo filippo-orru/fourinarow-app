@@ -31,7 +31,7 @@ class GameStateManager with ChangeNotifier {
     }
   }
 
-  NotificationsProviderState? notifications;
+  NotificationsProvider? notificationsProvider;
 
   UserInfo? _userInfo;
   UserInfo get userInfo => _userInfo!;
@@ -167,9 +167,9 @@ class GameStateManager with ChangeNotifier {
 
   void _didGameStateChange(GameState oldState, GameState newState) {
     if (oldState is! WaitingForWWOpponentState && newState is WaitingForWWOpponentState) {
-      notifications?.searchingGame();
+      notificationsProvider?.searchingGame();
     } else if (oldState is WaitingForWWOpponentState && newState is! WaitingForWWOpponentState) {
-      notifications?.cancelSearchingGame();
+      notificationsProvider?.cancelSearchingGame();
     }
   }
 
@@ -204,7 +204,7 @@ class GameStateManager with ChangeNotifier {
       }
       notifyListeners();
       if (lifecycle!.state != AppLifecycleState.resumed) {
-        notifications!.comeToPlay();
+        notificationsProvider!.comeToPlay();
       }
     } else if (msg is MsgReset) {
       hideViewer = true;
@@ -219,7 +219,7 @@ class GameStateManager with ChangeNotifier {
         notifyListeners();
 
         if (lifecycle!.state != AppLifecycleState.resumed) {
-          notifications!.battleRequest(loadedUserInfo.username);
+          notificationsProvider!.battleRequest(loadedUserInfo.username);
         }
       });
     } else if (msg is MsgHello) {

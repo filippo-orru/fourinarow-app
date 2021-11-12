@@ -289,7 +289,7 @@ class _FiarAppState extends State<FiarApp> {
   void _initialization(BuildContext ctx) {
     var gsm = context.read<GameStateManager>();
     gsm.lifecycle ??= LifecycleProvider.of(ctx);
-    gsm.notifications ??= NotificationsProvider.of(ctx);
+    gsm.notificationsProvider ??= ctx.read<NotificationsProvider>();
     if (gsm.userInfoNotSet) gsm.userInfo = context.read<UserInfo>();
   }
 
@@ -326,7 +326,8 @@ class _FiarAppState extends State<FiarApp> {
       child: RouteObserverProvider(
         observer: routeObserver,
         child: LifecycleProvider(
-          child: NotificationsProvider(
+          child: Provider<NotificationsProvider>.value(
+            value: NotificationsProvider(),
             child: WidgetsApp(
               localizationsDelegates: [DefaultMaterialLocalizations.delegate],
               title: 'Four in a Row',

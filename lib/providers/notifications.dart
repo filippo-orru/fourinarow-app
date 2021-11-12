@@ -6,19 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:four_in_a_row/menu/account/friends.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 
-class NotificationsProvider extends StatefulWidget {
-  NotificationsProvider({Key? key, required this.child}) : super(key: key);
-  final Widget child;
-
-  @override
-  createState() => NotificationsProviderState();
-
-  static NotificationsProviderState? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_NotificationsProviderInherit>()?.state;
-  }
-}
-
-class NotificationsProviderState extends State<NotificationsProvider> {
+class NotificationsProvider {
   late final FlutterLocalNotificationsPlugin flutterNotifications;
 
   final StreamController<String> _selectedStreamCtrl = StreamController.broadcast();
@@ -27,6 +15,10 @@ class NotificationsProviderState extends State<NotificationsProvider> {
 
   bool get canNotify => !kIsWeb;
   bool get shouldNotify => canNotify && FiarSharedPrefs.settingsAllowNotifications;
+
+  NotificationsProvider() {
+    initialize();
+  }
 
   void initialize() async {
     if (!shouldNotify) return;
@@ -92,6 +84,8 @@ class NotificationsProviderState extends State<NotificationsProvider> {
   }
 
   void cancelSearchingGame() {
+    if (!shouldNotify) return;
+
     this.flutterNotifications.cancel(FiarNotifications.searchingGame);
   }
 
@@ -108,36 +102,9 @@ class NotificationsProviderState extends State<NotificationsProvider> {
   }
 
   void cancelBattleRequest() {
+    if (!shouldNotify) return;
+
     this.flutterNotifications.cancel(FiarNotifications.battleRequest);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initialize();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _NotificationsProviderInherit(widget.child, this);
-  }
-
-  @override
-  dispose() {
-    _selectedStreamCtrl.close();
-    super.dispose();
-  }
-}
-
-class _NotificationsProviderInherit extends InheritedWidget {
-  _NotificationsProviderInherit(Widget child, this.state, {Key? key})
-      : super(key: key, child: child);
-
-  final NotificationsProviderState state;
-
-  @override
-  bool updateShouldNotify(oldWidget) {
-    return false;
   }
 }
 
