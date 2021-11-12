@@ -358,20 +358,22 @@ class ServerConnection with ChangeNotifier {
     );
     if (_connectionWasLostTimer?.isActive != true) {
       // only check connectivity if no timer is set. To prevent double firing _connect();
-      Connectivity().checkConnectivity().then((r) async {
-        if (r == ConnectivityResult.none) {
-          ConnectivityResult? result = await Connectivity()
-              .onConnectivityChanged
-              .toNullable()
-              .firstWhere((result) =>
-                  result == ConnectivityResult.wifi || result == ConnectivityResult.mobile)
-              .timeout(timeout, onTimeout: () => null);
-          if (result != null) {
-            Logger.i("Force connect (${result.toString().split(".")[1]})");
-            _connect();
+      if (!kIsWeb) {
+        Connectivity().checkConnectivity().then((r) async {
+          if (r == ConnectivityResult.none) {
+            ConnectivityResult? result = await Connectivity()
+                .onConnectivityChanged
+                .toNullable()
+                .firstWhere((result) =>
+                    result == ConnectivityResult.wifi || result == ConnectivityResult.mobile)
+                .timeout(timeout, onTimeout: () => null);
+            if (result != null) {
+              Logger.i("Force connect (${result.toString().split(".")[1]})");
+              _connect();
+            }
           }
-        }
-      });
+        });
+      }
       _connectionWasLostTimer = Timer(Duration(seconds: CONNECTION_WAS_LOST_TIMEOUT_S), () {
         if (_sessionState is SessionStateServerIsDown ||
             _sessionState is SessionStateFullyDisconnected) return;
@@ -594,7 +596,7 @@ class ServerIsDownState {
   // Ping server and 1.1.1.1 for comparison
   Future<bool> get isDown async {
     // Check device connection
-    if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
+    if (!kIsWeb && await Connectivity().checkConnectivity() == ConnectivityResult.none) {
       _serverIsDown = false;
     } else if (DateTime.now().difference(_serverIsDownCheckDate) > Duration(seconds: 40)) {
       // Check if server is down
