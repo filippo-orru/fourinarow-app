@@ -59,20 +59,23 @@ class PlayingViewer extends AbstractGameStateViewer {
 
     return Stack(
       children: [
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: 32, vertical: 64),
-          width: double.infinity,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              OnlineTurnIndicator(turn == _playingState.me),
-              Expanded(
-                child: Center(
-                  child: Board(_playingState.field, dropChip: _playingState.dropChip),
+        Padding(
+          padding: const EdgeInsets.only(bottom: FiarBottomSheet.HEIGHT),
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: 32, vertical: 64),
+            width: double.infinity,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                OnlineTurnIndicator(turn == _playingState.me),
+                Expanded(
+                  child: Center(
+                    child: Board(_playingState.field, dropChip: _playingState.dropChip),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         Positioned(

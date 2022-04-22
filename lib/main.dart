@@ -234,11 +234,19 @@ class _SplashAppInternalState extends State<SplashAppInternal> with TickerProvid
           state == AppLoadState.Preloading || state == AppLoadState.Loaded
               ? FiarProviderApp()
               : SizedBox(),
-          WidgetsApp(
-            color: Colors.blue,
-            debugShowCheckedModeBanner: false,
-            builder: (ctx, __) => buildSplashScreen(ctx),
-          ),
+          state == AppLoadState.Loaded
+              ? SizedBox()
+              : WidgetsApp(
+                  color: Colors.blue,
+                  debugShowCheckedModeBanner: false,
+                  builder: (ctx, __) => Center(
+                    child: Container(
+                      constraints: BoxConstraints(maxWidth: 600),
+                      alignment: Alignment.center,
+                      child: buildSplashScreen(ctx),
+                    ),
+                  ),
+                ),
         ],
       ),
     );
