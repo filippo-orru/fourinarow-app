@@ -6,7 +6,7 @@ An **online** version of the popular game **four in a row**, written in Flutter 
 
 ***Download here: https://play.google.com/store/apps/details?id=ml.fourinarow***
 
-Or play online (beta): https://play.fourinarow.ml/
+Or play online (beta): https://play.fourinarow.ffactory.me/
 
 ## Related Projects:
 - Clientside: [fourinarow-app](https://github.com/ffactory-ofcl/fourinarow-app)

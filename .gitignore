@@ -43,4 +43,3 @@ lib/generated_plugin_registrant.dart
 /trash/
 buildscripts/
 deploy/*
-!deploy/.gitkeep

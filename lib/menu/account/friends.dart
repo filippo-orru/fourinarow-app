@@ -1081,7 +1081,7 @@ void shareInviteFriends() {
   Share.share(
     "Wanna play a round of Four in a Row with me?\n" +
         "Google Play: https://play.google.com/store/apps/details?id=ml.fourinarow\n" +
-        "Web: https://play.fourinarow.ml/",
+        "Web: https://play.fourinarow.ffactory.me/",
   );
 }
 

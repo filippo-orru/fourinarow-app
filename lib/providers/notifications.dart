@@ -36,7 +36,6 @@ class NotificationsProvider {
       if (str != null) {
         _selectedStreamCtrl.add(str);
       }
-      return Future.value();
     });
 
     for (var notificationId in FiarNotifications.allNotificationIds) {
@@ -116,7 +115,7 @@ class FiarNotifications {
     android: AndroidNotificationDetails(
       '1',
       'Battle Requests',
-      'Shown when someone wants to battle with you.',
+      channelDescription: 'Shown when someone wants to battle with you.',
       category: 'CATEGORY_MESSAGE',
       importance: Importance.high,
       priority: Priority.max,
@@ -130,7 +129,7 @@ class FiarNotifications {
     android: AndroidNotificationDetails(
       '2',
       'Game Started',
-      'Shown when you find an online game while the app is in the background.',
+      channelDescription: 'Shown when you find an online game while the app is in the background.',
       category: 'CATEGORY_MESSAGE',
       importance: Importance.max,
       priority: Priority.max,
@@ -143,7 +142,7 @@ class FiarNotifications {
     android: AndroidNotificationDetails(
       '3',
       'Searching Game',
-      'Shown persistently while searching for a game.',
+      channelDescription: 'Shown persistently while searching for a game.',
       category: 'CATEGORY_SERVICE',
       importance: Importance.low,
       priority: Priority.low,

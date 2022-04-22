@@ -47,7 +47,6 @@ class FiarSharedPrefs {
     _shownRatingDialog,
     _shownOnlineDialogCount,
     _sessionToken,
-    _shownSwipeDialog,
     _hasAcceptedChat,
     _settingsAllowVibrate
   ];
@@ -93,20 +92,6 @@ class FiarSharedPrefs {
   static int get shownOnlineDialogCount =>
       sharedPrefs.getInt(_shownOnlineDialogCount.key) ?? _shownOnlineDialogCount.defaultValue();
   static set shownOnlineDialogCount(int i) => sharedPrefs.setInt(_shownOnlineDialogCount.key, i);
-
-  static _SharedPrefPair _shownSwipeDialog =
-      _SharedPrefPair("shownSwipeDialog", bool, defaultValue: () {
-    if (sharedPrefs.containsKey("shown_swype_dialog")) {
-      var s = sharedPrefs.getBool("shown_swype_dialog");
-      sharedPrefs.remove("shown_swype_dialog");
-      return s;
-    } else {
-      return false;
-    }
-  });
-  static bool get shownSwipeDialog =>
-      sharedPrefs.getBool(_shownSwipeDialog.key) ?? _shownSwipeDialog.defaultValue();
-  static set shownSwipeDialog(bool i) => sharedPrefs.setBool(_shownSwipeDialog.key, i);
 
   static _SharedPrefPair _selectedThemeId =
       _SharedPrefPair("selectedThemeId", String, defaultValue: () {
