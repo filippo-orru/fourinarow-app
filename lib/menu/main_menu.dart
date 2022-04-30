@@ -228,7 +228,7 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
             onTap: showChat,
           ),
         ),
-        ThemesButton(),
+        // ThemesButton(),
         Stack(
           children: [
             SmallColorButton(
@@ -295,30 +295,6 @@ class ThemesButton extends StatefulWidget {
 
 class _ThemesButtonState extends State<ThemesButton> with TickerProviderStateMixin {
   static final List<Color> colors = [
-    // Color(0xfff13f3f),
-    // Color(0xffff006c),
-    // Color(0xffff00a7),
-    // Color(0xfffb11eb),
-
-    // Color(0xffbbff99), //egg
-    // Color(0xffffec99),
-    // Color(0xffff9999),
-
-    // Color(0xfff13f3f),
-    // Color(0xfff54d31),
-    // Color(0xfff75b1f),
-    // Color(0xfff66a00),
-    // Color(0xfff37800),
-    // Color(0xffee8700),
-    // Color(0xffe79600),
-    // Color(0xffdea400),
-    // Color(0xffd2b200),
-    // Color(0xffc4bf00),
-    // Color(0xffb3cc00),
-    // Color(0xff9fd800),
-    // Color(0xff85e400),
-    // Color(0xff62f000),
-    // Color(0xff11fb25),
     Color(0xfff13f3f),
     Color(0xfffc417a),
     Color(0xfff25ab2),
