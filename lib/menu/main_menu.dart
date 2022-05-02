@@ -265,7 +265,7 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
           SizedBox(height: 6),
           TextButton(
             child: Text(
-              'Filippo Orru, 2021'.toUpperCase(),
+              'Filippo Orru, '.toUpperCase() + DateTime.now().year.toString(),
               style: TextStyle(
                 letterSpacing: 0.5,
                 color: Colors.black54,

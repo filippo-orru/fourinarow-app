@@ -80,7 +80,7 @@ class UserInfo with ChangeNotifier {
       return response.statusCode;
     }, onError: (e) {
       Logger.e("Error while logging in!", e);
-      return false;
+      return 0;
     });
   }
 
