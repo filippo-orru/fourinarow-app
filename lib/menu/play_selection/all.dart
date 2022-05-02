@@ -276,9 +276,9 @@ class OnlineInfoDialog extends StatelessWidget {
     return FiarSimpleDialog(
       title: 'Read before playing online',
       content: '''
-▻ Finding another player could take a while, please be patient\n
-▻ Chat or play locally while waiting\n
-▻ Don't close the app so you will get a notification once a game is found
+• Finding another player could take a while, please be patient\n
+• Chat or play locally while waiting\n
+• Don't close the app so you will get a notification once a game is found
 
 Dialog will show ${howManyMoreTimes.toNumberWord()} more time${howManyMoreTimes == 1 ? "" : "s"}.''',
     );
