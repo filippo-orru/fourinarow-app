@@ -43,3 +43,4 @@ lib/generated_plugin_registrant.dart
 /trash/
 buildscripts/
 deploy/
+.fvm/flutter_sdk
