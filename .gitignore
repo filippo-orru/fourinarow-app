@@ -42,4 +42,4 @@ lib/generated_plugin_registrant.dart
 # my
 /trash/
 buildscripts/
-deploy/*
+deploy/
