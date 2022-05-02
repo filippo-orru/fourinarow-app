@@ -239,11 +239,13 @@ class _SplashAppInternalState extends State<SplashAppInternal> with TickerProvid
               : WidgetsApp(
                   color: Colors.blue,
                   debugShowCheckedModeBanner: false,
-                  builder: (ctx, __) => Center(
-                    child: Container(
-                      constraints: BoxConstraints(maxWidth: 600),
-                      alignment: Alignment.center,
-                      child: buildSplashScreen(ctx),
+                  builder: (ctx, __) => Scaffold(
+                    body: Center(
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: 600),
+                        alignment: Alignment.center,
+                        child: buildSplashScreen(ctx),
+                      ),
                     ),
                   ),
                 ),
