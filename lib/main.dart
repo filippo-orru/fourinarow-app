@@ -30,6 +30,7 @@ import 'menu/main_menu.dart';
 Key splashAppKey = UniqueKey();
 
 void main() {
+  sleep(Duration(milliseconds: 20));
   runApp(SplashAppInternal());
 }
 
