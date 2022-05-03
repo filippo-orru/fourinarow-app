@@ -24,7 +24,7 @@ class NotificationsProvider {
     if (!shouldNotify) return;
 
     flutterNotifications = FlutterLocalNotificationsPlugin();
-    var androidSettings = AndroidInitializationSettings('mipmap/ic_launcher_notification');
+    var androidSettings = AndroidInitializationSettings('ic_stat_ic_launcher_notification');
     var iosSettings = IOSInitializationSettings(
       requestSoundPermission: false,
       requestBadgePermission: false,
