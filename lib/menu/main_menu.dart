@@ -19,6 +19,7 @@ import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:four_in_a_row/util/global_common_widgets.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../util/logger.dart';
 import 'common/play_button.dart';
 
 import 'package:provider/provider.dart';
@@ -273,8 +274,8 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
               ),
             ),
             onPressed: () async {
-              if (await canLaunch(LINKEDIN_PROFILE)) {
-                await launch(LINKEDIN_PROFILE);
+              if (!await launch(LINKEDIN_PROFILE)) {
+                Logger.e("Could not launch $LINKEDIN_PROFILE");
               }
             },
           ),
