@@ -164,7 +164,8 @@ class CustomPrinter extends LogPrinter {
     var formatted = <String>[];
     var count = 0;
     for (var line in lines) {
-      if (_discardDeviceStacktraceLine(line) ||
+      if (_discardLoggerStacktraceLine(line) ||
+          _discardDeviceStacktraceLine(line) ||
           _discardWebStacktraceLine(line) ||
           _discardBrowserStacktraceLine(line) ||
           line.isEmpty) {
@@ -181,6 +182,14 @@ class CustomPrinter extends LogPrinter {
     } else {
       return formatted.join('\n');
     }
+  }
+
+  bool _discardLoggerStacktraceLine(String line) {
+    var match = _deviceStackTraceRegex.matchAsPrefix(line);
+    if (match == null) {
+      return false;
+    }
+    return match.group(2)!.startsWith('package:four_in_a_row/util/');
   }
 
   bool _discardDeviceStacktraceLine(String line) {

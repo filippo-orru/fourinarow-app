@@ -85,22 +85,36 @@ class ServerConnection with ChangeNotifier {
   Future<bool> send(PlayerMessage msg) async {
     this._playerMsgIndex += 1;
     int messageId = _playerMsgIndex;
-    Future<bool> connectionWasReset;
-    Future<bool> packetWasAcknowledged = this
+
+    Future<PktSendResult> packetWasAcknowledged = this
         ._reliablePktInStreamCtrl
         .stream
         .any((rPkt) {
           return rPkt is ReliablePktAckIn && rPkt.id == messageId;
         })
-        .then((_) => true)
-        .timeout(Duration(milliseconds: 1000), onTimeout: () => false);
-    connectionWasReset =
-        this._serverMsgStreamCtrl.stream.any((msg) => msg is MsgReset).then((_) => false);
+        .then((_) => PktSendResult.Success)
+        .timeout(Duration(milliseconds: 1000), onTimeout: () => PktSendResult.Timeout);
+
+    Future<PktSendResult> connectionWasReset = this
+        ._serverMsgStreamCtrl
+        .stream
+        .any((msg) => msg is MsgReset)
+        .then((_) => PktSendResult.ConnectionReset);
 
     this._reliablePktOutStreamCtrl.add(ReliablePktMsgOut(messageId, msg));
     this._playerMsgStreamCtrl.add(msg);
 
-    return waitAny([packetWasAcknowledged, connectionWasReset]);
+    PktSendResult result = await waitAny([packetWasAcknowledged, connectionWasReset]);
+    switch (result) {
+      case PktSendResult.Success:
+        return true;
+      case PktSendResult.Timeout:
+        _resetReliabilityLayer(reconnect: true);
+        return false;
+      case PktSendResult.ConnectionReset:
+        _resetReliabilityLayer(reconnect: true);
+        return false;
+    }
   }
 
   void retryConnection({bool force = false, bool reset = false}) {
@@ -108,6 +122,8 @@ class ServerConnection with ChangeNotifier {
   }
 
   void close() {
+    debugPrintStack();
+
     _reconnectionTimer?.cancel();
 
     _serverMsgStreamCtrl.close();
@@ -273,6 +289,7 @@ class ServerConnection with ChangeNotifier {
     } on Exception catch (e) {
       Logger.e("Exception!", e, StackTrace.current);
       _websocketDone();
+      return null;
     }
   }
 
@@ -321,7 +338,7 @@ class ServerConnection with ChangeNotifier {
     }
   }
 
-  void _websocketErr(dynamic? err) {
+  void _websocketErr(dynamic err) {
     if (err is WebSocketChannelException && err.inner is WebSocketChannelException) {
       var inner = err.inner as WebSocketChannelException;
       if (inner.inner is SocketException) {
@@ -624,4 +641,10 @@ class ServerIsDownState {
     }
     return _serverIsDown;
   }
+}
+
+enum PktSendResult {
+  Success,
+  Timeout,
+  ConnectionReset,
 }

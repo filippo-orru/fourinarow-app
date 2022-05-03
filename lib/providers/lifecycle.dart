@@ -38,8 +38,8 @@ class LifecycleProviderState extends State<LifecycleProvider>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     this.state = state;
-    print("Appstate: $state");
-    if (mounted) setState(() {}); //state != AppLifecycleState.defunct
+    // print("Appstate: $state");
+    if (mounted) setState(() {});
     notifyListeners();
   }
 
