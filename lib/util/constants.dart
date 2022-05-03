@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-const bool useLocalServer = true && kDebugMode;
+const bool useLocalServer = false && kDebugMode;
 
 const HOST = useLocalServer ? "192.168.0.87" : "fourinarow.ffactory.me";
 const PORT = useLocalServer ? 40146 : 80;
@@ -127,3 +127,5 @@ const List<String> ALLOWED_QUICKCHAT_EMOJIS = [
   "🎆",
   "🏆"
 ];
+
+const bool SKIP_SPLASH_ANIM_ON_DEBUG = kDebugMode && false;

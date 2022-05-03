@@ -30,7 +30,7 @@ import 'menu/main_menu.dart';
 Key splashAppKey = UniqueKey();
 
 void main() {
-  sleep(Duration(milliseconds: 20));
+  sleep(Duration(milliseconds: 50));
   runApp(SplashAppInternal());
 }
 
@@ -80,7 +80,7 @@ class _SplashAppInternalState extends State<SplashAppInternal> with TickerProvid
     super.dispose();
   }
 
-  bool _fastForward = false;
+  bool _fastForward = SKIP_SPLASH_ANIM_ON_DEBUG;
   bool _startedInitializing = false;
 
   Future<void> _initializeAsyncDependencies({
@@ -95,7 +95,7 @@ class _SplashAppInternalState extends State<SplashAppInternal> with TickerProvid
 
     FiarSharedPrefs.setup().then(
       (_) async {
-        if (skipAnimations) {
+        if (skipAnimations || _fastForward) {
           setState(() => state = AppLoadState.Loaded);
           return;
         }
@@ -240,14 +240,10 @@ class _SplashAppInternalState extends State<SplashAppInternal> with TickerProvid
               : WidgetsApp(
                   color: Colors.blue,
                   debugShowCheckedModeBanner: false,
-                  builder: (ctx, __) => Scaffold(
-                    body: Center(
-                      child: Container(
-                        constraints: BoxConstraints(maxWidth: 600),
-                        alignment: Alignment.center,
-                        child: buildSplashScreen(ctx),
-                      ),
-                    ),
+                  builder: (ctx, __) => Container(
+                    constraints: BoxConstraints(maxWidth: 600),
+                    alignment: Alignment.center,
+                    child: buildSplashScreen(ctx),
                   ),
                 ),
         ],
