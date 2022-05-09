@@ -11,7 +11,7 @@ import 'package:four_in_a_row/util/constants.dart' as constants;
 
 import 'package:four_in_a_row/util/extensions.dart';
 
-class UserInfo with ChangeNotifier {
+class UserInfo extends ChangeNotifier {
   http.Client _client = http.Client();
 
   bool refreshing = false;
@@ -94,6 +94,7 @@ class UserInfo with ChangeNotifier {
           .timeout(Duration(seconds: 4), onTimeout: () => null)
           .onError((e, __) {
         Logger.e("Error logging out!", e);
+        return null;
       });
     }
     this.sessionToken = null;

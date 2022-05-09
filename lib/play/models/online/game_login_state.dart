@@ -25,6 +25,7 @@ class GameLoginLoggedOut extends GameLoginState {
     if (msg is PlayerMsgLogin) {
       return GameLoginWaitingForResponse(gsm);
     }
+    return null;
   }
 }
 

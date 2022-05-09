@@ -1,6 +1,4 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 
 class ThemesProvider with ChangeNotifier {

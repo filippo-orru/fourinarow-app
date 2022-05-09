@@ -1,50 +1,58 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-
-class _LifecycleInherit extends InheritedWidget {
-  _LifecycleInherit({Key? key, required Widget child, required this.state})
-      : super(key: key, child: child);
-
-  final LifecycleProviderState state;
-
-  @override
-  bool updateShouldNotify(_LifecycleInherit oldWidget) {
-    return false;
-  }
-}
+import 'package:four_in_a_row/util/logger.dart';
 
 class LifecycleProvider extends StatefulWidget {
-  LifecycleProvider({required this.child});
-
   final Widget child;
 
-  @override
-  LifecycleProviderState createState() => LifecycleProviderState();
+  const LifecycleProvider({Key? key, required this.child}) : super(key: key);
 
-  static LifecycleProviderState? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_LifecycleInherit>()?.state;
-  }
+  @override
+  State<LifecycleProvider> createState() => _LifecycleProviderState();
 }
 
-class LifecycleProviderState extends State<LifecycleProvider>
-    with WidgetsBindingObserver, ChangeNotifier {
-  AppLifecycleState state = AppLifecycleState.resumed;
-
+class _LifecycleProviderState extends State<LifecycleProvider> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance!.addObserver(this);
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    this.state = state;
-    // print("Appstate: $state");
-    if (mounted) setState(() {});
-    notifyListeners();
+  void dispose() {
+    WidgetsBinding.instance!.removeObserver(this);
+    Lifecycle.instance.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return _LifecycleInherit(child: widget.child, state: this);
+    return widget.child;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    Lifecycle.instance.add(state);
+  }
+}
+
+class Lifecycle with WidgetsBindingObserver {
+  static final Lifecycle instance = Lifecycle._();
+
+  final StreamController<AppLifecycleState> _streamController = StreamController.broadcast();
+  Stream<AppLifecycleState> get stream => _streamController.stream;
+  AppLifecycleState currentState = AppLifecycleState.resumed;
+
+  Lifecycle._();
+
+  void add(AppLifecycleState state) {
+    Logger.d("AppLifecycleState = ${state.name}");
+    _streamController.add(state);
+    currentState = state;
+  }
+
+  void close() {
+    _streamController.close();
   }
 }

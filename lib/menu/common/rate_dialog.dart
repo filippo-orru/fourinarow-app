@@ -141,7 +141,6 @@ class _RateTheGameDialogState extends State<RateTheGameDialog> with SingleTicker
       contentPadding: EdgeInsets.fromLTRB(24, 12, 24, 24),
       children: [
         AnimatedSize(
-          vsync: this,
           duration: Duration(milliseconds: 500),
           curve: Curves.easeInOut,
           child: AnimatedSwitcher(

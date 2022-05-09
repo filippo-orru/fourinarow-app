@@ -9,7 +9,7 @@ import 'package:four_in_a_row/play/models/common/player.dart';
 import 'package:four_in_a_row/providers/themes.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:four_in_a_row/util/vibration.dart';
-import 'package:provider/src/provider.dart';
+import 'package:provider/provider.dart';
 
 import '../common/common.dart';
 import '../common/board.dart';

@@ -2,11 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/menu/account/friends.dart';
-import 'package:four_in_a_row/menu/main_menu.dart';
 import 'package:four_in_a_row/menu/settings.dart';
 import 'package:four_in_a_row/providers/themes.dart';
 import 'package:four_in_a_row/util/global_common_widgets.dart';
-import 'package:provider/src/provider.dart';
+import 'package:provider/provider.dart';
 import 'login.dart';
 import 'register.dart';
 

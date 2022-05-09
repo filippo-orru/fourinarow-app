@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:four_in_a_row/providers/themes.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -189,7 +188,6 @@ class _FeedbackDialogState extends State<FeedbackDialog> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     return AnimatedSize(
-      vsync: this,
       duration: Duration(milliseconds: 180),
       curve: Curves.easeInOut,
       child: AnimatedSwitcher(

@@ -2,15 +2,16 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:four_in_a_row/providers/lifecycle.dart';
 import 'package:four_in_a_row/util/logger.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'package:flutter/material.dart';
 import 'package:four_in_a_row/util/constants.dart';
 import 'messages.dart';
 import 'package:four_in_a_row/util/extensions.dart';
@@ -43,8 +44,6 @@ class ServerConnection with ChangeNotifier {
       StreamController<ReliablePacketOut>.broadcast();
   StreamSubscription? _reliablePktOutSub;
 
-  StreamController<ReliablePacketIn> _wsInStreamCtrl =
-      StreamController<ReliablePacketIn>.broadcast();
   StreamSubscription? _wsInSub;
 
   int _serverMsgIndex = 0;
@@ -89,30 +88,24 @@ class ServerConnection with ChangeNotifier {
     Future<PktSendResult> packetWasAcknowledged = this
         ._reliablePktInStreamCtrl
         .stream
-        .any((rPkt) {
-          return rPkt is ReliablePktAckIn && rPkt.id == messageId;
-        })
+        .any((rPkt) => rPkt is ReliablePktAckIn && rPkt.id == messageId)
         .then((_) => PktSendResult.Success)
-        .timeout(Duration(milliseconds: 1000), onTimeout: () => PktSendResult.Timeout);
-
-    Future<PktSendResult> connectionWasReset = this
-        ._serverMsgStreamCtrl
-        .stream
-        .any((msg) => msg is MsgReset)
-        .then((_) => PktSendResult.ConnectionReset);
+        .timeout(
+          Duration(milliseconds: 1000),
+          onTimeout: () => PktSendResult.Timeout,
+        );
 
     this._reliablePktOutStreamCtrl.add(ReliablePktMsgOut(messageId, msg));
     this._playerMsgStreamCtrl.add(msg);
 
-    PktSendResult result = await waitAny([packetWasAcknowledged, connectionWasReset]);
+    PktSendResult result = await packetWasAcknowledged;
     switch (result) {
       case PktSendResult.Success:
         return true;
       case PktSendResult.Timeout:
-        _resetReliabilityLayer(reconnect: true);
-        return false;
-      case PktSendResult.ConnectionReset:
-        _resetReliabilityLayer(reconnect: true);
+        // if (_sessionState is SessionStateConnected) {
+        //   _resetReliabilityLayer(reconnect: true);
+        // }
         return false;
     }
   }
@@ -122,13 +115,11 @@ class ServerConnection with ChangeNotifier {
   }
 
   void close() {
-    debugPrintStack();
+    Logger.w("Closing ws connection");
 
     _reconnectionTimer?.cancel();
 
     _serverMsgStreamCtrl.close();
-
-    _wsInStreamCtrl.close();
 
     // Not closing this because it would case errors and messages will
     //  just not be received anyway.
@@ -287,8 +278,7 @@ class ServerConnection with ChangeNotifier {
         cancelOnError: true,
       );
     } on Exception catch (e) {
-      Logger.e("Exception!", e, StackTrace.current);
-      _websocketDone();
+      _websocketErr(e);
       return null;
     }
   }
@@ -345,6 +335,7 @@ class ServerConnection with ChangeNotifier {
         var innerInner = inner.inner as SocketException;
         if (innerInner.osError?.errorCode == 7 || innerInner.osError?.errorCode == 111) {
           // Network error (no connection)
+          Logger.d("Websocket network error", err);
           return;
         }
       }
@@ -395,6 +386,7 @@ class ServerConnection with ChangeNotifier {
         if (_sessionState is SessionStateServerIsDown ||
             _sessionState is SessionStateFullyDisconnected) return;
 
+        Logger.i("Sending MsgReset");
         _serverMsgStreamCtrl.add(MsgReset());
         this._sessionState = SessionStateFullyDisconnected();
       });
@@ -405,25 +397,28 @@ class ServerConnection with ChangeNotifier {
 
     if (_sessionState is SessionStateFullyDisconnected && await _serverIsDownState.isDown) {
       _sessionState = SessionStateServerIsDown();
+      Logger.i("Sending MsgReset");
       _serverMsgStreamCtrl.add(MsgReset());
     }
   }
 
   void _resetReliabilityLayer({required bool reconnect}) {
+    Logger.i("Resetting reliability layer");
+
     this._playerMsgIndex = 0;
     this._serverMsgIndex = 0;
+    this._playerMsgQ.clear();
+    this._serverMsgQ.clear();
 
     this._serverMsgStreamCtrl.add(MsgReset());
 
     if (reconnect) {
-      Logger.w("Resetting reliability layer", null, StackTrace.current);
-
-      this._playerMsgQ.clear();
-      this._serverMsgQ.clear();
+      Logger.d("Reconnecting");
 
       this._sessionState = SessionStateFullyDisconnected();
       //this.retryConnection(force: true, reset: true);
       this._connection!.sink.close();
+      _connect();
     }
   }
 
@@ -558,6 +553,16 @@ class ServerConnection with ChangeNotifier {
         send(PlayerMsgReadyForGamePong());
       }
     });
+    Lifecycle.instance.stream.listen(_onLifecyleEvent);
+  }
+
+  void _onLifecyleEvent(AppLifecycleState state) {
+    if (_sessionState is! SessionStateConnected &&
+        _sessionState is! SessionStateWaiting &&
+        state == AppLifecycleState.resumed) {
+      Logger.d("App resumed, reconnecting");
+      retryConnection();
+    }
   }
 
   void _resendQueued() {
@@ -646,5 +651,4 @@ class ServerIsDownState {
 enum PktSendResult {
   Success,
   Timeout,
-  ConnectionReset,
 }

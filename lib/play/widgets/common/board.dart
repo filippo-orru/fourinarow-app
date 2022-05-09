@@ -5,7 +5,7 @@ import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/game_chip.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
 import 'package:four_in_a_row/providers/themes.dart';
-import 'package:provider/src/provider.dart';
+import 'package:provider/provider.dart';
 
 class Board extends StatelessWidget {
   final Field field;

@@ -23,6 +23,7 @@ abstract class GameState with ChangeNotifier {
 
       return IdleState(gsm);
     }
+    return null;
   }
 
   @mustCallSuper
@@ -30,6 +31,7 @@ abstract class GameState with ChangeNotifier {
     if (msg is PlayerMsgLeave) {
       return IdleState(gsm);
     }
+    return null;
   }
 }
 

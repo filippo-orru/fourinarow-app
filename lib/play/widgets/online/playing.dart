@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:four_in_a_row/providers/chat.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
@@ -13,7 +12,6 @@ import 'package:four_in_a_row/play/models/common/field.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
 import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/game_state.dart';
-import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
 import 'package:four_in_a_row/play/widgets/common/board.dart';
 import 'package:four_in_a_row/play/widgets/common/winner_overlay.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';

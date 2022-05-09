@@ -1,11 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:four_in_a_row/play/models/common/field.dart';
-import 'package:four_in_a_row/play/models/common/game_chip.dart';
 import 'package:four_in_a_row/play/models/common/player.dart';
-import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/play/models/online/game_states/playing.dart';
 import 'package:four_in_a_row/play/widgets/online/viewer.dart';
 import 'package:four_in_a_row/providers/themes.dart';
@@ -13,7 +10,6 @@ import 'package:four_in_a_row/providers/user.dart';
 import 'package:four_in_a_row/util/extensions.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:provider/provider.dart';
-import 'package:provider/src/provider.dart';
 
 import 'common/menu_common.dart';
 import 'main_menu.dart';
@@ -95,7 +91,7 @@ class CurrentCoinCount extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-// TODO
+          // TODO
           ),
       padding: EdgeInsets.symmetric(vertical: 12),
       child: Stack(

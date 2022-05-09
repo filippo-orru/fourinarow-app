@@ -12,24 +12,20 @@ import 'game_login_state.dart';
 import 'game_states/game_state.dart';
 
 class GameStateManager with ChangeNotifier {
-  final ServerConnection _serverConnection;
-  LifecycleProviderState? _lifecycle;
-  LifecycleProviderState? get lifecycle => _lifecycle;
-  set lifecycle(l) {
-    lifecycle?.removeListener(_lifecycleListener);
-    _lifecycle = l;
-    lifecycle?.addListener(_lifecycleListener);
+  GameStateManager(this._serverConnection) {
+    _serverConnection.addListener(() {
+      notifyListeners();
+    });
+    currentGameState = IdleState(this);
+    _gls = GameLoginLoggedOut(this);
+    _listenToServerConnectionStreams();
+
+    Lifecycle.instance.stream.listen(_onLifecyleEvent);
   }
 
-  void _lifecycleListener() {
-    if (lifecycle!.state == AppLifecycleState.detached) {
-      leave();
-    }
-    if (!connected && lifecycle!.state == AppLifecycleState.resumed) {
-      print("   #FORCE CNNCT# (app resumed)");
-      _serverConnection.retryConnection();
-    }
-  }
+  final ServerConnection _serverConnection;
+
+  late AppLifecycleState _lifecycleState;
 
   NotificationsProvider? notificationsProvider;
 
@@ -86,15 +82,6 @@ class GameStateManager with ChangeNotifier {
 
   BattleRequestState? incomingBattleRequest;
   Timer? incomingBattleRequestTimer;
-
-  GameStateManager(this._serverConnection) {
-    _serverConnection.addListener(() {
-      notifyListeners();
-    });
-    currentGameState = IdleState(this);
-    _gls = GameLoginLoggedOut(this);
-    _listenToStreams();
-  }
 
   bool get connected => _serverConnection.connected;
 
@@ -160,7 +147,7 @@ class GameStateManager with ChangeNotifier {
   }
 
   Future<bool> leave() async {
-    return await this._serverConnection.send(PlayerMsgLeave());
+    return await sendPlayerMessage(PlayerMsgLeave());
   }
 
   Future<bool> Function(PlayerMessage) get sendPlayerMessage => this._serverConnection.send;
@@ -173,7 +160,7 @@ class GameStateManager with ChangeNotifier {
     }
   }
 
-  void _listenToStreams() {
+  void _listenToServerConnectionStreams() {
     this._serverConnection.serverMsgStream.listen((msg) {
       this._handleServerMessage(msg);
       GameState? newGameState = currentGameState.handleServerMessage(msg);
@@ -195,6 +182,14 @@ class GameStateManager with ChangeNotifier {
     });
   }
 
+  void _onLifecyleEvent(AppLifecycleState state) {
+    _lifecycleState = state;
+
+    if (state == AppLifecycleState.detached) {
+      leave();
+    }
+  }
+
   void _handleServerMessage(ServerMessage msg) {
     if (msg is MsgCurrentServerInfo) {
       this.serverInfo = msg.currentServerInfo;
@@ -203,7 +198,7 @@ class GameStateManager with ChangeNotifier {
         showViewer = true;
       }
       notifyListeners();
-      if (lifecycle!.state != AppLifecycleState.resumed) {
+      if (_lifecycleState != AppLifecycleState.resumed) {
         notificationsProvider!.comeToPlay();
       }
     } else if (msg is MsgReset) {
@@ -218,7 +213,7 @@ class GameStateManager with ChangeNotifier {
         incomingBattleRequestTimer = Timer(BattleRequestPopup.DURATION, cancelIncomingBattleReq);
         notifyListeners();
 
-        if (lifecycle!.state != AppLifecycleState.resumed) {
+        if (_lifecycleState != AppLifecycleState.resumed) {
           notificationsProvider!.battleRequest(loadedUserInfo.username);
         }
       });
@@ -245,6 +240,11 @@ class GameStateManager with ChangeNotifier {
   @override
   String toString() {
     return "GameStateManger(cgs=$currentGameState, gls=$currentLoginState, connected=$connected)";
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }
 

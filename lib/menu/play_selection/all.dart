@@ -14,7 +14,6 @@ import 'package:four_in_a_row/play/widgets/local/play_local.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:four_in_a_row/util/global_common_widgets.dart';
-import 'package:four_in_a_row/util/swipe_detector.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:four_in_a_row/util/toast.dart';
 

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/providers/route.dart';
 import 'package:four_in_a_row/menu/play_selection/all.dart';
@@ -10,7 +9,6 @@ import 'package:four_in_a_row/providers/themes.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
 import 'package:four_in_a_row/util/vibration.dart';
 import 'package:provider/provider.dart';
-import 'package:provider/src/provider.dart';
 
 import '../common/common.dart';
 import '../common/board.dart';
