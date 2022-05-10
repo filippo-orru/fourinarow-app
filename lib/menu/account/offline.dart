@@ -24,7 +24,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
 
   Future<bool> _defaultRefreshCheckAction() async {
     var serverConnection = context.read<ServerConnection>();
-    serverConnection.retryConnection();
+    await serverConnection.retryConnection();
     return serverConnection.connected;
   }
 

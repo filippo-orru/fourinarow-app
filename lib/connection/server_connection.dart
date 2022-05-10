@@ -63,8 +63,8 @@ class ServerConnection with ChangeNotifier {
 
   bool _closedDueToOtherClient = false;
   bool get closedDueToOtherClient => _closedDueToOtherClient;
-  set closedDueToOtherClient(bool v) {
-    _closedDueToOtherClient = v;
+  set closedDueToOtherClient(bool newValue) {
+    _closedDueToOtherClient = newValue;
     notifyListeners();
   }
 
@@ -117,8 +117,8 @@ class ServerConnection with ChangeNotifier {
     }
   }
 
-  void retryConnection({bool force = false, bool reset = false}) {
-    _connect(force: force, reset: reset);
+  Future<void> retryConnection({bool force = false, bool reset = false}) async {
+    await _connect(force: force, reset: reset);
   }
 
   void close() {
@@ -136,12 +136,12 @@ class ServerConnection with ChangeNotifier {
     _connection?.sink.close();
   }
 
-  void _connect({bool force = false, bool reset = false}) async {
-    if (catastrophicFailure || closedDueToOtherClient) return;
-
-    if ((_sessionState is SessionStateOutDated || _sessionState is SessionStateConnected) &&
-        !force) {
-      return;
+  Future<bool> _connect({bool force = false, bool reset = false}) async {
+    if (catastrophicFailure ||
+        closedDueToOtherClient ||
+        ((_sessionState is SessionStateOutDated || _sessionState is SessionStateConnected) &&
+            !force)) {
+      return false;
     }
 
     this._connectionTries += 1;
@@ -157,7 +157,7 @@ class ServerConnection with ChangeNotifier {
     if (await serverIsDown) {
       Logger.w("Server is down");
       _websocketDone();
-      return;
+      return false;
     }
 
     _reconnectionTimer?.cancel();
@@ -170,7 +170,7 @@ class ServerConnection with ChangeNotifier {
       if (_connection == null) {
         Logger.w("Connection is null after trying to connect");
         _websocketDone();
-        return;
+        return false;
       }
     }
 
@@ -206,7 +206,13 @@ class ServerConnection with ChangeNotifier {
       }
     });
 
+    ServerMessage? message = await serverMsgStream
+        .firstWhere((msg) => msg is MsgHello)
+        .timeout(Duration(seconds: 1), onTimeout: null);
+
     notifyListeners();
+
+    return message is MsgHello && connected;
   }
 
   WebSocketChannel _connectWeb() {

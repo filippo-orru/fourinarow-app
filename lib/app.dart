@@ -208,21 +208,20 @@ class _FiarAppState extends State<FiarApp> {
                         builder: (ctx, closedDueToOtherClient, child) => AnimatedSwitcher(
                           duration: Duration(milliseconds: 120),
                           child: closedDueToOtherClient
-                              ? AbsorbPointer(
-                                  child: Container(
-                                    color: Colors.black54,
-                                    constraints: BoxConstraints.expand(),
-                                    child: FiarSimpleDialog(
-                                      title: "Connection paused",
-                                      content:
-                                          "You seem to be logged in on another device.\nIf you want to " +
-                                              "play on this device instead, tap okay.",
-                                      showOkay: true,
-                                      onOkay: () {
-                                        ctx.read<ServerConnection>().closedDueToOtherClient = false;
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
+                              ? Container(
+                                  color: Colors.black54,
+                                  constraints: BoxConstraints.expand(),
+                                  child: FiarSimpleDialog(
+                                    title: "Connection paused",
+                                    content:
+                                        "You seem to be logged in on another device.\nIf you want to " +
+                                            "play on this device instead, tap okay.",
+                                    showOkay: true,
+                                    onOkay: () async {
+                                      ServerConnection connection = ctx.read<ServerConnection>();
+                                      connection.closedDueToOtherClient = false;
+                                      await connection.retryConnection();
+                                    },
                                   ),
                                 )
                               : SizedBox(),
