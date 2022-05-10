@@ -220,12 +220,14 @@ class FiarSimpleDialog extends StatelessWidget {
   final String title;
   final String content;
   final bool showOkay;
+  final VoidCallback? onOkay;
 
   const FiarSimpleDialog({
     Key? key,
     required this.title,
     required this.content,
     this.showOkay = true,
+    this.onOkay,
   }) : super(key: key);
 
   @override
@@ -252,7 +254,7 @@ class FiarSimpleDialog extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     primary: context.watch<ThemesProvider>().selectedTheme.accentColor,
                   ),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: onOkay ?? () => Navigator.of(context).pop(),
                   child: Text('Okay'),
                 ),
               )

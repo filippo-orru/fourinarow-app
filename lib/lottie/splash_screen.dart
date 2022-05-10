@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/util/constants.dart';
+import 'package:four_in_a_row/util/logger.dart';
 import 'package:lottie/lottie.dart';
 
 enum SplashScreenState { Loading, LottieRunning, LottieDone, Fading, Done }
@@ -52,6 +53,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     //  all animations.
     await Future.delayed(Duration(milliseconds: 100));
     if (_lottieAnimCtrl.value == 0.0) {
+      Logger.i("Skipped startup animation");
       widget.onAnimationState(SplashScreenState.Done);
       return;
     } else {

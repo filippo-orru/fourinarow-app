@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-const bool useLocalServer = false && kDebugMode;
+const bool useLocalServer = true && kDebugMode;
 
-const HOST = useLocalServer ? "192.168.0.87" : "fourinarow.ffactory.me";
+const HOST = useLocalServer ? "192.168.172.224" : "fourinarow.ffactory.me";
 const PORT = useLocalServer ? 40146 : 80;
 const HOST_PORT = useLocalServer ? "$HOST:$PORT" : HOST;
 

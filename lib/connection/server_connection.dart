@@ -61,6 +61,13 @@ class ServerConnection with ChangeNotifier {
 
   bool tryingToConnect = false;
 
+  bool _closedDueToOtherClient = false;
+  bool get closedDueToOtherClient => _closedDueToOtherClient;
+  set closedDueToOtherClient(bool v) {
+    _closedDueToOtherClient = v;
+    notifyListeners();
+  }
+
   Future<bool> get serverIsDown async =>
       _sessionState is SessionStateServerIsDown && await _serverIsDownState.isDown;
 
@@ -130,7 +137,7 @@ class ServerConnection with ChangeNotifier {
   }
 
   void _connect({bool force = false, bool reset = false}) async {
-    if (catastrophicFailure) return;
+    if (catastrophicFailure || closedDueToOtherClient) return;
 
     if ((_sessionState is SessionStateOutDated || _sessionState is SessionStateConnected) &&
         !force) {
@@ -551,6 +558,8 @@ class ServerConnection with ChangeNotifier {
     serverMsgStream.listen((msg) {
       if (msg is MsgReadyForGamePing) {
         send(PlayerMsgReadyForGamePong());
+      } else if (msg is MsgCloseOtherClientLogin) {
+        closedDueToOtherClient = true;
       }
     });
     Lifecycle.instance.stream.listen(_onLifecyleEvent);

@@ -243,6 +243,8 @@ abstract class ServerMessage {
         bool isGlobal = parts[1] == "true";
         return MsgChatRead(isGlobal);
       }
+    } else if (str == "CLOSE_OTHER_CLIENT_LOGIN") {
+      return MsgCloseOtherClientLogin();
     }
 
     return null;
@@ -286,6 +288,8 @@ class MsgLoginResponse extends ServerMessage {
   final bool success;
   MsgLoginResponse(this.success);
 }
+
+class MsgCloseOtherClientLogin extends ServerMessage {}
 
 class MsgError extends ServerMessage {
   final MsgErrorType maybeErr;

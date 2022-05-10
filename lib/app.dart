@@ -202,6 +202,32 @@ class _FiarAppState extends State<FiarApp> {
                               )
                             : SizedBox(),
                       ),
+                      Selector<ServerConnection, bool>(
+                        selector: (_, connection) => connection.closedDueToOtherClient,
+                        shouldRebuild: (oldState, newState) => oldState != newState,
+                        builder: (ctx, closedDueToOtherClient, child) => AnimatedSwitcher(
+                          duration: Duration(milliseconds: 120),
+                          child: closedDueToOtherClient
+                              ? AbsorbPointer(
+                                  child: Container(
+                                    color: Colors.black54,
+                                    constraints: BoxConstraints.expand(),
+                                    child: FiarSimpleDialog(
+                                      title: "Connection paused",
+                                      content:
+                                          "You seem to be logged in on another device.\nIf you want to " +
+                                              "play on this device instead, tap okay.",
+                                      showOkay: true,
+                                      onOkay: () {
+                                        ctx.read<ServerConnection>().closedDueToOtherClient = false;
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                  ),
+                                )
+                              : SizedBox(),
+                        ),
+                      ),
                     ]),
                   ),
                   !kIsWeb && Platform.isIOS
