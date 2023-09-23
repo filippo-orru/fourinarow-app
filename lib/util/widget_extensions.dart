@@ -13,7 +13,7 @@ class MyScrollBehavior extends ScrollBehavior {
   MyScrollBehavior({required this.color});
 
   @override
-  Widget buildViewportChrome(BuildContext context, Widget child, AxisDirection axisDirection) {
+  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
     // When modifying this function, consider modifying the implementation in
     // _MaterialScrollBehavior as well.
     switch (getPlatform(context)) {
@@ -26,7 +26,7 @@ class MyScrollBehavior extends ScrollBehavior {
       case TargetPlatform.fuchsia:
         return GlowingOverscrollIndicator(
           child: child,
-          axisDirection: axisDirection,
+          axisDirection: details.direction,
           color: color,
         );
     }
