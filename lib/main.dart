@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:flutter/material.dart';
 import 'package:four_in_a_row/app.dart';
 import 'package:four_in_a_row/app_startup.dart';

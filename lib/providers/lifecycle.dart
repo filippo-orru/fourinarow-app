@@ -16,12 +16,12 @@ class _LifecycleProviderState extends State<LifecycleProvider> with WidgetsBindi
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     Lifecycle.instance.close();
     super.dispose();
   }

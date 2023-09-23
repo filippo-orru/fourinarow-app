@@ -6,9 +6,9 @@ Future<void> waitScreenSizeAvailable() async {
   if (!_hasScreenSize) {
     WidgetsFlutterBinding.ensureInitialized();
     var observer = _Observer();
-    WidgetsBinding.instance!.addObserver(observer);
+    WidgetsBinding.instance.addObserver(observer);
     await observer.hasScreenSize;
-    WidgetsBinding.instance!.removeObserver(observer);
+    WidgetsBinding.instance.removeObserver(observer);
   }
 }
 

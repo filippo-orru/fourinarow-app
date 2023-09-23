@@ -285,7 +285,7 @@ extension FriendStateExtension on FriendState {
         return Container(
           width: 24,
           height: 24,
-          child: Theme(data: ThemeData(accentColor: color), child: CircularProgressIndicator()),
+          child: Theme(data: ThemeData(primaryColor: color), child: CircularProgressIndicator()),
         );
       default:
         throw new UnimplementedError();
