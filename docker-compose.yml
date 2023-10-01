@@ -9,6 +9,8 @@ services:
       traefik.enable: "true"
       traefik.http.routers.fourinarow-app.rule: "Host(`play.fourinarow.ffactory.me`)"
       traefik.http.routers.fourinarow-app.entrypoints: "https"
+      traefik.http.routers.fourinarow-app.tls: "true"
+      traefik.http.routers.fourinarow-app.tls.certresolver: "letsencrypt"
       traefik.http.services.fourinarow-app.loadbalancer.server.port: "80"
     networks:
       - traefik
