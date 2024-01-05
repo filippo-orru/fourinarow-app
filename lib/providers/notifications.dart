@@ -24,18 +24,19 @@ class NotificationsProvider {
 
     flutterNotifications = FlutterLocalNotificationsPlugin();
     var androidSettings = AndroidInitializationSettings('ic_stat_ic_launcher_notification');
-    var iosSettings = IOSInitializationSettings(
+    var iosSettings = DarwinInitializationSettings(
       requestSoundPermission: false,
       requestBadgePermission: false,
       requestAlertPermission: true,
     );
-    await flutterNotifications
-        .initialize(InitializationSettings(android: androidSettings, iOS: iosSettings),
-            onSelectNotification: (str) {
-      if (str != null) {
-        _selectedStreamCtrl.add(str);
-      }
-    });
+    await flutterNotifications.initialize(
+      InitializationSettings(android: androidSettings, iOS: iosSettings),
+      onDidReceiveNotificationResponse: (notification) {
+        if (notification.input != null) {
+          _selectedStreamCtrl.add(notification.input!);
+        }
+      },
+    );
 
     for (var notificationId in FiarNotifications.allNotificationIds) {
       flutterNotifications.cancel(notificationId);
@@ -115,12 +116,12 @@ class FiarNotifications {
       '1',
       'Battle Requests',
       channelDescription: 'Shown when someone wants to battle with you.',
-      category: 'CATEGORY_MESSAGE',
+      category: AndroidNotificationCategory.message,
       importance: Importance.high,
       priority: Priority.max,
       timeoutAfter: BattleRequestDialog.TIMEOUT.inMilliseconds,
     ),
-    iOS: IOSNotificationDetails(),
+    iOS: DarwinNotificationDetails(),
   );
 
   static const gameFound = 2;
@@ -129,11 +130,11 @@ class FiarNotifications {
       '2',
       'Game Started',
       channelDescription: 'Shown when you find an online game while the app is in the background.',
-      category: 'CATEGORY_MESSAGE',
+      category: AndroidNotificationCategory.message,
       importance: Importance.max,
       priority: Priority.max,
     ),
-    iOS: IOSNotificationDetails(),
+    iOS: DarwinNotificationDetails(),
   );
 
   static const searchingGame = 3;
@@ -142,7 +143,7 @@ class FiarNotifications {
       '3',
       'Searching Game',
       channelDescription: 'Shown persistently while searching for a game.',
-      category: 'CATEGORY_SERVICE',
+      category: AndroidNotificationCategory.service,
       importance: Importance.low,
       priority: Priority.low,
       ongoing: true,
@@ -152,6 +153,6 @@ class FiarNotifications {
       visibility: NotificationVisibility.public,
       timeoutAfter: 1000 * 60 * 10, // 10 min
     ),
-    iOS: IOSNotificationDetails(),
+    iOS: DarwinNotificationDetails(),
   );
 }

@@ -12,10 +12,31 @@ services:
       traefik.http.routers.fourinarow-app.tls: "true"
       traefik.http.routers.fourinarow-app.tls.certresolver: "letsencrypt"
       traefik.http.services.fourinarow-app.loadbalancer.server.port: "80"
-    networks:
-      - traefik
+
+  webhook-listener:
+    build: 
+      context: webhook-listener
+      args:
+        - PRE_BUILD_COMMAND=apt update
+    expose:
+      - 8080
+    environment:
+      - PORT=8080
+    volumes:
+      - ./restart_listener_pipe:/restart_listener_pipe
+    secrets:
+      - webhook_secret
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.fiar-app-webhook.rule: "Host(`play.fourinarow.ffactory.me`) && PathPrefix(`/webhook`)"
+      traefik.http.routers.fiar-app-webhook.entrypoints: "https"
+      traefik.http.services.fiar-app-webhook.loadbalancer.server.port: "8080"
+
+secrets:
+  webhook_secret:
+    file: ./webhook.secret
 
 networks:
-  traefik:
+  default:
     external: true
     name: traefik_proxy

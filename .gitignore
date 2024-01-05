@@ -1,4 +1,9 @@
+# Secrets
+webhook.secret
+
 # Miscellaneous
+restart_listener_pipe
+
 *.class
 *.log
 *.pyc

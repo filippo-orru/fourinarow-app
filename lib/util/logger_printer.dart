@@ -2,9 +2,7 @@
 
 import 'dart:convert';
 
-import 'package:logger/src/logger.dart' show Level, LogEvent;
-import 'package:logger/src/log_printer.dart' show LogPrinter;
-import 'package:logger/src/ansi_color.dart' show AnsiColor;
+import 'package:logger/logger.dart';
 
 /// Customized implementation of [LogPrinter].
 ///
@@ -27,30 +25,30 @@ class CustomPrinter extends LogPrinter {
   static const singleDivider = '┄';
 
   static final levelColors = {
-    Level.verbose: AnsiColor.fg(AnsiColor.grey(0.5)),
+    Level.trace: AnsiColor.fg(AnsiColor.grey(0.5)),
     Level.debug: AnsiColor.none(),
     Level.info: AnsiColor.fg(12),
     Level.warning: AnsiColor.fg(208),
     Level.error: AnsiColor.fg(196),
-    Level.wtf: AnsiColor.fg(199),
+    Level.fatal: AnsiColor.fg(199),
   };
 
   static final levelEmojis = {
-    Level.verbose: '',
+    Level.trace: '',
     Level.debug: '🐛 ',
     Level.info: '💡 ',
     Level.warning: '⚠️ ',
     Level.error: '⛔ ',
-    Level.wtf: '👾 ',
+    Level.fatal: '👾 ',
   };
 
   static final levelMethodCounts = {
-    Level.verbose: 0,
+    Level.trace: 0,
     Level.debug: 0,
     Level.info: 2,
     Level.warning: 2,
     Level.error: 4,
-    Level.wtf: 6,
+    Level.fatal: 6,
   };
 
   /// Matches a stacktrace line as generated on Android/iOS devices.
@@ -84,7 +82,7 @@ class CustomPrinter extends LogPrinter {
   final bool printTime;
 
   /// To prevent ascii 'boxing' of any log [Level] include the level in map for excludeBox,
-  /// for example to prevent boxing of [Level.verbose] and [Level.info] use excludeBox:{Level.verbose:true, Level.info:true}
+  /// for example to prevent boxing of [Level.trace] and [Level.info] use excludeBox:{Level.trace:true, Level.info:true}
   final Map<Level, bool> excludeBox;
 
   /// To make the default for every level to prevent boxing entirely set [noBoxingByDefault] to true
@@ -263,8 +261,8 @@ class CustomPrinter extends LogPrinter {
 
   AnsiColor _getErrorColor(Level level) {
     if (colors) {
-      if (level == Level.wtf) {
-        return levelColors[Level.wtf]!.toBg();
+      if (level == Level.fatal) {
+        return levelColors[Level.fatal]!.toBg();
       } else {
         return levelColors[Level.error]!.toBg();
       }

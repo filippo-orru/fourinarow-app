@@ -213,7 +213,7 @@ class UserInfo extends ChangeNotifier {
     // .catchError(() {});
   }
 
-  Future<UserInfo?> refresh({shouldSetState: true}) {
+  Future<UserInfo?> refresh({bool shouldSetState = true}) {
     return _loadInfo(delay: true, shouldSetState: shouldSetState);
   }
 

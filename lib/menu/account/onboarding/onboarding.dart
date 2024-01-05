@@ -38,13 +38,13 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
                   Center(child: Text('Hi!', style: TextStyle(fontSize: 48))),
                   SizedBox(height: 12),
                   Text(
-                    'To play ranked games, you need to create an account.',
+                    'Create an account to add friends and earn points for playing',
                     style: TextStyle(fontSize: 16),
                   ),
                   SizedBox(height: 48),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      primary:
+                      backgroundColor:
                           context.watch<ThemesProvider>().selectedTheme.accountLoginAccentColor,
                     ),
                     onPressed: () {
@@ -55,9 +55,10 @@ class _AccountOnboardingState extends State<AccountOnboarding> {
                     },
                     child: Text('Log in'.toUpperCase(), style: TextStyle(color: Colors.white)),
                   ),
+                  SizedBox(height: 8),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      primary:
+                      backgroundColor:
                           context.watch<ThemesProvider>().selectedTheme.accountRegisterAccentColor,
                     ),
                     onPressed: () {
