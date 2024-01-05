@@ -29,6 +29,7 @@ const int STARTUP_DELAY_MS = 500;
 const int QUICKCHAT_EMOJI_COUNT = 4;
 
 const String LINKEDIN_PROFILE = "https://www.linkedin.com/in/filippo-orru/";
+const String PRIVACY_POLICY = "https://fourinarow.ffactory.me/privacy.html";
 
 const List<String> ALLOWED_QUICKCHAT_EMOJIS = [
   "😀",

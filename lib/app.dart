@@ -157,7 +157,7 @@ class _FiarAppState extends State<FiarApp> {
                                 ),
                                 duration: Duration(milliseconds: 250),
                                 builder: (ctx, val, child) => Transform.translate(
-                                  offset: Offset(0, -144.0 * val),
+                                  offset: Offset(0, -160.0 * val),
                                   child: child,
                                 ),
                                 child: SearchingGameNotification(gsm.connected),

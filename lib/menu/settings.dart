@@ -5,9 +5,11 @@ import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/menu/common/overlay_dialog.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:four_in_a_row/util/global_common_widgets.dart';
+import 'package:four_in_a_row/util/logger.dart';
 import 'package:four_in_a_row/util/vibration.dart';
 import 'package:four_in_a_row/util/constants.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'account/onboarding/onboarding.dart';
 
@@ -159,6 +161,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: Text("Communicate with your opponent"),
             onTap: () {
               showDialog(context: context, builder: (_) => ChooseQuickchatEmojis());
+            },
+          ),
+          ListTile(
+            leading: Container(
+              height: 64,
+              width: 32,
+              alignment: Alignment.center,
+              child: Icon(Icons.privacy_tip_outlined),
+            ),
+            title: Text('Privacy Policy'),
+            onTap: () async {
+              if (!await launchUrl(Uri.parse(PRIVACY_POLICY))) {
+                Logger.e("Could not launch $PRIVACY_POLICY");
+              }
             },
           ),
           ListTile(
