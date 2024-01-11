@@ -118,100 +118,100 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // GestureDetector(
-        //   behavior: HitTestBehavior.translucent,
-        //   onTap: backgroundTapped,
-        //   child:
-        Material(
-          child: PageView(
+    return Material(
+      child: Stack(
+        children: [
+          // GestureDetector(
+          //   behavior: HitTestBehavior.translucent,
+          //   onTap: backgroundTapped,
+          //   child:
+          PageView(
             children: [
               Container(
                 constraints: BoxConstraints.expand(),
                 color: context.watch<ThemesProvider>().selectedTheme.playOnlineThemeColor,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Align(
-                    alignment: Alignment.bottomRight,
-                    child: SwitchPageButton(pageCtrl),
-                  ),
-                ),
               ),
               Container(
                 constraints: BoxConstraints.expand(),
                 color: context.watch<ThemesProvider>().selectedTheme.playLocalThemeColor,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Stack(children: [
-                    Align(
-                      alignment: Alignment.bottomLeft,
-                      child: SwitchPageButton(pageCtrl, forward: false),
-                    ),
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: SwitchPageButton(pageCtrl, forward: true),
-                    ),
-                  ]),
-                ),
               ),
               Container(
                 constraints: BoxConstraints.expand(),
                 color: context.watch<ThemesProvider>().selectedTheme.playCpuThemeColor,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: SwitchPageButton(pageCtrl, forward: false),
-                  ),
-                ),
               ),
             ],
             controller: pageCtrl,
           ),
-        ),
-        Waves(MediaQuery.of(context).size.height),
-        Stack(
-          children: [
-            Selector<GameStateManager, bool>(
-              selector: (_, gsm) => gsm.currentGameState is WaitingForWWOpponentState,
-              builder: (_, isInQueue, __) => PlaySelectionScreen(
-                index: 0,
-                title: 'Online',
-                description: 'You against the world!',
-                loading: isInQueue,
-                showTransition: false,
-                content: MenuContentPlayOnline(),
-                pushRoute: tappedPlayOnline,
-                offset: offset,
-                bgColor: context.watch<ThemesProvider>().selectedTheme.playOnlineThemeColor,
+
+          Center(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: 800),
+              padding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
+              child: Stack(children: [
+                Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    icon: Icon(Icons.close_rounded, color: Colors.white70),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: SwitchPageButton(pageCtrl, forward: false),
+                ),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: SwitchPageButton(pageCtrl, forward: true),
+                ),
+              ]),
+            ),
+          ),
+          Container(
+            constraints: BoxConstraints.expand(),
+            child: Waves(MediaQuery.of(context).size.height),
+          ),
+          Stack(
+            children: [
+              Selector<GameStateManager, bool>(
+                selector: (_, gsm) => gsm.currentGameState is WaitingForWWOpponentState,
+                builder: (_, isInQueue, __) => PlaySelectionScreen(
+                  index: 0,
+                  title: 'Online',
+                  description: 'You against the world!',
+                  loading: isInQueue,
+                  showTransition: false,
+                  content: MenuContentPlayOnline(),
+                  pushRoute: tappedPlayOnline,
+                  offset: offset,
+                  bgColor: context.watch<ThemesProvider>().selectedTheme.playOnlineThemeColor,
+                ),
               ),
-            ),
-            PlaySelectionScreen(
-              index: 1,
-              title: 'Local',
-              loading: false,
-              showTransition: true,
-              description: 'Two players, one device!',
-              offset: offset,
-              pushRoute: () => Navigator.of(context).push(fadeRoute(PlayingLocal())),
-              bgColor: context.watch<ThemesProvider>().selectedTheme.playLocalThemeColor,
-            ),
-            PlaySelectionScreen(
-              index: 2,
-              title: 'CPU',
-              loading: false,
-              showTransition: true,
-              description: 'You against the machine!',
-              offset: offset,
-              pushRoute: () =>
-                  Navigator.of(context).push(fadeRoute(PlayingCPU(difficulty: _selectedDificulty))),
-              bgColor: context.watch<ThemesProvider>().selectedTheme.playCpuThemeColor,
-            ),
-          ],
-        ),
-        PageIndicator(page, 3),
-      ],
+              PlaySelectionScreen(
+                index: 1,
+                title: 'Local',
+                loading: false,
+                showTransition: true,
+                description: 'Two players, one device!',
+                offset: offset,
+                pushRoute: () => Navigator.of(context).push(fadeRoute(PlayingLocal())),
+                bgColor: context.watch<ThemesProvider>().selectedTheme.playLocalThemeColor,
+              ),
+              PlaySelectionScreen(
+                index: 2,
+                title: 'CPU',
+                loading: false,
+                showTransition: true,
+                description: 'You against the machine!',
+                offset: offset,
+                pushRoute: () => Navigator.of(context)
+                    .push(fadeRoute(PlayingCPU(difficulty: _selectedDificulty))),
+                bgColor: context.watch<ThemesProvider>().selectedTheme.playCpuThemeColor,
+              ),
+            ],
+          ),
+          PageIndicator(page, 3),
+        ],
+      ),
     );
   }
 }
@@ -309,37 +309,49 @@ class SwitchPageButton extends StatelessWidget {
   final bool forward;
   final PageController pageCtrl;
 
+  double get page =>
+      pageCtrl.position.hasContentDimensions ? pageCtrl.page ?? pageCtrl.initialPage.toDouble() : 0;
+
+  bool get isDisabled => forward ? page >= 1.5 : page <= 0.5;
+
+  final double minOpacity = 0.4;
+
   @override
   Widget build(BuildContext context) {
-    final double page;
-    if (pageCtrl.position.hasContentDimensions) {
-      page = pageCtrl.page ?? pageCtrl.initialPage.toDouble();
-    } else {
-      page = 0.0;
-    }
-
     return AnimatedBuilder(
       animation: pageCtrl,
       builder: (ctx, child) {
-        var r = (page % 1).abs();
         return Opacity(
-            opacity: r > 0.5 ? r : 1 - r, //> 0.5 ? r : 1, // !=  ? 0.5 : 1,
-            child: child);
+          opacity: !forward && page < 0.5
+              ? page + minOpacity
+              : forward && page > 1.5
+                  ? 2 - page + minOpacity
+                  : 1,
+          child: child,
+        );
       },
-      child: IconButton(
-          icon: Transform.rotate(
-              angle: forward ? pi : 0,
-              child: Icon(
-                Icons.arrow_back,
-                color: Colors.white70,
-              )),
-          onPressed: () {
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () {
+            if (isDisabled) {
+              return;
+            }
             forward
                 ? pageCtrl.nextPage(
                     duration: Duration(milliseconds: 600), curve: Curves.easeOutQuart)
                 : pageCtrl.previousPage(
                     duration: Duration(milliseconds: 600), curve: Curves.easeOutQuart);
-          }),
+          },
+          child: Transform.rotate(
+            angle: forward ? pi : 0,
+            child: Icon(
+              Icons.arrow_back,
+              color: Colors.white70,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -363,10 +375,12 @@ class _WavesState extends State<Waves> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    offsetAnim = new AnimationController(duration: Duration(seconds: 12), vsync: this);
+    offsetAnim = new AnimationController(duration: Duration(seconds: 16), vsync: this);
     offsetTween = Tween(
-      begin: Offset(0, viewHeight / 128 + 4),
-      end: Offset(0, -1),
+      // begin: Offset(0, 0.5),
+      // end: Offset(0, 0.5),
+      begin: Offset(0, 1.1),
+      end: Offset(0, -1.1),
     );
     offsetAnim.repeat();
   }

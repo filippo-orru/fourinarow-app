@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:four_in_a_row/connection/server_connection.dart';
+import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/providers/chat.dart';
 import 'package:four_in_a_row/menu/common/menu_common.dart';
 import 'package:four_in_a_row/providers/themes.dart';
+import 'package:four_in_a_row/util/extensions.dart';
 import 'package:four_in_a_row/util/widget_extensions.dart';
 
 import 'package:provider/provider.dart';
@@ -121,6 +123,15 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal>
       }
     }
 
+    String currentlyConnectedPlayersString = "";
+    int? currentlyConnectedPlayers =
+        context.read<GameStateManager>().serverInfo?.currentlyConnectedPlayers;
+    if (currentlyConnectedPlayers != null) {
+      currentlyConnectedPlayersString = "${currentlyConnectedPlayers.toNumberWord()} other player" +
+          (currentlyConnectedPlayers == 1 ? " is" : "s are") +
+          " online.";
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: FiarAppBar(
@@ -149,12 +160,17 @@ class _ChatScreenInternalState extends State<_ChatScreenInternal>
                   child: widget.chatState.messages.isEmpty
                       ? Container(
                           child: Center(
-                              child: Text('No messages yet!',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 18,
-                                    fontStyle: FontStyle.italic,
-                                  ))),
+                            child: Text(
+                              currentlyConnectedPlayersString.capitalize() +
+                                  '\nSend a message to start chatting.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 18,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
                         )
                       : ScrollConfiguration(
                           behavior: MyScrollBehavior(

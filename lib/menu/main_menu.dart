@@ -669,7 +669,9 @@ class ChatAcceptDialog extends StatefulWidget {
 }
 
 class _ChatAcceptDialogState extends State<ChatAcceptDialog> {
-  bool oldEnough = false;
+  DateTime? dateOfBirth;
+  bool get oldEnough =>
+      dateOfBirth != null && DateTime.now().difference(dateOfBirth!).inDays > 13 * 365;
 
   @override
   Widget build(BuildContext context) {
@@ -684,59 +686,71 @@ class _ChatAcceptDialogState extends State<ChatAcceptDialog> {
       ),
       contentPadding: EdgeInsets.all(16),
       children: [
-        Text(
-          'The chat allows anonymous posting of short messages that can be read by anyone currently online and will be deleted once you close the app',
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Checkbox(
-              activeColor:
-                  context.watch<ThemesProvider>().selectedTheme.chatThemeColor.withOpacity(0.9),
-              value: oldEnough,
-              onChanged: (v) {
-                if (v == null) return;
-                setState(() => oldEnough = v);
-              },
-            ),
-            GestureDetector(
-              onTap: () {
-                setState(() => oldEnough = !oldEnough);
-              },
-              child: Text(
-                "I'm more than 13 years old",
-                style: TextStyle(),
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 600),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'The chat allows anonymous posting of short messages that can be read by anyone currently '
+                'online and will be deleted once you close the app.\n'
+                'Online interaction can be dangerous. Do not share personal information and never meet up '
+                'with someone you\'ve met online without a parent or guardian present. You must be at least '
+                '13 years old to use the chat.',
               ),
-            ),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(
-                'Cancel'.toUpperCase(),
+              SizedBox(height: 16),
+              Text(
+                'Please enter your date of birth.',
                 style: TextStyle(
-                  color: Colors.black87,
+                  fontFamily: 'RobotoSlab',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-            SizedBox(width: 12),
-            TextButton(
-              style: TextButton.styleFrom(
-                backgroundColor: oldEnough
-                    ? context.watch<ThemesProvider>().selectedTheme.chatThemeColor
-                    : context.watch<ThemesProvider>().selectedTheme.chatThemeColor.withOpacity(0.3),
+              SizedBox(height: 8),
+              Center(
+                child: Container(
+                  width: 400,
+                  child: CalendarDatePicker(
+                    initialDate: dateOfBirth ?? DateTime.now(),
+                    firstDate: DateTime(1900),
+                    lastDate: DateTime.now(),
+                    onDateChanged: (date) => setState(() => dateOfBirth = date),
+                  ),
+                ),
               ),
-              onPressed: !oldEnough ? null : () => Navigator.of(context).pop(true),
-              child: Text(
-                'ACCEPT',
-                style: TextStyle(color: oldEnough ? Colors.white : Colors.black45),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  FilledButton(
+                    onPressed: () {
+                      if (oldEnough) {
+                        Navigator.of(context).pop(true);
+                      } else {
+                        Navigator.of(context).pop(false);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('You must be at least 13 years old to use the chat.'),
+                          duration: Duration(seconds: 2),
+                        ));
+                      }
+                    },
+                    child: Text('Continue'),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        )
       ],
     );
   }

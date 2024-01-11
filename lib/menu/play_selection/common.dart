@@ -67,62 +67,64 @@ class PlaySelectionContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Container(
-        constraints: BoxConstraints.expand(),
-        padding: EdgeInsets.all(min(MediaQuery.of(context).size.width * 0.08, 36)),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            // Flexible(
-            //   flex: 4,
-            //   child:
-            // FittedBox(
-            //   child:
-            buildHeading(),
-            // ),
-            // ),
-            SizedBox(height: 12),
-            // ),
-            // Flexible(
-            //   flex: 5,
-            //   child:
-            Expanded(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.center,
-                child: content ?? SizedBox(),
-              ),
-            ),
-            // ),
-            // Flexible(child:
-            // LimitedBox(
-            //   maxHeight: 48,
-            //   child:
-            SizedBox(height: 12),
-            // ),
-            // Flexible(
-            //   flex: 4,
-            //   child:
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: FittedBox(
-                child: PlayButton(
-                  label: 'Go!',
-                  loadingLabel: '• • •',
-                  loading: loading,
-                  showTransition: showTransition,
-                  color: Colors.white38,
-                  onTap: () {
-                    pushRoute?.call();
-                  },
+      child: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: 800),
+          padding: EdgeInsets.all(min(MediaQuery.of(context).size.width * 0.08, 36)),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              // Flexible(
+              //   flex: 4,
+              //   child:
+              // FittedBox(
+              //   child:
+              buildHeading(),
+              // ),
+              // ),
+              SizedBox(height: 12),
+              // ),
+              // Flexible(
+              //   flex: 5,
+              //   child:
+              Expanded(
+                flex: 1,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: content ?? SizedBox(),
                 ),
               ),
-            ),
-            // Flexible(child:
-            SizedBox(height: 96)
-            // ),
-          ],
+              // ),
+              // Flexible(child:
+              // LimitedBox(
+              //   maxHeight: 48,
+              //   child:
+              SizedBox(height: 12),
+              // ),
+              // Flexible(
+              //   flex: 4,
+              //   child:
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: FittedBox(
+                  child: PlayButton(
+                    label: 'Go!',
+                    loadingLabel: '• • •',
+                    loading: loading,
+                    showTransition: showTransition,
+                    color: Colors.white38,
+                    onTap: () {
+                      pushRoute?.call();
+                    },
+                  ),
+                ),
+              ),
+              // Flexible(child:
+              SizedBox(height: 96)
+              // ),
+            ],
+          ),
         ),
       ),
     );
