@@ -17,8 +17,8 @@ class UserInfo extends ChangeNotifier {
   bool refreshing = false;
   bool offline = false;
 
-  String? get sessionToken => FiarSharedPrefs.sessionToken;
-  set sessionToken(String? s) => FiarSharedPrefs.sessionToken = s;
+  String? get sessionToken => FiarSharedPrefs.sessionToken.get();
+  set sessionToken(String? s) => FiarSharedPrefs.sessionToken.set(s);
 
   User? user;
 
@@ -393,7 +393,7 @@ class User extends Equatable {
 
   final String id;
   final String username;
-  final String email;
+  final String? email;
   final List<PublicUser> friends;
   final GameInfo gameInfo;
 
@@ -413,12 +413,12 @@ class User extends Equatable {
     return User(
       id: map['id'] as String,
       username: map['username'] as String,
-      email: map['email'] as String,
+      email: map['email'] != null ? map['email'] as String : null,
       friends: friends,
       gameInfo: gameInfo,
     );
   }
 
   @override
-  List<Object> get props => [id, username, email, friends, gameInfo];
+  List<Object?> get props => [id, username, email, friends, gameInfo];
 }

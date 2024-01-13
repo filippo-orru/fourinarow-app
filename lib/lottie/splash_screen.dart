@@ -86,19 +86,18 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       );
     }
 
-    return Container(
-      constraints: BoxConstraints(maxWidth: 600),
-      alignment: Alignment.center,
-      child: AnimatedBuilder(
-        animation: _crossfadeAnimCtrl,
-        builder: (_, child) => Opacity(
-          opacity: 1 - _crossfadeAnimCtrl.value,
-          child: child,
-        ),
-        child: Container(
-          constraints: BoxConstraints.expand(),
-          alignment: Alignment.center,
-          color: Colors.white,
+    return AnimatedBuilder(
+      animation: _crossfadeAnimCtrl,
+      builder: (_, child) => Opacity(
+        opacity: 1 - _crossfadeAnimCtrl.value,
+        child: child,
+      ),
+      child: Container(
+        constraints: BoxConstraints.expand(),
+        alignment: Alignment.center,
+        color: Colors.white,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 600),
           child: Align(
             alignment: Alignment.topCenter,
             child: AnimatedBuilder(

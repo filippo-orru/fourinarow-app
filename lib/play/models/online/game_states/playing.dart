@@ -114,7 +114,8 @@ class PlayingState extends GameState {
   }
 
   void _maybeShowRatingDialog() async {
-    if (FiarSharedPrefs.shouldShowRatingDialog) {
+    if (FiarSharedPrefs.shownRatingDialog.get().difference(DateTime.now()).inDays > 30 * 4) {
+      // >4 months ago
       showRatingDialog = true;
     }
   }

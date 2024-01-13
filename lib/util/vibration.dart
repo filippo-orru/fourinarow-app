@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:vibration/vibration.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 
@@ -8,7 +9,7 @@ class Vibrations {
 
   static FutureOr<bool> get canVibrate async {
     if (_canVibrate == null) {
-      if (await Vibration.hasVibrator() == true) {
+      if (!kIsWeb && await Vibration.hasVibrator() == true) {
         _canVibrate = true;
       } else {
         _canVibrate = false;
@@ -19,7 +20,7 @@ class Vibrations {
 
   static FutureOr<bool> get shouldVibrate async {
     bool _canVibrate = await canVibrate;
-    return _canVibrate && FiarSharedPrefs.settingsAllowVibrate;
+    return _canVibrate && FiarSharedPrefs.settingsAllowVibrate.get();
   }
 
   static final _light = 20;
@@ -61,5 +62,11 @@ class Vibrations {
     if (!await shouldVibrate) return;
 
     Vibration.vibrate(pattern: [90, _light, 60, _light, 60, _light]);
+  }
+
+  static void screenShake() async {
+    if (!await shouldVibrate) return;
+
+    Vibration.vibrate(duration: _medium);
   }
 }

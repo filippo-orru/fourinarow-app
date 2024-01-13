@@ -17,12 +17,12 @@ class ThemesProvider with ChangeNotifier {
   ThemesProvider({FiarTheme? overrideTheme}) : this._overrideTheme = overrideTheme;
 
   FiarTheme get selectedTheme {
-    String selectedThemeIdId = FiarSharedPrefs.selectedThemeId;
+    String selectedThemeIdId = FiarSharedPrefs.selectedThemeId.get();
     return _overrideTheme ?? allThemes.firstWhere((theme) => theme.id == selectedThemeIdId);
   }
 
   void setSelectedTheme(String id) {
-    FiarSharedPrefs.selectedThemeId = id;
+    FiarSharedPrefs.selectedThemeId.set(id);
     notifyListeners();
   }
 }

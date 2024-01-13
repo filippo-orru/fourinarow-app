@@ -77,7 +77,7 @@ class _AppStartupState extends State<AppStartup> {
   }
 
   Future<void> _initializeNecessaryDependencies() async {
-    await FiarSharedPrefs.setup();
+    await FiarSharedPrefs.i.init();
     return;
   }
 

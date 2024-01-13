@@ -251,7 +251,7 @@ class _FiarBottomSheetState extends State<FiarBottomSheet> with SingleTickerProv
                       // When the user taps the button, show a snackbar.
                       child: ListView(
                         controller: scrollController,
-                        padding: EdgeInsets.only(top: 24, bottom: 32),
+                        padding: EdgeInsets.only(top: 16, bottom: 32),
                         children: widget.children,
                       ),
                     ),

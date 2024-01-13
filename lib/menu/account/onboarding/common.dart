@@ -1,5 +1,4 @@
-import 'dart:math';
-
+import 'package:flutter/foundation.dart';
 import 'package:four_in_a_row/menu/play_selection/online.dart';
 import 'package:flutter/material.dart';
 
@@ -133,11 +132,13 @@ class _AccessAccountScreenState extends State<AccessAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double width80 = MediaQuery.of(context).size.width * 0.8;
     return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title, style: TextStyle(fontFamily: 'RobotoSlab')),
+      ),
       body: Center(
         child: Container(
-          width: max(width80, 220),
+          width: clampDouble(MediaQuery.of(context).size.width * 0.8, 220, 600),
           child: Form(
             child: Column(
               mainAxisSize: MainAxisSize.min,

@@ -67,7 +67,7 @@ class _LottieReactionState extends State<LottieReaction> with SingleTickerProvid
           ),
           builder: (_, val, child) => ColorFiltered(
             colorFilter: ColorFilter.matrix(
-              ColorFilterGenerator.saturationAdjustMatrix(value: val as double),
+              ColorFilterGenerator.saturationAdjustMatrix(value: val),
             ),
             child: child as Widget,
           ),

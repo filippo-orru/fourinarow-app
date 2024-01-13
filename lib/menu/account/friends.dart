@@ -140,19 +140,6 @@ class _FriendsListState extends State<FriendsList> with SingleTickerProviderStat
                         Material(
                           type: MaterialType.transparency,
                           child: ListTile(
-                            onTap: () {
-                              userInfo.logOut();
-                              Navigator.of(context)
-                                  .pushReplacement(slideUpRoute(AccountOnboarding()));
-                            },
-                            leading: Icon(Icons.exit_to_app),
-                            title: Text('Log out'),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 24),
-                          ),
-                        ),
-                        Material(
-                          type: MaterialType.transparency,
-                          child: ListTile(
                             onTap: shareInviteFriends,
                             leading: Icon(Icons.share_rounded),
                             title: Text('Invite friends'),
@@ -166,8 +153,21 @@ class _FriendsListState extends State<FriendsList> with SingleTickerProviderStat
                               Navigator.of(context).push(slideUpRoute(SettingsScreen()));
                             },
                             leading: Icon(Icons.settings),
-                            title: Text('More settings'),
+                            title: Text('Settings'),
                             trailing: Icon(Icons.chevron_right_rounded),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                          ),
+                        ),
+                        Material(
+                          type: MaterialType.transparency,
+                          child: ListTile(
+                            onTap: () {
+                              userInfo.logOut();
+                              Navigator.of(context)
+                                  .pushReplacement(slideUpRoute(AccountOnboarding()));
+                            },
+                            leading: Icon(Icons.exit_to_app),
+                            title: Text('Log out'),
                             contentPadding: EdgeInsets.symmetric(horizontal: 24),
                           ),
                         ),

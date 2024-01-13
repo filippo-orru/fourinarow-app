@@ -13,7 +13,7 @@ class NotificationsProvider {
   Stream<String> get selectedStream => _selectedStreamCtrl.stream;
 
   bool get canNotify => !kIsWeb;
-  bool get shouldNotify => canNotify && FiarSharedPrefs.settingsAllowNotifications;
+  bool get shouldNotify => canNotify && FiarSharedPrefs.settingsAllowNotifications.get();
 
   NotificationsProvider() {
     initialize();

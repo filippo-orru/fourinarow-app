@@ -482,7 +482,7 @@ class PlayerIcon extends StatelessWidget {
 }
 
 class ReactionPicker extends StatefulWidget {
-  final List<String> reactions = FiarSharedPrefs.settingsQuickchatEmojis;
+  final List<String> reactions = FiarSharedPrefs.settingsQuickchatEmojis.get();
   final bool open;
   final VoidCallback onOpen;
   final VoidCallback onClose;

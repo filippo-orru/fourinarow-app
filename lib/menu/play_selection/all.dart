@@ -69,13 +69,13 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
       return;
     }
 
-    var shownDialogCount = FiarSharedPrefs.shownOnlineDialogCount;
+    var shownDialogCount = FiarSharedPrefs.shownOnlineDialogCount.get();
     if (shownDialogCount <= 2) {
       await showDialog(
         context: context,
         builder: (ctx) => OnlineInfoDialog(howManyMoreTimes: 2 - shownDialogCount),
       );
-      FiarSharedPrefs.shownOnlineDialogCount = shownDialogCount + 1;
+      FiarSharedPrefs.shownOnlineDialogCount.set(shownDialogCount + 1);
     }
 
     var gsm = context.read<GameStateManager>();
@@ -143,27 +143,29 @@ class _PlaySelectionState extends State<PlaySelection> with RouteAware {
             controller: pageCtrl,
           ),
 
-          Center(
-            child: Container(
-              constraints: BoxConstraints(maxWidth: 800),
-              padding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
-              child: Stack(children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: Icon(Icons.close_rounded, color: Colors.white70),
-                    onPressed: () => Navigator.of(context).pop(),
+          SafeArea(
+            child: Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: 800),
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                child: Stack(children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: Icon(Icons.close_rounded, color: Colors.white70),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
                   ),
-                ),
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: SwitchPageButton(pageCtrl, forward: false),
-                ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: SwitchPageButton(pageCtrl, forward: true),
-                ),
-              ]),
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: SwitchPageButton(pageCtrl, forward: false),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: SwitchPageButton(pageCtrl, forward: true),
+                  ),
+                ]),
+              ),
             ),
           ),
           Container(
@@ -392,14 +394,9 @@ class _WavesState extends State<Waves> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        offsetAnim.animateTo(offsetAnim.value + 0.3, duration: Duration(milliseconds: 200));
-      },
-      child: SlideTransition(
-        position: offsetAnim.drive(offsetTween),
-        child: Image.asset("assets/img/wave_bg.png"),
-      ),
+    return SlideTransition(
+      position: offsetAnim.drive(offsetTween),
+      child: Image.asset("assets/img/wave_bg.png"),
     );
   }
 

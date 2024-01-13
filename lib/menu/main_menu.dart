@@ -1,4 +1,5 @@
 import 'package:four_in_a_row/menu/ThemeSelectPage.dart';
+import 'package:four_in_a_row/providers/global_provider.dart';
 import 'package:four_in_a_row/providers/themes.dart';
 import 'package:four_in_a_row/util/constants.dart';
 import 'package:four_in_a_row/util/extensions.dart';
@@ -16,6 +17,7 @@ import 'package:four_in_a_row/play/models/online/game_state_manager.dart';
 import 'package:four_in_a_row/util/fiar_shared_prefs.dart';
 import 'package:four_in_a_row/util/global_common_widgets.dart';
 import 'package:four_in_a_row/util/system_ui_style.dart';
+import 'package:four_in_a_row/util/vibration.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../util/logger.dart';
 import 'common/play_button.dart';
@@ -65,36 +67,24 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
     } else {
       Navigator.of(context).push(slideUpRoute(AccountOnboarding()));
     }
-
-    // TODO move this to friendslist (show loading -> okay(list) / notLoggedIn )
-    /*if (widget._userInfo.loggedIn ?? false) {
-    } else if (widget._userInfo.offline ?? true) {
-      Navigator.of(context)
-          .push(slideUpRoute(OfflineScreen(OfflineCaller.Friends)));
-    } else if ((widget._userInfo.refreshing ?? false) && !force) {
-      setState(() => loadingUserInfo = true);
-
-      Future.delayed(
-          Duration(milliseconds: 1800), () => accountCheck(force: true));
-    } else {
-      setState(() => loadingUserInfo = false);
-    }*/
   }
 
   void showChat() async {
-    if (FiarSharedPrefs.hasAcceptedChat) {
-      Navigator.of(context).push(slideUpRoute(ChatScreen()));
-    } else {
-      bool? accepted = await showDialog(
-          context: context,
-          builder: (_) {
-            return ChatAcceptDialog();
-          });
-      if (accepted == true) {
-        FiarSharedPrefs.hasAcceptedChat = true;
+    switch (FiarSharedPrefs.socialFeatures.get()) {
+      case SocialFeatures.NotAsked:
+        // Shouldn't happen, the age is verified on app launch
+        return;
+      case SocialFeatures.DontAllow:
+        // Shouldn't happen, the button is hidden if the user isn't allowed to chat
+        return;
+      case SocialFeatures.Allow:
         Navigator.of(context).push(slideUpRoute(ChatScreen()));
-      }
     }
+  }
+
+  void shake() {
+    Vibrations.screenShake();
+    context.read<GlobalProvider>().screenShakeAnimCtrl.forward(from: 0);
   }
 
   late RouteObserver _routeObserver;
@@ -201,31 +191,40 @@ class _MainMenuState extends State<MainMenu> with RouteAware {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Selector<ChatState, int>(
-          selector: (_, chatState) => chatState.unread,
-          builder: (_, unread, Widget? child) => Stack(children: [
-            child!,
-            unread > 0
-                ? Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      height: 18,
-                      width: 18,
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.all(Radius.circular(32)),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(unread.toString(), style: TextStyle(color: Colors.white)),
-                    ))
-                : SizedBox(),
-          ]),
-          child: SmallColorButton(
-            iconData: Icons.chat,
-            color: context.watch<ThemesProvider>().selectedTheme.chatThemeColor,
-            onTap: showChat,
-          ),
+        Selector<FiarSharedPrefs, SocialFeatures>(
+          selector: (_, prefs) => FiarSharedPrefs.socialFeatures.get(),
+          builder: (context, socialFeatures, _) => socialFeatures == SocialFeatures.Allow
+              ? Selector<ChatState, int>(
+                  selector: (_, chatState) => chatState.unread,
+                  builder: (_, unread, Widget? child) => Stack(children: [
+                    child!,
+                    unread > 0
+                        ? Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Container(
+                              height: 18,
+                              width: 18,
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.all(Radius.circular(32)),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(unread.toString(), style: TextStyle(color: Colors.white)),
+                            ))
+                        : SizedBox(),
+                  ]),
+                  child: SmallColorButton(
+                    iconData: Icons.chat,
+                    color: context.watch<ThemesProvider>().selectedTheme.chatThemeColor,
+                    onTap: showChat,
+                  ),
+                )
+              : SmallColorButton(
+                  iconData: Icons.celebration_rounded,
+                  color: context.read<ThemesProvider>().selectedTheme.chatThemeColor,
+                  onTap: shake,
+                ),
         ),
         // ThemesButton(),
         Stack(
@@ -659,99 +658,6 @@ class _SearchingGameNotificationState extends State<SearchingGameNotification> {
                 ),
               ),
       ),
-    );
-  }
-}
-
-class ChatAcceptDialog extends StatefulWidget {
-  @override
-  _ChatAcceptDialogState createState() => _ChatAcceptDialogState();
-}
-
-class _ChatAcceptDialogState extends State<ChatAcceptDialog> {
-  DateTime? dateOfBirth;
-  bool get oldEnough =>
-      dateOfBirth != null && DateTime.now().difference(dateOfBirth!).inDays > 13 * 365;
-
-  @override
-  Widget build(BuildContext context) {
-    return SimpleDialog(
-      title: Text(
-        'Access Chat',
-        style: TextStyle(
-          fontFamily: 'RobotoSlab',
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      contentPadding: EdgeInsets.all(16),
-      children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 600),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'The chat allows anonymous posting of short messages that can be read by anyone currently '
-                'online and will be deleted once you close the app.\n'
-                'Online interaction can be dangerous. Do not share personal information and never meet up '
-                'with someone you\'ve met online without a parent or guardian present. You must be at least '
-                '13 years old to use the chat.',
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Please enter your date of birth.',
-                style: TextStyle(
-                  fontFamily: 'RobotoSlab',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 8),
-              Center(
-                child: Container(
-                  width: 400,
-                  child: CalendarDatePicker(
-                    initialDate: dateOfBirth ?? DateTime.now(),
-                    firstDate: DateTime(1900),
-                    lastDate: DateTime.now(),
-                    onDateChanged: (date) => setState(() => dateOfBirth = date),
-                  ),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  FilledButton(
-                    onPressed: () {
-                      if (oldEnough) {
-                        Navigator.of(context).pop(true);
-                      } else {
-                        Navigator.of(context).pop(false);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('You must be at least 13 years old to use the chat.'),
-                          duration: Duration(seconds: 2),
-                        ));
-                      }
-                    },
-                    child: Text('Continue'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        )
-      ],
     );
   }
 }

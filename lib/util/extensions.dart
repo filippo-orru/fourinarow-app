@@ -2,7 +2,7 @@ import 'dart:async';
 
 extension ListExtension<T> on List<T?> {
   List<T> filterNotNull() {
-    return this.where((e) => e != null).toList() as List<T>;
+    return this.whereType<T>().toList();
   }
 }
 
@@ -77,6 +77,7 @@ extension NumberStrings on int {
 
 extension StringTransform on String {
   String capitalize() {
+    if (this.isEmpty) return this;
     return this[0].toUpperCase() + this.substring(1);
   }
 }
