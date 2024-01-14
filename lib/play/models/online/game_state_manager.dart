@@ -25,7 +25,7 @@ class GameStateManager with ChangeNotifier {
 
   final ServerConnection _serverConnection;
 
-  late AppLifecycleState _lifecycleState;
+  AppLifecycleState _lifecycleState = AppLifecycleState.resumed;
 
   NotificationsProvider? notificationsProvider;
 
