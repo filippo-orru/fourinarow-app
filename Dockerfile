@@ -12,7 +12,7 @@ USER builder
 
 # download Flutter SDK from Flutter Github repo
 WORKDIR /flutter
-RUN git clone --revision=5464c5bac742001448fe4fc0597be939379f88ea https://github.com/flutter/flutter.git /flutter
+RUN git clone https://github.com/flutter/flutter.git /flutter && git checkout 5464c5bac742001448fe4fc0597be939379f88ea
 
 # Set flutter environment path
 ENV PATH="/flutter/bin:/flutter/bin/cache/dart-sdk/bin:${PATH}"
