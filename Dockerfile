@@ -12,13 +12,12 @@ USER builder
 
 # download Flutter SDK from Flutter Github repo
 WORKDIR /flutter
-RUN git clone https://github.com/flutter/flutter.git /flutter && git checkout 5464c5bac742001448fe4fc0597be939379f88ea
+RUN git clone -b v1.12.13-hotfixes https://github.com/flutter/flutter.git /flutter
 
 # Set flutter environment path
 ENV PATH="/flutter/bin:/flutter/bin/cache/dart-sdk/bin:${PATH}"
 
 # Run flutter doctor
-RUN flutter channel stable && flutter upgrade
 RUN flutter precache --web
 RUN flutter config --no-analytics
 
