@@ -1,7 +1,7 @@
 ## This Dockerfile is only used to build the web project and serve it using nginx
 
 # Operating system and dependencies
-FROM ubuntu:20.04 as build
+FROM --platform=linux/amd64 ubuntu:20.04 AS build
 
 RUN apt-get update && \
     apt-get install -y bash curl file git unzip xz-utils zip libglu1-mesa
