@@ -174,7 +174,7 @@ class _FriendsListState extends State<FriendsList> with SingleTickerProviderStat
                         SizedBox(height: 32),
                         Text(
                           'Sword icon made by Freepik @ flaticon.com',
-                          style: Theme.of(context).textTheme.caption,
+                          style: Theme.of(context).textTheme.labelSmall,
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -208,7 +208,7 @@ class _FriendsListState extends State<FriendsList> with SingleTickerProviderStat
           SizedBox(height: 18),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              primary: context.watch<ThemesProvider>().selectedTheme.friendsThemeColor.shade200,
+              backgroundColor: context.watch<ThemesProvider>().selectedTheme.friendsThemeColor.shade200,
             ),
             onPressed: () {
               userInfo.logOut();
@@ -456,7 +456,7 @@ class MoreButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        primary: context.watch<ThemesProvider>().selectedTheme.friendsThemeColor[200],
+        backgroundColor: context.watch<ThemesProvider>().selectedTheme.friendsThemeColor[200],
         shape: StadiumBorder(),
       ),
       onPressed: () => onTap,
@@ -516,7 +516,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
                         maxLines: 1,
                         softWrap: false,
                         // softWrap: true,
-                        style: Theme.of(context).textTheme.subtitle1,
+                        style: Theme.of(context).textTheme.titleSmall,
                       ),
                       SizedBox(height: 4),
                       Text(
@@ -527,7 +527,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
                             : "${widget.friend.gameInfo.skillRating} SR",
                         style: Theme.of(context)
                             .textTheme
-                            .bodyText2!
+                            .bodyMedium!
                             .copyWith(color: Colors.grey[500]),
                       ),
                     ],
@@ -621,7 +621,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
                                         children: [
                                           TextButton(
                                             style: TextButton.styleFrom(
-                                              primary: Colors.black87,
+                                              foregroundColor: Colors.black87,
                                             ),
                                             child: Text('Cancel'),
                                             onPressed: () => Navigator.of(ctx).pop(),
@@ -629,7 +629,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
                                           SizedBox(width: 16),
                                           OutlinedButton(
                                             style: OutlinedButton.styleFrom(
-                                              primary: Colors.red,
+                                              foregroundColor: Colors.red,
                                             ),
                                             onPressed: () {
                                               context
@@ -647,8 +647,10 @@ class _FriendsListTileState extends State<FriendsListTile> {
                               },
                             ),
                             SizedBox(width: 12),
-                            IconButton(
-                              icon: Icon(Icons.chat_outlined, color: Colors.grey.shade600),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.grey.shade600,
+                              ),
                               onPressed: () {
                                 showDialog(
                                   context: context,
@@ -658,6 +660,7 @@ class _FriendsListTileState extends State<FriendsListTile> {
                                   ),
                                 );
                               },
+                              child: Icon(Icons.chat_outlined),
                             ),
                           ]
                         : [],
@@ -1028,7 +1031,7 @@ class _AddFriendDialogState extends State<AddFriendDialog> {
                         alignment: Alignment.center,
                         child: TextButton.icon(
                           style: TextButton.styleFrom(
-                              primary: themeProvider.selectedTheme.friendsThemeColor.shade300),
+                              foregroundColor: themeProvider.selectedTheme.friendsThemeColor.shade300),
                           onPressed: shareInviteFriends,
                           icon: Icon(Icons.share_rounded),
                           label: Text('Invite friends'),

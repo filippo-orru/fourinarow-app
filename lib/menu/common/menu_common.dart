@@ -20,7 +20,7 @@ class MenuWrapper extends StatelessWidget {
       resizeToAvoidBottomInset: false,
       body: Theme(
         data: ThemeData(
-          backgroundColor: bgCol,
+          scaffoldBackgroundColor: bgCol,
         ),
         child: SafeArea(
           child: Container(
@@ -231,14 +231,14 @@ class _FeedbackDialogState extends State<FeedbackDialog> with SingleTickerProvid
                     children: [
                       TextButton(
                         style: TextButton.styleFrom(
-                          primary: Colors.black87,
+                          foregroundColor: Colors.black87,
                         ),
                         child: Text('Cancel'),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          primary: context.watch<ThemesProvider>().selectedTheme.accentColor,
+                          foregroundColor: context.watch<ThemesProvider>().selectedTheme.accentColor,
                         ),
                         onPressed: () async {
                           Map<String, String> body = {

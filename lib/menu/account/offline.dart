@@ -92,7 +92,7 @@ class _OfflineScreenState extends State<OfflineScreen> {
                   SizedBox(width: 24),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      primary: Colors.blue[300],
+                      backgroundColor: Colors.blue[300],
                     ),
                     onPressed: retry,
                     child: Text(

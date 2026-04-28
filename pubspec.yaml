@@ -30,6 +30,7 @@ dependencies:
   share: ^2.0.1
   logger: ^2.0.2+1
   linked_scroll_controller: ^0.2.0
+  archive: ^3.5.0
 
 dev_dependencies:
   flutter_test:

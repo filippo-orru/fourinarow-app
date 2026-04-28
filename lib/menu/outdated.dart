@@ -61,7 +61,7 @@ class OutDatedDialog extends StatelessWidget {
               isAndroid
                   ? ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        primary: Colors.blueAccent,
+                        backgroundColor: Colors.blueAccent,
                         padding: EdgeInsets.symmetric(vertical: 18, horizontal: 32),
                       ),
                       onPressed: () async {

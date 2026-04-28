@@ -106,14 +106,14 @@ class _PlayingLocalState extends State<PlayingLocal> with RouteAware {
                     children: [
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          primary: Colors.blueGrey,
+                          backgroundColor: Colors.blueGrey,
                         ),
                         child: Text('Undo'),
                         onPressed: () => setState(() => field.undo()),
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          primary: Colors.blueGrey,
+                          backgroundColor: Colors.blueGrey,
                         ),
                         child: Text('Fill random'),
                         onPressed: () async {

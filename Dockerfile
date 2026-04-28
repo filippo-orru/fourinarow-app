@@ -1,7 +1,7 @@
 ## This Dockerfile is only used to build the web project and serve it using nginx
 
 # Operating system and dependencies
-FROM --platform=linux/amd64 ubuntu:20.04 AS build
+FROM ubuntu:20.04 AS build
 
 RUN apt-get update && \
     apt-get install -y bash curl file git unzip xz-utils zip libglu1-mesa
@@ -12,7 +12,7 @@ USER builder
 
 # download Flutter SDK from Flutter Github repo
 WORKDIR /flutter
-RUN git clone -b v1.12.13-hotfixes https://github.com/flutter/flutter.git /flutter
+RUN git clone -b stable https://github.com/flutter/flutter.git /flutter
 
 # Set flutter environment path
 ENV PATH="/flutter/bin:/flutter/bin/cache/dart-sdk/bin:${PATH}"

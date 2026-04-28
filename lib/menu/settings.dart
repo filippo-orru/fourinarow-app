@@ -67,14 +67,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       children: [
                                         TextButton(
                                           style: TextButton.styleFrom(
-                                            primary: Colors.black87,
+                                            foregroundColor: Colors.black87,
                                           ),
                                           child: Text('Cancel'),
                                           onPressed: () => Navigator.of(context).pop(),
                                         ),
                                         OutlinedButton(
                                           style: OutlinedButton.styleFrom(
-                                            primary: context
+                                            foregroundColor: context
                                                 .watch<ThemesProvider>()
                                                 .selectedTheme
                                                 .accentColor,
@@ -317,7 +317,7 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
                       child: Text(
                         _selectedEmojisString,
                         key: ValueKey(_selectedEmojis),
-                        style: Theme.of(context).textTheme.subtitle2!.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium!.copyWith(
                               fontSize: 18,
                             ),
                       ),
@@ -335,14 +335,14 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
                         children: [
                           TextButton(
                             style: TextButton.styleFrom(
-                              primary: Colors.black87,
+                              foregroundColor: Colors.black87,
                             ),
                             child: Text('Cancel'),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                           OutlinedButton(
                             style: OutlinedButton.styleFrom(
-                              primary: context.watch<ThemesProvider>().selectedTheme.accentColor,
+                              foregroundColor: context.watch<ThemesProvider>().selectedTheme.accentColor,
                             ),
                             child: Text('Save'),
                             onPressed: _allowSave()
@@ -363,7 +363,7 @@ class _ChooseQuickchatEmojisState extends State<ChooseQuickchatEmojis> {
                           'Selected ${_selectedEmojis.length} of $QUICKCHAT_EMOJI_COUNT',
                           style: Theme.of(context)
                               .textTheme
-                              .subtitle1!
+                              .titleSmall!
                               .copyWith(color: (color as Color)),
                         ),
                       ),

@@ -161,7 +161,7 @@ class _ReconnectingState extends State<Reconnecting> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    primary: Colors.grey.shade100,
+                    foregroundColor: Colors.grey.shade100,
                   ),
                   onPressed: (s > 5) ? () => Navigator.of(context).pop() : null,
                   child: Text(

@@ -396,7 +396,7 @@ class _JoinLobbyButtonsState extends State<JoinLobbyButtons> with SingleTickerPr
               height: 48,
               child: TextButton(
                 style: TextButton.styleFrom(
-                  primary: Colors.white24,
+                  foregroundColor: Colors.white24,
                 ),
                 onPressed: () => setState(() => expandedLobbyCode = true),
                 child: Text(

@@ -254,7 +254,7 @@ class FiarSimpleDialog extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    primary: context.watch<ThemesProvider>().selectedTheme.accentColor,
+                    foregroundColor: context.watch<ThemesProvider>().selectedTheme.accentColor,
                   ),
                   onPressed: onOkay ?? () => Navigator.of(context).pop(),
                   child: Text('Okay'),
