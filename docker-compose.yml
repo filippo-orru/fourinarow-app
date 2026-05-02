@@ -1,6 +1,7 @@
 services:
   frontend:
     build: .
+    restart: unless-stopped
     expose:
       - 80
     labels:
